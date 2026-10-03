@@ -6,10 +6,7 @@ Images, containers, volumes and Dockerfiles — the runtime foundation that Kube
 
 | File | What it is |
 |---|---|
-| [ModuleMap.html](ModuleMap.html) | Module map — one architecture diagram of everything this module teaches, the lab parts step by step, and what you'll be able to do |
-| [Module1-Docker-Fundamentals  -  Repaired.pptx](Module1-Docker-Fundamentals%20%20-%20%20Repaired.pptx) | Slide deck — 42 slides, with a 9-question knowledge check and answer key |
 | [demo.html](demo.html) | Step-by-step hands-on lab — 16 steps, every command copy-paste ready with expected output |
-| [Transcript.html](Transcript.html) | Trainer script — 13 lectures covering all 42 slides, about 2 h 10 min including demos |
 
 Open the `.html` files in any browser. The lab page and the trainer script link to each other: every lecture names the slides it covers and the lab step to run.
 
