@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1 Lab — Docker Hands-On</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 1 · Hands-on lab</div>
+  <h1>Docker &amp; Container Fundamentals — Step-by-Step Lab</h1>
+  <p>Twenty steps, in order. Each step starts where the last one finished. Copy a block, paste it into your
+  terminal, and compare with the expected output. By the end you will have built, secured, pushed and
+  orchestrated a real app — and seen its Kubernetes YAML.</p>
+  <div class="meta"><span>16 steps · about 1 h 13 min</span><span>Docker Engine 29</span>
+  <span>Every step verified end to end</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Warm-up</div><a href="#step-1"><span class="n">1</span>Check Docker is ready and create your lab folder</a><a href="#step-2"><span class="n">2</span>Pull an image and look at its layers</a><a href="#step-3"><span class="n">3</span>Run your first container (foreground, then detached)</a><a href="#step-4"><span class="n">4</span>Walk through the container lifecycle</a><a href="#step-5"><span class="n">5</span>Read logs and open a shell inside</a><a href="#step-6"><span class="n">6</span>Inspect and debug like an operator</a><a href="#step-7"><span class="n">7</span>stop vs kill — see the difference</a><div class="grp">Part B · Build and configure your own images</div><a href="#step-8"><span class="n">8</span>Build your first image — RUN vs CMD</a><a href="#step-9"><span class="n">9</span>Environment variables — same image, different settings</a><a href="#step-10"><span class="n">10</span>Keep your data: volumes</a><div class="grp">Part C · Production-grade project</div><a href="#step-11"><span class="n">11</span>Create the project files</a><a href="#step-12"><span class="n">12</span>Lock dependencies and write the multi-stage Dockerfile</a><a href="#step-13"><span class="n">13</span>Build, run and verify</a><a href="#step-14"><span class="n">14</span>Tag and push to Docker Hub</a><a href="#step-15"><span class="n">15</span>Graceful shutdown in action</a><div class="grp">Part D · Clean up</div><a href="#step-16"><span class="n">16</span>Clean up everything</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Warm-up: run and manage containers</div><div class="psub">Steps 1–7 · nginx web server · ~30 min</div><div class="chips"><a href="#step-1">1. Check Docker is ready and create your lab folder</a><a href="#step-2">2. Pull an image and look at its layers</a><a href="#step-3">3. Run your first container (foreground, then detached)</a><a href="#step-4">4. Walk through the container lifecycle</a><a href="#step-5">5. Read logs and open a shell inside</a><a href="#step-6">6. Inspect and debug like an operator</a><a href="#step-7">7. stop vs kill — see the difference</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Build and configure your own images</div><div class="psub">Steps 8–10 · ~20 min</div><div class="chips"><a href="#step-8">8. Build your first image — RUN vs CMD</a><a href="#step-9">9. Environment variables — same image, different settings</a><a href="#step-10">10. Keep your data: volumes</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">Production-grade project</div><div class="psub">Steps 11–15 · Node.js API · ~35 min</div><div class="chips"><a href="#step-11">11. Create the project files</a><a href="#step-12">12. Lock dependencies and write the multi-stage Dockerfile</a><a href="#step-13">13. Build, run and verify</a><a href="#step-14">14. Tag and push to Docker Hub</a><a href="#step-15">15. Graceful shutdown in action</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Clean up</div><div class="psub">Step 16 · ~5 min</div><div class="chips"><a href="#step-16">16. Clean up everything</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules">
+    <li><b>Install:</b> Docker Desktop (Mac/Windows) or Docker Engine (Linux).</li>
+    <li><b>Terminal:</b> commands are written for bash/zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows.</li>
+    <li><b>Go in order.</b> Later steps use files and images from earlier steps.</li>
+    <li><b>Check every step:</b> compare with <i>Expected output</i>, and don't move on until the <i>Checkpoint</i> is true.
+      IDs, times and hashes will differ from yours — that's normal.</li>
+    <li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li>
+  </ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-pull every image before class (saves time on slow Wi-Fi)</span><button class="copy" type="button">Copy</button></div><pre><code>for img in hello-world nginx:1.28-alpine ubuntu:24.04 alpine:3.22 \
+           node:24-alpine; do
+  docker pull "$img"
+done</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Warm-up: run and manage containers</b><span>Steps 1–7 · nginx web server · ~30 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Check Docker is ready and create your lab folder</h2><div class="tags"><span>Slides 5–6</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Confirm the Docker client can talk to the Docker daemon, then make one folder for the whole lab.</p><div class="folder">Run from: <code>anywhere</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker --version
+docker info --format '{{.ServerVersion}}'
+docker run --rm hello-world</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Docker version 29.3.1, build c2be9cc
+29.3.1
+...
+Hello from Docker!
+This message shows that your installation appears to be working correctly.</pre></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step starts from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module1-lab
+cd module1-lab</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>docker --version</code> only talks to the <b>client</b>. <code>docker info</code> needs the <b>daemon</b> — if it fails, Docker Desktop (or the Docker service) is not running.</li><li><code>hello-world</code> was not in your local cache, so Docker <b>pulled</b> it from Docker Hub first, then ran it (slide 6).</li><li><code>--rm</code> deletes the container automatically when it exits. Great for one-off commands.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw <b>Hello from Docker!</b> and you are inside the <code>module1-lab</code> folder.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Pull an image and look at its layers</h2><div class="tags"><span>Slides 6, 14</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Download an image without running it, and see the read-only layers it is made of.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker pull nginx:1.28-alpine
+docker images nginx
+docker image history nginx:1.28-alpine</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>IMAGE               ID             DISK USAGE   CONTENT SIZE
+nginx:1.28-alpine   ...            93.4MB       ...
+
+CREATED BY                                      SIZE
+RUN /bin/sh -c set -x     &amp;&amp; apkArch="$(cat …   51.8MB
+ENV NJS_VERSION=0.9.6                           0B
+CMD ["nginx" "-g" "daemon off;"]                0B
+STOPSIGNAL SIGQUIT                              0B
+EXPOSE map[80/tcp:{}]                           0B
+...</pre></div><div class="code"><div class="code-bar"><span>Run the pull again</span><button class="copy" type="button">Copy</button></div><pre><code>docker pull nginx:1.28-alpine</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>1.28-alpine: Pulling from library/nginx
+Digest: sha256:...
+Status: Image is up to date for nginx:1.28-alpine</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>We used a <b>pinned tag</b> (<code>1.28-alpine</code>) instead of <code>latest</code>. Pinned tags mean everyone in class gets the same image.</li><li><code>docker image history</code> shows each <b>layer</b>, newest on top. Layers with <code>0B</code> are just settings (CMD, EXPOSE, STOPSIGNAL).</li><li>The second pull downloaded nothing — the image was already in the <b>local cache</b>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker images nginx</code> lists <code>nginx:1.28-alpine</code>.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Run your first container (foreground, then detached)</h2><div class="tags"><span>Slides 8, 12</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> See the difference between a container that holds your terminal and one that runs in the background.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>1. Foreground — this takes over your terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker run --name web-fg -p 8080:80 nginx:1.28-alpine</code></pre></div><p>You will see nginx start-up logs. Your terminal is now busy. Press <b>Ctrl + C</b> to stop it, then remove it:</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker rm web-fg</code></pre></div><div class="code"><div class="code-bar"><span>2. Detached — runs in the background</span><button class="copy" type="button">Copy</button></div><pre><code>docker run -d --name web -p 8080:80 nginx:1.28-alpine
+docker ps
+curl -s http://localhost:8080 | grep title</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAMES     IMAGE               STATUS         PORTS
+web       nginx:1.28-alpine   Up 2 seconds   0.0.0.0:8080-&gt;80/tcp
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>-d</code> (detached) gives you your terminal back.</li><li><code>--name web</code> gives the container a name we can use in every later command.</li><li><code>-p 8080:80</code> means <b>host port 8080 → container port 80</b>. Host first, container second.</li></ul></div><div class="callout"><b>Note:</b> On Windows PowerShell use <code>curl.exe</code>, or just open <a href="http://localhost:8080">http://localhost:8080</a> in your browser.</div><div class="check"><span>Checkpoint</span><div class="ct"><a href="http://localhost:8080">http://localhost:8080</a> shows <b>Welcome to nginx!</b></div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Walk through the container lifecycle</h2><div class="tags"><span>Slides 9–10</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Move one container through every state and watch the status change.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>Created — exists, but never started</span><button class="copy" type="button">Copy</button></div><pre><code>docker create --name web-created nginx:1.28-alpine
+docker inspect -f '{{.State.Status}}' web-created
+docker rm web-created</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>created</pre></div><div class="code"><div class="code-bar"><span>Running → Paused → Running → Exited</span><button class="copy" type="button">Copy</button></div><pre><code>docker inspect -f '{{.State.Status}}' web
+
+docker pause web
+docker inspect -f '{{.State.Status}}' web
+
+docker unpause web
+docker inspect -f '{{.State.Status}}' web
+
+docker stop web
+docker inspect -f '{{.State.Status}} (exit code {{.State.ExitCode}})' web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>running
+paused
+running
+exited (exit code 0)</pre></div><div class="code"><div class="code-bar"><span>Stopped is not removed</span><button class="copy" type="button">Copy</button></div><pre><code>docker ps
+docker ps -a</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAMES     STATUS                      &lt;- docker ps: empty
+
+NAMES     STATUS                      &lt;- docker ps -a
+web       Exited (0) 5 seconds ago</pre></div><div class="code"><div class="code-bar"><span>Start it again — same container, same name</span><button class="copy" type="button">Copy</button></div><pre><code>docker start web
+docker inspect -f '{{.State.Status}}' web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>running</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>pause</code> freezes the processes but keeps everything in memory.</li><li>After <code>stop</code>, the container is <b>Exited</b> but still on disk. <code>docker ps</code> hides it; <code>docker ps -a</code> shows it.</li><li>Exit code <b>0</b> means it shut down cleanly.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>web</code> is running again.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Read logs and open a shell inside</h2><div class="tags"><span>Slide 13</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Use the two most important debugging tools: logs and exec.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>Make a request, then read the logs</span><button class="copy" type="button">Copy</button></div><pre><code>curl -s http://localhost:8080 &gt; /dev/null
+docker logs web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>... [notice] 1#1: start worker process 22
+172.17.0.1 - - [28/Sep/2026:16:27:54 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/8.5.0" "-"</pre></div><div class="code"><div class="code-bar"><span>Follow logs live (press Ctrl + C to stop following)</span><button class="copy" type="button">Copy</button></div><pre><code>docker logs -f --tail 5 web</code></pre></div><p>While it is following, refresh <a href="http://localhost:8080">http://localhost:8080</a> in your browser and watch new lines appear.</p><div class="code"><div class="code-bar"><span>Open a shell inside the running container</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec -it web sh</code></pre></div><div class="code"><div class="code-bar"><span>Type these inside the container shell</span><button class="copy" type="button">Copy</button></div><pre><code>cat /etc/os-release | head -1
+ls /usr/share/nginx/html
+exit</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME="Alpine Linux"
+50x.html
+index.html</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>docker logs</code> shows everything the app printed. <code>-f</code> keeps following.</li><li><code>exec -it</code> opens an interactive shell. Alpine images have <code>sh</code>; Ubuntu/Debian images usually have <code>bash</code>.</li><li><code>exit</code> closes <b>your shell only</b>. The container keeps running.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker ps</code> still shows <code>web</code> as Up.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Inspect and debug like an operator</h2><div class="tags"><span>Slides 11, 23</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Get answers from metadata before you ever open a shell.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker inspect web | head -30
+docker inspect -f '{{.Config.Image}}' web
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>[
+    {
+        "Id": "21017624e331...",
+        ...
+nginx:1.28-alpine
+172.17.0.2</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker stats web --no-stream
+docker top web
+docker port web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME      CPU %     MEM USAGE / LIMIT
+web       0.00%     4.855MiB / 15.72GiB
+
+UID    PID    ...   CMD
+root   1659   ...   nginx: master process nginx -g daemon off;
+...    1707   ...   nginx: worker process
+
+80/tcp -&gt; 0.0.0.0:8080</pre></div><div class="code"><div class="code-bar"><span>Handy listing shortcuts</span><button class="copy" type="button">Copy</button></div><pre><code>docker ps -q
+docker ps --filter "name=web"</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>inspect</code> is the full truth about a container, as JSON. <code>-f</code> pulls out one field.</li><li><code>stats</code> = live CPU and memory. <code>top</code> = processes inside. <code>port</code> = published ports.</li><li><code>ps -q</code> prints IDs only (useful in scripts). <code>--filter</code> searches by name.</li></ul></div><div class="callout"><b>Note:</b> Older tutorials use <code>{{.NetworkSettings.IPAddress}}</code>. That shortcut was removed in newer Docker versions — use the <code>range .NetworkSettings.Networks</code> form shown above.</div><div class="check"><span>Checkpoint</span><div class="ct">You can print the container's image name and IP address with one command each.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>stop vs kill — see the difference</h2><div class="tags"><span>Slides 8, 12 · Quiz Q3</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Prove that <code>stop</code> is graceful and <code>kill</code> is not, using exit codes.</p><div class="folder">Run from: <code>module1-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker stop web
+docker inspect -f 'web      -&gt; exit code {{.State.ExitCode}}' web
+
+docker run -d --name web-kill nginx:1.28-alpine
+docker kill web-kill
+docker inspect -f 'web-kill -&gt; exit code {{.State.ExitCode}}' web-kill
+
+docker rm web web-kill</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>web      -&gt; exit code 0
+web-kill -&gt; exit code 137</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>docker stop</code> sends the image's stop signal (nginx uses a graceful SIGQUIT), waits up to <b>10 seconds</b>, and only then force-kills.</li><li><code>docker kill</code> sends <b>SIGKILL</b> immediately. No cleanup at all.</li><li><b>137 = 128 + 9</b>. Signal 9 is SIGKILL. When you see 137, the container was killed.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Part A done. <code>docker ps -a</code> shows no containers left over from Part A.</div></div></section><div class="part-head" id="part-B"><b>Part B — Build and configure your own images</b><span>Steps 8–10 · ~20 min</span></div><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Build your first image — RUN vs CMD</h2><div class="tags"><span>Slides 17–20 · Quiz Q4</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> See with your own eyes why <code>RUN</code> alone prints nothing when the container runs.</p><div class="folder">Run from: <code>module1-lab/first-image/</code></div><div class="code"><div class="code-bar"><span>Make a folder for this image</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir first-image
+cd first-image</code></pre></div><h3>8a. The broken version (a very common mistake)</h3><div class="code"><div class="code-bar"><span>Creates: Dockerfile.broken</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; Dockerfile.broken &lt;&lt;'EOF'
+FROM ubuntu:24.04
+RUN echo "Hello from my first Docker image"
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker build --progress=plain --no-cache -f Dockerfile.broken -t first-image-broken .
+docker run --rm first-image-broken
+docker inspect -f 'CMD it inherited: {{json .Config.Cmd}}' first-image-broken</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>#5 [2/2] RUN echo "Hello from my first Docker image"
+#5 0.176 Hello from my first Docker image     &lt;- printed during the BUILD only
+...
+                                              &lt;- docker run printed NOTHING
+CMD it inherited: ["/bin/bash"]</pre></div><h3>8b. The fixed version</h3><div class="code"><div class="code-bar"><span>Creates: Dockerfile</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; Dockerfile &lt;&lt;'EOF'
+FROM ubuntu:24.04
+RUN echo "Hello from my first Docker image" &gt; /message.txt
+CMD ["cat", "/message.txt"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker build -t my_first_image .
+docker images my_first_image
+docker run --rm my_first_image</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>IMAGE                   ID             DISK USAGE   CONTENT SIZE
+my_first_image:latest   7356c028c0df        117MB         29.8MB
+Hello from my first Docker image</pre></div><div class="code"><div class="code-bar"><span>Go back to module1-lab</span><button class="copy" type="button">Copy</button></div><pre><code>cd ..</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>RUN</code> runs <b>once, while building</b>. Its output only appears in the build log.</li><li>The broken image has no CMD of its own, so it inherited Ubuntu's <code>/bin/bash</code>. Bash with no terminal attached exits straight away — so nothing prints.</li><li>In the fixed image, <code>RUN</code> writes the message into a file inside the image, and <code>CMD</code> prints that file <b>every time a container starts</b>.</li><li>We pinned <code>ubuntu:24.04</code>. The slide uses <code>ubuntu:latest</code> to keep it short, but pinned versions are what you use in real projects.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker run --rm my_first_image</code> prints the message.</div></div></section><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>Environment variables — same image, different settings</h2><div class="tags"><span>Slide 22</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Change an app's settings at run time without rebuilding, and learn which setting wins.</p><div class="folder">Run from: <code>module1-lab/env-demo/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir env-demo
+cd env-demo</code></pre></div><div class="code"><div class="code-bar"><span>Creates: Dockerfile</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; Dockerfile &lt;&lt;'EOF'
+FROM alpine:3.22
+ENV GREETING="Hello (default baked into the image)"
+ENV APP_ENV="dev"
+CMD ["sh", "-c", "echo \"$GREETING | APP_ENV=$APP_ENV\""]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: app.env</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; app.env &lt;&lt;'EOF'
+GREETING=Hello from an env file
+APP_ENV=staging
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker build -t env-demo .
+
+echo '--- 1. default from ENV ---'
+docker run --rm env-demo
+
+echo '--- 2. override with -e ---'
+docker run --rm -e GREETING="Hello from -e" env-demo
+
+echo '--- 3. load a file with --env-file ---'
+docker run --rm --env-file app.env env-demo
+
+echo '--- 4. both: -e wins ---'
+docker run --rm --env-file app.env -e APP_ENV=prod env-demo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>--- 1. default from ENV ---
+Hello (default baked into the image) | APP_ENV=dev
+--- 2. override with -e ---
+Hello from -e | APP_ENV=dev
+--- 3. load a file with --env-file ---
+Hello from an env file | APP_ENV=staging
+--- 4. both: -e wins ---
+Hello from an env file | APP_ENV=prod</pre></div><div class="code"><div class="code-bar"><span>Go back to module1-lab</span><button class="copy" type="button">Copy</button></div><pre><code>cd ..</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>ENV</code> in the Dockerfile is only a <b>default</b>.</li><li>Priority order: <b><code>-e</code> &gt; <code>--env-file</code> &gt; <code>ENV</code></b>.</li><li>This is how one image runs in dev, staging and production — only the settings change.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You can explain why run #4 printed <code>APP_ENV=prod</code>.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Keep your data: volumes</h2><div class="tags"><span>Slide 24 · Quiz Q8</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> See data disappear without a volume, then keep it with a named volume.</p><div class="folder">Run from: <code>module1-lab/</code></div><h3>10a. Without a volume, data dies with the container</h3><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker run --name temp-writer alpine:3.22 sh -c 'echo "important data" &gt; /data.txt'
+docker rm temp-writer
+docker run --rm alpine:3.22 cat /data.txt</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>cat: can't open '/data.txt': No such file or directory</pre></div><h3>10b. Named volume — survives container removal</h3><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker volume create app-data
+
+for i in 1 2 3; do
+  docker run --rm -v app-data:/data alpine:3.22 sh -c "echo 'run $i wrote this' &gt;&gt; /data/log.txt"
+done
+
+docker run --rm -v app-data:/data alpine:3.22 cat /data/log.txt</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>run 1 wrote this
+run 2 wrote this
+run 3 wrote this</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A container's own filesystem is thrown away with the container. A <b>named volume</b> lives outside it, so the data survives.</li><li>Kubernetes uses the same idea for databases: a PersistentVolumeClaim (Module 8).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Part B done. <code>docker volume ls</code> shows <code>app-data</code>, and it still holds three lines.</div></div></section><div class="part-head" id="part-C"><b>Part C — Production-grade project</b><span>Steps 11–15 · Node.js API · ~35 min</span></div><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>Create the project files</h2><div class="tags"><span>Slides 26–27</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a small but realistic Node.js API: settings from env vars, a health endpoint, optional Redis, and graceful shutdown.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Every remaining step runs inside demo-api/</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir demo-api
+cd demo-api</code></pre></div><div class="code"><div class="code-bar"><span>Creates: app.js</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; app.js &lt;&lt;'EOF'
+const express = require('express');
+const os = require('os');
+const { createClient } = require('redis');
+
+const PORT = process.env.PORT || 3000;
+const GREETING = process.env.GREETING || 'Hello from Module 1!';
+const REDIS_URL = process.env.REDIS_URL;
+
+const app = express();
+let redis = null;
+
+if (REDIS_URL) {
+  redis = createClient({ url: REDIS_URL });
+  redis.on('error', (err) =&gt; console.error('Redis error:', err.message));
+  redis.connect()
+    .then(() =&gt; console.log('Connected to Redis'))
+    .catch((err) =&gt; console.error('Redis connect failed:', err.message));
+}
+
+app.get('/', async (req, res) =&gt; {
+  const visits = redis &amp;&amp; redis.isReady ? await redis.incr('visits') : null;
+  res.json({ message: GREETING, servedBy: os.hostname(), visits });
+});
+
+app.get('/health', (req, res) =&gt; res.status(200).send('OK'));
+
+const server = app.listen(PORT, () =&gt; console.log(`Listening on port ${PORT}`));
+
+process.on('SIGTERM', () =&gt; {
+  console.log('SIGTERM received - shutting down gracefully');
+  server.close(async () =&gt; {
+    if (redis &amp;&amp; redis.isOpen) await redis.close();
+    console.log('Shutdown complete');
+    process.exit(0);
+  });
+});
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: package.json</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; package.json &lt;&lt;'EOF'
+{
+  "name": "module1-demo-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "redis": "^6.2.1"
+  }
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: .dockerignore</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; .dockerignore &lt;&lt;'EOF'
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+*.md
+Dockerfile
+.dockerignore
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: .env (local settings — kept out of the image)</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; .env &lt;&lt;'EOF'
+GREETING=Hello from my laptop!
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Check</span><button class="copy" type="button">Copy</button></div><pre><code>ls -A</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>.dockerignore  .env  app.js  package.json</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>app.js</b> reads all settings from environment variables (<code>PORT</code>, <code>GREETING</code>, <code>REDIS_URL</code>) — just like Step 9.</li><li><code>/health</code> returns <code>OK</code>. Docker (and later Kubernetes) will call it to check the app is alive.</li><li>The <code>SIGTERM</code> handler lets the app finish requests and close Redis before it exits. That makes <code>docker stop</code> fast and clean (Step 15).</li><li><b>.dockerignore</b> keeps <code>node_modules</code>, <code>.git</code> and <code>.env</code> (secrets!) out of the build (slide 27).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>ls -A</code> shows the four files.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Lock dependencies and write the multi-stage Dockerfile</h2><div class="tags"><span>Slide 26 · Quiz Q5, Q9</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a lock file (no Node.js install needed on your laptop), then write a production Dockerfile.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Generate package-lock.json using Node inside a container</span><button class="copy" type="button">Copy</button></div><pre><code>docker run --rm -v "$(pwd)":/app -w /app node:24-alpine npm install --package-lock-only
+ls package-lock.json</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>added ... packages ...
+package-lock.json</pre></div><div class="callout"><b>Note:</b> On Linux the new file may belong to <code>root</code>. Fix it with <code>sudo chown $USER package-lock.json</code>.</div><div class="code"><div class="code-bar"><span>Creates: Dockerfile</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; Dockerfile &lt;&lt;'EOF'
+# ---------- Stage 1: install production dependencies ----------
+FROM node:24-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# ---------- Stage 2: small, secure runtime image ----------
+FROM node:24-alpine AS runtime
+ENV NODE_ENV=production \
+    PORT=3000
+WORKDIR /app
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node package.json app.js ./
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+CMD ["node", "app.js"]
+EOF</code></pre></div><div class="table-wrap"><table><thead><tr><th>Line</th><th>Why it is there</th></tr></thead><tbody><tr><td><code>FROM node:24-alpine AS deps</code></td><td>Stage 1 — the "workshop". Node 24 is the current LTS; Alpine keeps it small.</td></tr><tr><td><code>COPY package.json package-lock.json ./</code> <b>before</b> the code</td><td>Dependencies change rarely. Copying them first means Docker reuses the cached <code>npm ci</code> layer when only your code changes (Quiz Q5).</td></tr><tr><td><code>RUN npm ci --omit=dev</code></td><td>Installs <b>exact</b> versions from the lock file, production dependencies only.</td></tr><tr><td><code>FROM node:24-alpine AS runtime</code></td><td>Stage 2 — starts completely fresh. Nothing from stage 1 comes along unless we copy it.</td></tr><tr><td><code>COPY --from=deps ...</code></td><td>Takes only the finished <code>node_modules</code> from the workshop.</td></tr><tr><td><code>--chown=node:node</code> + <code>USER node</code></td><td>The app runs as the built-in non-root <code>node</code> user, not root.</td></tr><tr><td><code>HEALTHCHECK ...</code></td><td>Docker calls <code>/health</code> every 30s and marks the container healthy or unhealthy.</td></tr><tr><td><code>CMD ["node", "app.js"]</code></td><td>Exec form (JSON array) makes <code>node</code> process 1, so it receives <code>SIGTERM</code> from <code>docker stop</code>.</td></tr></tbody></table></div><div class="check"><span>Checkpoint</span><div class="ct"><code>ls</code> shows <code>Dockerfile</code> and <code>package-lock.json</code>.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Build, run and verify</h2><div class="tags"><span>Slides 20, 26</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Build the image, check it is healthy and check it does not run as root.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker build -t module1-demo-api:1.0.0 .
+
+docker run -d --name demo-api -p 3000:3000 \
+  -e GREETING="Hello from my production image!" \
+  module1-demo-api:1.0.0
+sleep 2
+
+curl -s http://localhost:3000; echo
+curl -s http://localhost:3000/health; echo
+docker ps --filter name=demo-api --format 'table {{.Names}}\t{{.Status}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>{"message":"Hello from my production image!","servedBy":"0a8efb2c94e6","visits":null}
+OK
+NAMES      STATUS
+demo-api   Up 2 seconds (health: starting)</pre></div><div class="code"><div class="code-bar"><span>Wait for the first health check, then check user and size</span><button class="copy" type="button">Copy</button></div><pre><code>sleep 12
+docker ps --filter name=demo-api --format 'table {{.Names}}\t{{.Status}}'
+docker exec demo-api whoami
+docker images module1-demo-api</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAMES      STATUS
+demo-api   Up 14 seconds (healthy)
+node
+IMAGE                    ID             DISK USAGE   CONTENT SIZE
+module1-demo-api:1.0.0   56b54edbf9ed        263MB         63.2MB</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>visits</code> is <code>null</code> because there is no Redis — the app still works without it.</li><li>Status goes <b>health: starting → healthy</b> after the first successful check.</li><li>Docker 29 shows <b>DISK USAGE</b> (unpacked on your disk) and <b>CONTENT SIZE</b> (what gets downloaded). Older Docker versions show one SIZE column. Your numbers may differ a little by platform and version.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker ps</code> shows <code>demo-api</code> as <b>(healthy)</b> and <code>whoami</code> prints <b>node</b>.</div></div></section><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Tag and push to Docker Hub</h2><div class="tags"><span>Slides 7, 15–16 · Quiz Q6</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Log in to Docker Hub, push two tags to the techitfactory namespace, delete the local copy and pull it back.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Log in — paste an access token when asked, not your password</span><button class="copy" type="button">Copy</button></div><pre><code>DOCKERHUB_USER=techitfactory     # learners: your own Docker Hub user name
+docker login -u $DOCKERHUB_USER</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Password:
+Login Succeeded</pre></div><div class="callout"><b>Note:</b> Create the token on hub.docker.com → <b>Account settings → Personal access tokens</b>, with <b>Read &amp; Write</b> access. A token can be revoked on its own, and it never shows up on screen or in your shell history.</div><div class="code"><div class="code-bar"><span>Tag for Docker Hub, push both tags, then ask Docker Hub which tags it has</span><button class="copy" type="button">Copy</button></div><pre><code>docker tag module1-demo-api:1.0.0 $DOCKERHUB_USER/module1-demo-api:1.0.0
+docker tag module1-demo-api:1.0.0 $DOCKERHUB_USER/module1-demo-api:sha-a1b2c3d
+
+docker push $DOCKERHUB_USER/module1-demo-api:1.0.0
+docker push $DOCKERHUB_USER/module1-demo-api:sha-a1b2c3d
+
+curl -s "https://hub.docker.com/v2/namespaces/$DOCKERHUB_USER/repositories/module1-demo-api/tags" | grep -o '"name":"[^"]*"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>The push refers to repository [docker.io/techitfactory/module1-demo-api]
+...
+1.0.0: digest: sha256:891ac3ede23e... size: 856
+The push refers to repository [docker.io/techitfactory/module1-demo-api]
+...
+sha-a1b2c3d: digest: sha256:891ac3ede23e... size: 856
+"name":"sha-a1b2c3d"
+"name":"1.0.0"</pre></div><div class="code"><div class="code-bar"><span>Delete the local copy and pull it back from Docker Hub</span><button class="copy" type="button">Copy</button></div><pre><code>docker image rm $DOCKERHUB_USER/module1-demo-api:1.0.0
+docker pull $DOCKERHUB_USER/module1-demo-api:1.0.0</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Untagged: techitfactory/module1-demo-api:1.0.0
+...
+Status: Downloaded newer image for techitfactory/module1-demo-api:1.0.0
+docker.io/techitfactory/module1-demo-api:1.0.0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A name with no registry host in front (<code>techitfactory/module1-demo-api</code>) means <b>Docker Hub</b> — <code>docker.io</code>. The first part is the Docker Hub account or organisation; you can only push to your own.</li><li>Both tags show the <b>same digest</b>. A tag is just a label; the digest is the real, unchangeable identity of the image.</li><li>In a real project you tag with the git commit: <code>sha-$(git rev-parse --short HEAD)</code>. That tag never moves — unlike <code>latest</code> (Quiz Q6).</li><li>The repository is <b>public</b>, so any machine or Kubernetes cluster can pull it without logging in. See it at <code>hub.docker.com/r/techitfactory/module1-demo-api</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Docker Hub lists both tags, <b>1.0.0</b> and <b>sha-a1b2c3d</b>, and the pull succeeds.</div></div></section><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Graceful shutdown in action</h2><div class="tags"><span>Slides 8, 12 · Quiz Q3</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> See the SIGTERM handler from app.js working — and what happens without one.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>time docker stop demo-api
+docker logs demo-api
+docker inspect -f 'exit code {{.State.ExitCode}}' demo-api
+docker rm demo-api</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>demo-api
+real    0m0.202s
+
+Listening on port 3000
+SIGTERM received - shutting down gracefully
+Shutdown complete
+exit code 0</pre></div><div class="code"><div class="code-bar"><span>Compare: an app with no SIGTERM handler</span><button class="copy" type="button">Copy</button></div><pre><code>docker run -d --name no-handler node:24-alpine node -e 'setInterval(() =&gt; {}, 1000)'
+time docker stop no-handler
+docker inspect -f 'exit code {{.State.ExitCode}}' no-handler
+docker rm no-handler</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>no-handler
+real    0m10.159s
+exit code 137</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Our app caught <code>SIGTERM</code>, finished up, and exited with code <b>0</b> in about 0.2 seconds.</li><li>The app with no handler ignored <code>SIGTERM</code>. Docker waited the full <b>10 seconds</b>, then sent <code>SIGKILL</code> → exit code <b>137</b>.</li><li>Kubernetes stops containers the same way. Apps that handle SIGTERM deploy and scale much more smoothly.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Part C done. Your image is built, pushed, healthy, non-root and shuts down cleanly.</div></div></section><div class="part-head" id="part-D"><b>Part D — Clean up</b><span>Step 16 · ~5 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up everything</h2><div class="tags"><span>Slide 28</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Remove everything this lab created — and nothing else.</p><div class="folder">Run from: <code>module1-lab/demo-api/</code></div><div class="code"><div class="code-bar"><span>Targeted cleanup — only what this lab made</span><button class="copy" type="button">Copy</button></div><pre><code>docker rm -fv web demo-api 2&gt;/dev/null
+docker volume rm app-data 2&gt;/dev/null
+
+docker image rm module1-demo-api:1.0.0 \
+  $DOCKERHUB_USER/module1-demo-api:1.0.0 $DOCKERHUB_USER/module1-demo-api:sha-a1b2c3d \
+  my_first_image first-image-broken env-demo 2&gt;/dev/null
+
+docker logout
+docker ps -a
+docker system df</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES
+
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          ...
+Containers      0         0         0B        0B
+...</pre></div><div class="code"><div class="code-bar"><span>Optional: prune commands (each asks you to confirm)</span><button class="copy" type="button">Copy</button></div><pre><code>docker container prune       # stopped containers
+docker image prune -a         # images not used by any container
+docker volume prune           # volumes not used by any container
+docker network prune          # unused networks
+docker builder prune          # build cache</code></pre></div><div class="callout warn"><b>Careful:</b> <code>docker system prune -a --volumes</code> removes <b>every</b> unused image, container, network and volume on your machine — not only this lab's. Read the prompt before you type <code>y</code>.</div><div class="why"><div class="why-label">What just happened</div><ul><li><code>2&gt;/dev/null</code> hides "No such container" errors for things you already removed.</li><li><code>-v</code> in <code>docker rm -fv</code> also deletes <b>anonymous volumes</b>, so nothing is left behind.</li><li><code>docker logout</code> removes your Docker Hub login from this machine. The images stay on Docker Hub — Module 2 pulls them from there; delete the repository in Docker Hub's settings when you no longer need it.</li><li>Prune commands never touch anything that is running or in use.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker ps -a</code> is empty. Module 1 lab complete!</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>Bind for 0.0.0.0:8080 failed: port is already allocated</code></dt><dd>Another container (or app) uses that port. Find it with <code>docker ps</code> and stop it, or change the host side: <code>-p 8090:80</code>.</dd><dt><code>Conflict. The container name "/web" is already in use</code></dt><dd>An old container with that name still exists (maybe stopped). Remove it: <code>docker rm -f web</code>.</dd><dt><code>permission denied while trying to connect to the Docker daemon socket</code></dt><dd>Linux only: add yourself to the docker group — <code>sudo usermod -aG docker $USER</code> — then log out and back in.</dd><dt><code>Cannot connect to the Docker daemon</code></dt><dd>Docker Desktop is not running (Mac/Windows), or start the service: <code>sudo systemctl start docker</code> (Linux).</dd><dt><code>toomanyrequests: You have reached your pull rate limit</code></dt><dd>Docker Hub limits anonymous pulls. Run <code>docker login</code> with a free Docker Hub account.</dd><dt><code>curl: command not found</code> or odd output on Windows</dt><dd>Use <code>curl.exe</code> in PowerShell, or open the URL in your browser.</dd><dt>Step 12: <code>npm ci</code> fails with "package-lock.json not found"</dt><dd>You skipped the lock-file command at the top of Step 12. Run it, then build again.</dd><dt>Step 13: status stays <code>(health: starting)</code></dt><dd>The first check happens after up to 10 seconds. Wait, then run <code>docker ps</code> again. If it becomes <code>unhealthy</code>, check <code>docker logs demo-api</code>.</dd><dt>Step 14: <code>denied: requested access to the resource is denied</code></dt><dd>You are not logged in, or <code>DOCKERHUB_USER</code> is not your own account. Run <code>docker login -u &lt;your user&gt;</code> and tag with your user name.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 1 — Docker &amp; Container Fundamentals · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
