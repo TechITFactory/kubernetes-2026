@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 2 Lab — Kubernetes Architecture & kubectl</title>
+<style>
+figure.dia{margin:16px 0;padding:14px;border:1px solid var(--line,#d0d7de);border-radius:10px;overflow-x:auto}
+figure.dia svg{display:block;width:100%;height:auto;min-width:560px;color:inherit}
+figure.dia figcaption{font-size:13px;opacity:.8;margin-top:8px}
+
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 2 · Hands-on lab</div>
+  <h1>Kubernetes Architecture &amp; kubectl — Step-by-Step Lab</h1>
+  <p>Build a real 3-node Kubernetes cluster on your laptop, find every architecture component from the slides, learn the kubectl skills you'll use every day — and watch the control plane heal and schedule your app. Sixteen steps, in order. Each one starts where the last one finished.</p>
+  <div class="meta"><span>16 steps · about 1 h 26 min</span><span>kind v0.33 · Kubernetes v1.37</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Build your lab cluster</div><a href="#step-1"><span class="n">1</span>Install kubectl and kind</a><a href="#step-2"><span class="n">2</span>Create a 3-node cluster</a><a href="#step-3"><span class="n">3</span>First contact with the cluster</a><div class="grp">Part B · Explore the architecture live</div><a href="#step-4"><span class="n">4</span>See the control plane running</a><a href="#step-5"><span class="n">5</span>Look inside a worker node</a><a href="#step-6"><span class="n">6</span>kubectl is just an API client</a><div class="grp">Part C · kubectl skills</div><a href="#step-7"><span class="n">7</span>kubeconfig and contexts</a><a href="#step-8"><span class="n">8</span>Output formats — same data, your way</a><a href="#step-9"><span class="n">9</span>Describe, discover and explain</a><a href="#step-10"><span class="n">10</span>Shortcuts: alias and tab completion</a><div class="grp">Part D · Watch the architecture work</div><a href="#step-11"><span class="n">11</span>Deploy an app and read who did what</a><a href="#step-12"><span class="n">12</span>Self-healing: delete a pod on purpose</a><a href="#step-13"><span class="n">13</span>Scheduling: cordon a node</a><a href="#step-14"><span class="n">14</span>Bonus: run your Module 1 app on Kubernetes</a><div class="grp">Part E · Under the hood</div><a href="#step-15"><span class="n">15</span>Under the hood: kube-proxy mode, cgroups, images — and the missing CCM</a><div class="grp">Part F · Clean up</div><a href="#step-16"><span class="n">16</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Build your lab cluster</div><div class="psub">Steps 1–3 · kind (Kubernetes IN Docker) · ~20 min</div><div class="chips"><a href="#step-1">1. Install kubectl and kind</a><a href="#step-2">2. Create a 3-node cluster</a><a href="#step-3">3. First contact with the cluster</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Explore the architecture live</div><div class="psub">Steps 4–6 · control plane, nodes, API · ~20 min</div><div class="chips"><a href="#step-4">4. See the control plane running</a><a href="#step-5">5. Look inside a worker node</a><a href="#step-6">6. kubectl is just an API client</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">kubectl skills</div><div class="psub">Steps 7–10 · contexts, output, discovery, shortcuts · ~25 min</div><div class="chips"><a href="#step-7">7. kubeconfig and contexts</a><a href="#step-8">8. Output formats — same data, your way</a><a href="#step-9">9. Describe, discover and explain</a><a href="#step-10">10. Shortcuts: alias and tab completion</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Watch the architecture work</div><div class="psub">Steps 11–14 · controllers, scheduler, kubelet · ~30 min</div><div class="chips"><a href="#step-11">11. Deploy an app and read who did what</a><a href="#step-12">12. Self-healing: delete a pod on purpose</a><a href="#step-13">13. Scheduling: cordon a node</a><a href="#step-14">14. Bonus: run your Module 1 app on Kubernetes</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">Under the hood</div><div class="psub">Step 15 · kube-proxy mode, cgroups, images, CCM · ~8 min</div><div class="chips"><a href="#step-15">15. Under the hood: kube-proxy mode, cgroups, images — and the missing CCM</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Clean up</div><div class="psub">Step 16 · ~3 min</div><div class="chips"><a href="#step-16">16. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Module 1 first.</b> You need Docker running. Step 14 runs the image pushed to Docker Hub in Module 1 (<code>techitfactory/module1-demo-api:1.0.0</code>, public).</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows.</li><li><b>Resources:</b> give Docker at least 4 GB of memory. The cluster uses three containers.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Names, IPs, ports and ages will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-pull the node and app images before class</span><button class="copy" type="button">Copy</button></div><pre><code>docker pull kindest/node:v1.37.0
+docker pull nginx:1.28-alpine</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Build your lab cluster</b><span>Steps 1–3 · kind (Kubernetes IN Docker) · ~20 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Install kubectl and kind</h2><div class="tags"><span>Slides 13–14</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Install the two tools for this module: <code>kubectl</code> (the Kubernetes CLI) and <code>kind</code> (runs a whole cluster inside Docker).</p><div class="folder">Run from: <code>anywhere</code></div><div class="code"><div class="code-bar"><span>macOS (Homebrew)</span><button class="copy" type="button">Copy</button></div><pre><code>brew install kubectl kind</code></pre></div><div class="code"><div class="code-bar"><span>Windows (PowerShell) — then use WSL2 or Git Bash for the rest of the lab</span><button class="copy" type="button">Copy</button></div><pre><code>winget install -e --id Kubernetes.kubectl
+winget install -e --id Kubernetes.kind</code></pre></div><div class="code"><div class="code-bar"><span>Linux (x86-64) — for ARM, replace amd64 with arm64</span><button class="copy" type="button">Copy</button></div><pre><code>curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -m 0755 kubectl /usr/local/bin/kubectl
+
+curl -Lo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
+sudo install -m 0755 kind /usr/local/bin/kind</code></pre></div><div class="code"><div class="code-bar"><span>Check all three tools</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl version --client
+kind version
+docker info --format '{{.ServerVersion}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Client Version: v1.37.1
+Kustomize Version: v5.8.1
+kind v0.33.0 go1.26.7 linux/amd64
+29.3.1</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl</code> is only a client. On its own it talks to nothing — we need a cluster next.</li><li><code>kind</code> builds a real Kubernetes cluster where every <b>node is a Docker container</b>. That's why Docker from Module 1 must be running.</li><li>Your versions may be newer. Anything from kubectl v1.34 and kind v0.30 onward works for this lab.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">All three commands print a version, with no errors.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Create a 3-node cluster</h2><div class="tags"><span>Slides 4, 12</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Create one control-plane node and two worker nodes — the same shape as the architecture slides.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module2-lab
+cd module2-lab</code></pre></div><div class="code"><div class="code-bar"><span>Creates: kind-cluster.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; kind-cluster.yaml &lt;&lt;'EOF'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kind create cluster --config kind-cluster.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Creating cluster "lab" ...
+ ✓ Ensuring node image (kindest/node:v1.37.0)
+ ✓ Preparing nodes 📦 📦 📦
+ ✓ Writing configuration
+ ✓ Starting control-plane
+ ✓ Installing CNI
+ ✓ Installing StorageClass
+ ✓ Joining worker nodes
+Set kubectl context to "kind-lab"</pre></div><div class="code"><div class="code-bar"><span>Each node is a Docker container</span><button class="copy" type="button">Copy</button></div><pre><code>docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAMES               IMAGE                  STATUS
+lab-control-plane   kindest/node:v1.37.0   Up 1 minute
+lab-worker          kindest/node:v1.37.0   Up 1 minute
+lab-worker2         kindest/node:v1.37.0   Up 1 minute</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The YAML asks for 1 <b>control-plane</b> node and 2 <b>worker</b> nodes, in a cluster named <code>lab</code>.</li><li>kind also wrote a <b>kubeconfig</b> entry and switched you to the context <code>kind-lab</code>, so kubectl already knows where to go.</li><li>The first run downloads the node image (about 1 GB). After that, new clusters start in about a minute.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The last line says <b>Set kubectl context to "kind-lab"</b>, and <code>docker ps</code> shows three node containers.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>First contact with the cluster</h2><div class="tags"><span>Slides 16, 18, 22</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Prove kubectl can reach the API server, and meet your three nodes.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl wait --for=condition=Ready nodes --all --timeout=120s
+kubectl version
+kubectl cluster-info
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-control-plane condition met
+node/lab-worker condition met
+node/lab-worker2 condition met
+Client Version: v1.37.1
+Kustomize Version: v5.8.1
+Server Version: v1.37.0
+
+Kubernetes control plane is running at https://127.0.0.1:38793
+CoreDNS is running at https://127.0.0.1:38793/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   2m    v1.37.0
+lab-worker          Ready    &lt;none&gt;          2m    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          2m    v1.37.0</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get namespaces</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                 STATUS   AGE
+default              Active   2m
+kube-node-lease      Active   2m
+kube-public          Active   2m
+kube-system          Active   2m
+local-path-storage   Active   2m</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl wait</code> pauses until every node reports <b>Ready</b> — nodes need a few seconds after kind finishes.</li><li><b>Client Version</b> is your kubectl. <b>Server Version</b> is the API server — seeing both proves the connection works.</li><li><code>cluster-info</code> shows the API server's address. The port is random on kind, so yours will differ.</li><li>All three nodes are <b>Ready</b>. Only the first one has the <code>control-plane</code> role.</li><li>Namespaces group resources. The system components live in <code>kube-system</code> — that's where we look next.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get nodes</code> shows three <b>Ready</b> nodes.</div></div></section><div class="part-head" id="part-B"><b>Part B — Explore the architecture live</b><span>Steps 4–6 · control plane, nodes, API · ~20 min</span></div><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>See the control plane running</h2><div class="tags"><span>Slides 4–10, 12</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Find every architecture component from the slides, running as a real pod on a real node.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pods -n kube-system -o wide --sort-by=.spec.nodeName</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                                        READY   STATUS    ...   NODE
+coredns-559f6c778d-fxk7p                    1/1     Running   ...   lab-control-plane
+coredns-559f6c778d-qfmr5                    1/1     Running   ...   lab-control-plane
+etcd-lab-control-plane                      1/1     Running   ...   lab-control-plane
+kindnet-k4skr                               1/1     Running   ...   lab-control-plane
+kube-apiserver-lab-control-plane            1/1     Running   ...   lab-control-plane
+kube-controller-manager-lab-control-plane   1/1     Running   ...   lab-control-plane
+kube-proxy-2sqss                            1/1     Running   ...   lab-control-plane
+kube-scheduler-lab-control-plane            1/1     Running   ...   lab-control-plane
+kindnet-w6wtd                               1/1     Running   ...   lab-worker
+kube-proxy-fcwxc                            1/1     Running   ...   lab-worker
+kindnet-svl5w                               1/1     Running   ...   lab-worker2
+kube-proxy-6lh9k                            1/1     Running   ...   lab-worker2</pre></div><div class="table-wrap"><table><thead><tr><th>Pod</th><th>Slide</th><th>Where it runs</th><th>Job</th></tr></thead><tbody><tr><td><code>kube-apiserver-…</code></td><td>5</td><td>control plane</td><td>The front door — every request goes through it</td></tr><tr><td><code>etcd-…</code></td><td>6</td><td>control plane</td><td>Stores all cluster state</td></tr><tr><td><code>kube-scheduler-…</code></td><td>7</td><td>control plane</td><td>Picks a node for each new pod</td></tr><tr><td><code>kube-controller-manager-…</code></td><td>8</td><td>control plane</td><td>Runs the reconciliation loops</td></tr><tr><td><code>kube-proxy-…</code></td><td>10</td><td><b>every</b> node</td><td>Programs Service routing rules on its node</td></tr><tr><td><code>kindnet-…</code></td><td>—</td><td><b>every</b> node</td><td>kind's pod network (CNI plugin)</td></tr><tr><td><code>coredns-…</code></td><td>—</td><td>any node</td><td>Cluster DNS — used from Module 3 on</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li>Control-plane components are ordinary pods. kind (like <code>kubeadm</code>) runs them as <b>static pods</b> that the kubelet starts from files on the control-plane node.</li><li><code>kube-proxy</code> and <code>kindnet</code> appear <b>once per node</b> — they're node-level agents.</li><li>Where is the kubelet? It isn't a pod. It's a normal program running on each node, and it's what <i>starts</i> these pods. Step 5 shows it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You can point to the API server, etcd, scheduler and controller manager in the output.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Look inside a worker node</h2><div class="tags"><span>Slides 9, 11</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Step inside a node and find the kubelet and the container runtime — and notice what's missing.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec lab-worker systemctl is-active kubelet containerd
+docker exec lab-worker sh -c 'command -v docker || echo "docker: not installed"'
+docker exec lab-worker crictl ps</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>active
+active
+docker: not installed
+CONTAINER       IMAGE           CREATED         STATE     NAME          ATTEMPT   POD ID          POD
+a76c2a2b8a84b   4626fe10df5b9   9 minutes ago   Running   kindnet-cni   0         c06be4512d6d2   kindnet-w6wtd
+38cf06f99c6c4   d6a28daf3e6b0   9 minutes ago   Running   kube-proxy    0         216497c9f634e   kube-proxy-fcwxc</pre></div><div class="code"><div class="code-bar"><span>The API reports the same runtime</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           ...   CONTAINER-RUNTIME
+lab-control-plane   Ready    control-plane   ...   containerd://2.3.4
+lab-worker          Ready    &lt;none&gt;          ...   containerd://2.3.4
+lab-worker2         Ready    &lt;none&gt;          ...   containerd://2.3.4</pre></div><div class="code"><div class="code-bar"><span>Optional: walk around inside the node yourself</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec -it lab-worker bash
+# now inside the node:
+ps -e -o comm | grep -E 'kubelet|containerd' | sort -u
+exit</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Every node runs two services: the <b>kubelet</b> (the node agent, slide 9) and <b>containerd</b> (the container runtime, slide 11).</li><li>There is <b>no Docker</b> inside the node. <code>crictl</code> talks to containerd through the CRI — the same interface the kubelet uses.</li><li>Your Module 1 images still work here: Docker builds standard OCI images, and containerd runs OCI images.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw <b>active</b> twice and <b>docker: not installed</b>.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>kubectl is just an API client</h2><div class="tags"><span>Slides 5–6, 13–14</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> See the HTTPS request behind a kubectl command, call the API directly, then peek at etcd.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Turn up verbosity to see the real request</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes -v=6 2&gt;&amp;1 | grep -E 'Config loaded|Response'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>I0928 17:27:33.800664   24114 loader.go:408] Config loaded from file:  /home/you/.kube/config
+I0928 17:27:33.811219   24114 round_trippers.go:632] "Response" verb="GET" url="https://127.0.0.1:38793/api/v1/nodes?limit=500" status="200 OK" milliseconds=10</pre></div><div class="code"><div class="code-bar"><span>Call API endpoints directly</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get --raw /readyz
+echo
+kubectl get --raw '/readyz?verbose' | tail -3
+kubectl get --raw /api/v1/namespaces/default | head -c 200; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>ok
+[+]poststarthook/apiservice-openapiv3-controller ok
+[+]shutdown ok
+readyz check passed
+{"kind":"Namespace","apiVersion":"v1","metadata":{"name":"default",...</pre></div><div class="code"><div class="code-bar"><span>Look at where nodes are stored in etcd (read-only)</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl -n kube-system exec etcd-lab-control-plane -- etcdctl \
+  --cacert /etc/kubernetes/pki/etcd/ca.crt \
+  --cert /etc/kubernetes/pki/etcd/server.crt \
+  --key /etc/kubernetes/pki/etcd/server.key \
+  get /registry/minions --prefix --keys-only</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>/registry/minions/lab-control-plane
+
+/registry/minions/lab-worker
+
+/registry/minions/lab-worker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>kubectl read your <b>kubeconfig</b>, then sent a plain <b>HTTPS GET</b> to the API server. Every kubectl command works this way.</li><li><code>/readyz</code> is the API server's own health check — load balancers and kind use it.</li><li>Everything lives in etcd under <code>/registry/...</code>. Nodes use the key <code>minions</code> — their original name from 2014.</li><li>Normally <b>nothing</b> talks to etcd except the API server. We used <code>etcdctl</code> read-only, just to look. Never edit etcd directly.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw a <code>GET … /api/v1/nodes</code> line with <b>200 OK</b>, and three node keys in etcd.</div></div></section><div class="part-head" id="part-C"><b>Part C — kubectl skills</b><span>Steps 7–10 · contexts, output, discovery, shortcuts · ~25 min</span></div><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>kubeconfig and contexts</h2><div class="tags"><span>Slides 14, 16, 23</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Understand what a context is, switch between two of them, and recognise the two most common connection errors.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl config current-context
+kubectl config get-contexts
+kubectl config view --minify</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>kind-lab
+CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
+*         kind-lab   kind-lab   kind-lab
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://127.0.0.1:38793
+  name: kind-lab
+contexts:
+- context:
+    cluster: kind-lab
+    user: kind-lab
+  name: kind-lab
+current-context: kind-lab
+kind: Config
+users:
+- name: kind-lab
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED</pre></div><div class="code"><div class="code-bar"><span>Make a second context with a different default namespace</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl config set-context lab-system \
+  --cluster kind-lab --user kind-lab --namespace kube-system
+kubectl config use-context lab-system
+kubectl config get-contexts
+kubectl get pods | head -4</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Context "lab-system" created.
+Switched to context "lab-system".
+CURRENT   NAME         CLUSTER    AUTHINFO   NAMESPACE
+          kind-lab     kind-lab   kind-lab
+*         lab-system   kind-lab   kind-lab   kube-system
+NAME                                        READY   STATUS    RESTARTS   AGE
+coredns-559f6c778d-fxk7p                    1/1     Running   0          9m
+coredns-559f6c778d-qfmr5                    1/1     Running   0          9m
+etcd-lab-control-plane                      1/1     Running   0          9m</pre></div><div class="code"><div class="code-bar"><span>Switch back</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl config use-context kind-lab
+kubectl get pods</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Switched to context "kind-lab".
+No resources found in default namespace.</pre></div><h3>Recognise the two classic errors</h3><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes --context does-not-exist
+kubectl get nodes --server https://127.0.0.1:1 --request-timeout=5s 2&gt;&amp;1 | tail -1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Error in configuration: context was not found for specified context: does-not-exist
+The connection to the server 127.0.0.1:1 was refused - did you specify the right host or port?</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>context</b> = a cluster + a user + a default namespace. Switching context changes where kubectl sends requests.</li><li>The same <code>kubectl get pods</code> showed different pods — only because the context's namespace changed. This is the #1 reason people think "my pods disappeared".</li><li>"Context was not found" means a typo in the context name. "Connection refused" means the address in kubeconfig is wrong, or the cluster is not running (slide 23).</li></ul></div><div class="callout warn"><b>Careful:</b> Before any command that changes or deletes something, run <code>kubectl config current-context</code>. At work, the wrong context can mean the production cluster.</div><div class="check"><span>Checkpoint</span><div class="ct">You are back on <code>kind-lab</code>, and <code>get-contexts</code> shows the <b>*</b> next to it.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Output formats — same data, your way</h2><div class="tags"><span>Slides 15, 18, 21</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Print the same nodes as a wide table, a single field, just names, custom columns, and KYAML.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes -o wide
+kubectl get nodes -o name
+kubectl get nodes -o jsonpath='{.items[*].metadata.name}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION   INTERNAL-IP   ...   CONTAINER-RUNTIME
+lab-control-plane   Ready    control-plane   12m   v1.37.0   172.19.0.3    ...   containerd://2.3.4
+...
+node/lab-control-plane
+node/lab-worker
+node/lab-worker2
+lab-control-plane lab-worker lab-worker2</pre></div><div class="code"><div class="code-bar"><span>Build your own table</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes -o custom-columns=\
+'NAME:.metadata.name,RUNTIME:.status.nodeInfo.containerRuntimeVersion,KUBELET:.status.nodeInfo.kubeletVersion,CPU:.status.capacity.cpu'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                RUNTIME              KUBELET   CPU
+lab-control-plane   containerd://2.3.4   v1.37.0   4
+lab-worker          containerd://2.3.4   v1.37.0   4
+lab-worker2         containerd://2.3.4   v1.37.0   4</pre></div><div class="code"><div class="code-bar"><span>Full objects: YAML vs KYAML</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get node lab-worker -o yaml | head -8
+kubectl get node lab-worker -o kyaml | head -8</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>apiVersion: v1
+kind: Node
+metadata:
+  annotations:
+    node.alpha.kubernetes.io/ttl: "0"
+...
+---
+{
+  apiVersion: "v1",
+  kind: "Node",
+  metadata: {
+    annotations: {
+      node.alpha.kubernetes.io/ttl: "0",
+...</pre></div><div class="table-wrap"><table><thead><tr><th>Format</th><th>Best for</th></tr></thead><tbody><tr><td><code>-o wide</code></td><td>People — the normal table plus extra columns</td></tr><tr><td><code>-o name</code></td><td>Scripts that loop over objects (<code>node/lab-worker</code>)</td></tr><tr><td><code>-o jsonpath=…</code></td><td>Scripts that need one field</td></tr><tr><td><code>-o custom-columns=…</code></td><td>Your own table, with exactly the columns you want</td></tr><tr><td><code>-o yaml</code> / <code>-o json</code></td><td>The full object — for saving, diffing, or other tools</td></tr><tr><td><code>-o kyaml</code></td><td>The full object in KYAML: quoted strings and braces, so it can't be misread. kubectl v1.34+</td></tr></tbody></table></div><div class="check"><span>Checkpoint</span><div class="ct">You printed just the three node names on one line.</div></div></section><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>Describe, discover and explain</h2><div class="tags"><span>Slides 19–20</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Use kubectl as its own manual: deep-inspect a node, list every resource type, and read field docs.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Scan the important parts of describe</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl describe node lab-worker | grep -E '^(Name|Roles|Taints):|Ready|InternalIP|Container Runtime|Non-terminated'
+kubectl describe node lab-control-plane | grep Taints</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Name:               lab-worker
+Roles:              &lt;none&gt;
+Taints:             &lt;none&gt;
+  Ready            True    ...   KubeletReady                 kubelet is posting ready status
+  InternalIP:  172.19.0.4
+  Container Runtime Version:  containerd://2.3.4
+Non-terminated Pods:          (2 in total)
+Taints:             node-role.kubernetes.io/control-plane:NoSchedule</pre></div><div class="code"><div class="code-bar"><span>Every resource type the cluster knows</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl api-resources | head -1
+kubectl api-resources | grep -wE 'pods|nodes|namespaces|services|deployments'
+kubectl api-resources | wc -l</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME          SHORTNAMES   APIVERSION   NAMESPACED   KIND
+namespaces    ns           v1           false        Namespace
+nodes         no           v1           false        Node
+pods          po           v1           true         Pod
+services      svc          v1           true         Service
+deployments   deploy       apps/v1      true         Deployment
+72</pre></div><div class="code"><div class="code-bar"><span>Read the docs for any field</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl explain pod.spec.containers.image</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>KIND:       Pod
+VERSION:    v1
+
+FIELD: image &lt;string&gt;
+
+DESCRIPTION:
+    Container image name. More info:
+    https://kubernetes.io/docs/concepts/containers/images ...</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>describe</code> answers <i>why</i>: conditions, taints, addresses, capacity and recent events.</li><li>The control-plane node has a <b>NoSchedule taint</b>, so your apps land only on the workers. You'll see this in Step 11.</li><li><b>NAMESPACED</b> tells you if a resource lives in a namespace (pods) or across the whole cluster (nodes).</li><li><code>explain</code> works for any field path — you never need to memorise a manifest.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You can say which node is tainted, and whether nodes are namespaced.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Shortcuts: alias and tab completion</h2><div class="tags"><span>Slide 17</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Type less: set up the <code>k</code> alias with working tab completion.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>bash</span><button class="copy" type="button">Copy</button></div><pre><code>alias k=kubectl
+source &lt;(kubectl completion bash)
+complete -o default -F __start_kubectl k
+
+k get no</code></pre></div><div class="code"><div class="code-bar"><span>zsh (macOS default shell)</span><button class="copy" type="button">Copy</button></div><pre><code>alias k=kubectl
+source &lt;(kubectl completion zsh)
+
+k get no</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   15m   v1.37.0
+lab-worker          Ready    &lt;none&gt;          15m   v1.37.0
+lab-worker2         Ready    &lt;none&gt;          15m   v1.37.0</pre></div><p>Now try tab completion: type <code>k get po</code> then press <b>Tab</b> twice, or <code>k describe node lab-</code> then <b>Tab</b>.</p><div class="code"><div class="code-bar"><span>Make it permanent (bash)</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt;&gt; ~/.bashrc &lt;&lt;'EOF'
+alias k=kubectl
+source &lt;(kubectl completion bash)
+complete -o default -F __start_kubectl k
+EOF</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>In bash, the alias does <b>not</b> get completion automatically — that's what the <code>complete -o default -F __start_kubectl k</code> line adds.</li><li>Bash completion needs the <code>bash-completion</code> package (<code>brew install bash-completion@2</code> or <code>sudo apt install bash-completion</code>).</li><li><code>no</code>, <code>po</code>, <code>svc</code> and <code>deploy</code> are the short names from <code>api-resources</code> in Step 9.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>k get no</code> works, and Tab completes node names.</div></div></section><div class="part-head" id="part-D"><b>Part D — Watch the architecture work</b><span>Steps 11–14 · controllers, scheduler, kubelet · ~30 min</span></div><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>Deploy an app and read who did what</h2><div class="tags"><span>Slides 7–9, 12</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Declare "I want 3 nginx pods", then read the events to see each component do its job.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create deployment web --image=nginx:1.28-alpine --replicas=3
+kubectl rollout status deployment/web
+kubectl get pods -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web created
+Waiting for deployment "web" rollout to finish: 0 of 3 updated replicas are available...
+deployment "web" successfully rolled out
+NAME                   READY   STATUS    RESTARTS   AGE   IP           NODE
+web-64fc786fb9-6xcqm   1/1     Running   0          20s   10.244.2.2   lab-worker2
+web-64fc786fb9-qh2jw   1/1     Running   0          20s   10.244.2.3   lab-worker2
+web-64fc786fb9-r6bqr   1/1     Running   0          20s   10.244.1.2   lab-worker</pre></div><div class="code"><div class="code-bar"><span>Read the story in the events, in the order etcd stored them</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get events --sort-by=.metadata.resourceVersion \
+  -o custom-columns='WHO:.source.component,WHAT:.reason,OBJECT:.involvedObject.name' \
+  | grep -E '^WHO|web'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>WHO                     WHAT                OBJECT
+deployment-controller   ScalingReplicaSet   web
+replicaset-controller   SuccessfulCreate    web-64fc786fb9
+replicaset-controller   SuccessfulCreate    web-64fc786fb9
+default-scheduler       Scheduled           web-64fc786fb9-xtmhb
+replicaset-controller   SuccessfulCreate    web-64fc786fb9
+default-scheduler       Scheduled           web-64fc786fb9-xpc44
+default-scheduler       Scheduled           web-64fc786fb9-dzjgn
+kubelet                 Pulling             web-64fc786fb9-dzjgn
+kubelet                 Pulled              web-64fc786fb9-dzjgn
+kubelet                 Created             web-64fc786fb9-dzjgn
+kubelet                 Started             web-64fc786fb9-dzjgn
+...</pre></div><div class="table-wrap"><table><thead><tr><th>WHO</th><th>Component (slide)</th><th>What it did</th></tr></thead><tbody><tr><td><code>deployment-controller</code></td><td>controller manager (8)</td><td>Saw the new Deployment and created a ReplicaSet</td></tr><tr><td><code>replicaset-controller</code></td><td>controller manager (8)</td><td>Saw 0 of 3 pods, created 3 pod objects</td></tr><tr><td><code>default-scheduler</code></td><td>scheduler (7)</td><td>Picked a worker node for each pod</td></tr><tr><td><code>kubelet</code></td><td>kubelet (9) + runtime (11)</td><td>Pulled the image and started the container through containerd</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>resourceVersion</code> is etcd's counter, so sorting by it shows events in the exact order they were stored. <b>Pulling</b> appears only when a node downloads the image for the first time.</li><li>kubectl only sent one request. The API server stored it in etcd — and every other component reacted by <b>watching</b> the API server.</li><li>No pod landed on <code>lab-control-plane</code> — its NoSchedule taint (Step 9) kept it free for the control plane.</li><li>Don't worry about Deployments and ReplicaSets yet — Module 4 covers them. Today, watch <b>who</b> does the work.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Your events show all four components: deployment-controller, replicaset-controller, default-scheduler and kubelet.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Self-healing: delete a pod on purpose</h2><div class="tags"><span>Slide 8 · Quiz Q3</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Break the desired state and watch the controller manager fix it within seconds.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>POD=$(kubectl get pods -l app=web -o jsonpath='{.items[0].metadata.name}')
+echo "Deleting $POD"
+kubectl delete pod "$POD"
+kubectl wait --for=condition=Ready pod -l app=web --timeout=60s
+kubectl get pods -l app=web -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Deleting web-64fc786fb9-6xcqm
+pod "web-64fc786fb9-6xcqm" deleted from default namespace
+pod/web-64fc786fb9-qh2jw condition met
+pod/web-64fc786fb9-qmgwr condition met
+pod/web-64fc786fb9-r6bqr condition met
+NAME                   READY   STATUS    RESTARTS   AGE   ...   NODE
+web-64fc786fb9-qh2jw   1/1     Running   0          18s   ...   lab-worker2
+web-64fc786fb9-qmgwr   1/1     Running   0          4s    ...   lab-worker
+web-64fc786fb9-r6bqr   1/1     Running   0          18s   ...   lab-worker</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Desired state said <b>3</b>. After the delete, the current state was <b>2</b>. The ReplicaSet controller noticed the gap and created a new pod — look at its age.</li><li>The new pod has a <b>new name</b>. Pods are replaced, never repaired. That's why apps shouldn't depend on a pod's name or IP.</li><li>This is the reconciliation loop from slide 8: observe → compare → act.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">There are 3 pods again, and one of them is only a few seconds old.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Scheduling: cordon a node</h2><div class="tags"><span>Slides 7, 9</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Mark a node as unschedulable and watch the scheduler route new pods around it.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl cordon lab-worker2
+kubectl get nodes
+kubectl scale deployment web --replicas=6
+kubectl rollout status deployment/web
+kubectl get pods -l app=web -o wide --sort-by=.spec.nodeName</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker2 cordoned
+NAME                STATUS                     ROLES           AGE   VERSION
+lab-control-plane   Ready                      control-plane   20m   v1.37.0
+lab-worker          Ready                      &lt;none&gt;          20m   v1.37.0
+lab-worker2         Ready,SchedulingDisabled   &lt;none&gt;          20m   v1.37.0
+deployment.apps/web scaled
+deployment "web" successfully rolled out
+NAME                   READY   STATUS    ...   NODE
+web-64fc786fb9-2s57v   1/1     Running   ...   lab-worker
+web-64fc786fb9-45hg5   1/1     Running   ...   lab-worker
+web-64fc786fb9-qmgwr   1/1     Running   ...   lab-worker
+web-64fc786fb9-r6bqr   1/1     Running   ...   lab-worker
+web-64fc786fb9-vggtl   1/1     Running   ...   lab-worker
+web-64fc786fb9-qh2jw   1/1     Running   ...   lab-worker2</pre></div><div class="code"><div class="code-bar"><span>Undo, and remove the demo app</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl uncordon lab-worker2
+kubectl delete deployment web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker2 uncordoned
+deployment.apps "web" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>cordon</code> sets <b>SchedulingDisabled</b>. The scheduler skips that node for <b>new</b> pods.</li><li>The pod already on <code>lab-worker2</code> kept running. Cordon never moves existing pods (<code>kubectl drain</code> does — Module 5).</li><li>Teams cordon a node before maintenance, so no new work lands there.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">All the new pods went to <code>lab-worker</code>.</div></div></section><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Bonus: run your Module 1 app on Kubernetes</h2><div class="tags"><span>Module 1 Step 14</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Run the image you pushed to Docker Hub in Module 1 on the cluster — every node pulls it from Docker Hub by itself.</p><div class="folder">Run from: <code>module2-lab/</code></div><p>In Module 1, Step 14 you pushed this app to Docker Hub as <code>techitfactory/module1-demo-api:1.0.0</code>. It's a <b>public</b> image, so the cluster can pull it directly — no <code>kind load</code>, no login. Pushed your own copy? Replace <code>techitfactory</code> with your Docker Hub user name in the YAML below.</p><div class="code"><div class="code-bar"><span>Creates: demo-api.yaml — a Deployment and a Service for the Docker Hub image</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; demo-api.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-api
+  labels:
+    app: demo-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-api
+  template:
+    metadata:
+      labels:
+        app: demo-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: api
+          image: techitfactory/module1-demo-api:1.0.0   # public, on Docker Hub
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GREETING
+              value: "Hello from Kubernetes!"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-api
+spec:
+  selector:
+    app: demo-api
+  ports:
+    - port: 80
+      targetPort: 3000
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f demo-api.yaml
+kubectl rollout status deployment/demo-api
+kubectl get pods -l app=demo-api -o wide
+kubectl get service demo-api</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/demo-api created
+service/demo-api created
+deployment "demo-api" successfully rolled out
+NAME                        READY   STATUS    ...   NODE
+demo-api-54bc57857f-gklpc   1/1     Running   ...   lab-worker
+demo-api-54bc57857f-pwwjm   1/1     Running   ...   lab-worker2
+NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+demo-api   ClusterIP   10.96.142.211   &lt;none&gt;        80/TCP    11s</pre></div><div class="code"><div class="code-bar"><span>Who downloaded the image? Each node's kubelet</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get events --field-selector reason=Pulled -o custom-columns=NODE:.source.host,MESSAGE:.message</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NODE          MESSAGE
+lab-worker    Successfully pulled image "techitfactory/module1-demo-api:1.0.0" in …
+lab-worker2   Successfully pulled image "techitfactory/module1-demo-api:1.0.0" in …</pre></div><div class="code"><div class="code-bar"><span>Call the app through a port-forward</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl port-forward service/demo-api 8080:80 &gt;/dev/null &amp;
+PF_PID=$!
+sleep 2
+curl -s http://localhost:8080; echo
+kubectl exec deploy/demo-api -- whoami
+kill $PF_PID</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>{"message":"Hello from Kubernetes!","servedBy":"demo-api-54bc57857f-gklpc","visits":null}
+node</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The image name has no registry host, so the kubelet on each node pulls it from <b>Docker Hub</b> — the same way a real cluster in the cloud gets your app.</li><li><code>imagePullPolicy: IfNotPresent</code> means each node downloads it <b>once</b>; later Pods on that node reuse the local copy.</li><li>Same image, same non-root user (<code>node</code>), same <code>/health</code> endpoint — now used by Kubernetes' readiness and liveness probes.</li><li><code>port-forward</code> connects to <b>one</b> pod, so <code>servedBy</code> never changes. Real Service load balancing is Module 3.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">curl returns <b>Hello from Kubernetes!</b></div></div></section><div class="part-head" id="part-E"><b>Part E — Under the hood</b><span>Step 15 · kube-proxy mode, cgroups, images, CCM · ~8 min</span></div><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Under the hood: kube-proxy mode, cgroups, images — and the missing CCM</h2><div class="tags"><span>Slides 31–32</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Look at four things every cluster has but rarely shows: how kube-proxy programs Services, which cgroup setup the kubelet uses, where the system images come from, and which control-plane component kind doesn't have.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Which mode does kube-proxy use?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl -n kube-system get configmap kube-proxy -o jsonpath='{.data.config\.conf}' | grep -E '^mode:'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>mode: iptables</pre></div><div class="code"><div class="code-bar"><span>cgroup version on your machine, cgroup driver in the kubelet</span><button class="copy" type="button">Copy</button></div><pre><code>docker info --format 'cgroup version: {{.CgroupVersion}}'
+kubectl get --raw /api/v1/nodes/lab-worker/proxy/configz | grep -o '"cgroupDriver":"[a-z]*"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>cgroup version: 2
+"cgroupDriver":"systemd"</pre></div><div class="code"><div class="code-bar"><span>Where do the system images come from?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pods -n kube-system -o jsonpath='{range .items[*]}{.spec.containers[0].image}{"\n"}{end}' | sort -u</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>docker.io/kindest/kindnetd:v20260820-69b56db7
+registry.k8s.io/coredns/coredns:v1.14.6
+registry.k8s.io/etcd:3.7.0-0
+registry.k8s.io/kube-apiserver:v1.37.0
+registry.k8s.io/kube-controller-manager:v1.37.0
+registry.k8s.io/kube-proxy:v1.37.0
+registry.k8s.io/kube-scheduler:v1.37.0</pre></div><div class="code"><div class="code-bar"><span>The control plane — spot what's missing</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pods -n kube-system --no-headers -o custom-columns=NAME:.metadata.name | grep -E 'apiserver|controller|scheduler|etcd'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>etcd-lab-control-plane
+kube-apiserver-lab-control-plane
+kube-controller-manager-lab-control-plane
+kube-scheduler-lab-control-plane</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>kube-proxy mode</b>: <code>iptables</code> is still the default. <code>nftables</code> (stable since v1.33) scales better on big clusters, and <code>ipvs</code> is the older alternative. Some network plugins, such as Cilium, replace kube-proxy completely.</li><li><b>cgroups</b>: the kubelet uses the <code>systemd</code> cgroup driver, like the container runtime. Since v1.35 the kubelet <b>refuses to start on cgroup v1</b> unless you explicitly allow it — use hosts with cgroup v2 (every current Linux distribution and Docker Desktop).</li><li><b>Images</b>: every core image comes from <code>registry.k8s.io</code>. The old <code>k8s.gcr.io</code> registry is frozen — if an old manifest still points there, update it.</li><li><b>The missing component</b>: cloud clusters (EKS, GKE, AKS) run a fifth control-plane component, the <b>cloud-controller-manager</b>. It talks to the cloud API: it builds load balancers for LoadBalancer Services, sets node addresses, and removes nodes whose VM is gone. kind has no cloud, so there is none — in Module 4B you'll run <code>cloud-provider-kind</code>, which plays that role.</li></ul></div><div class="callout"><b>Note:</b> On some Linux hosts <code>docker info</code> prints <code>cgroup version: 1</code>. Kubernetes v1.37 nodes will then only start with an explicit <code>failCgroupV1: false</code> kubelet setting — plan a move to cgroup v2.</div><div class="check"><span>Checkpoint</span><div class="ct">You found <b>mode: iptables</b>, the <b>systemd</b> driver, <b>registry.k8s.io</b> images, and four control-plane Pods — no cloud-controller-manager.</div></div></section><div class="part-head" id="part-F"><b>Part F — Clean up</b><span>Step 16 · ~3 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete the demo app, the extra context, and the whole cluster.</p><div class="folder">Run from: <code>module2-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete -f demo-api.yaml
+kubectl config delete-context lab-system
+kind delete cluster --name lab
+docker ps --filter name=lab-</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps "demo-api" deleted from default namespace
+service "demo-api" deleted from default namespace
+deleted context lab-system from /home/you/.kube/config
+Deleting cluster "lab" ...
+Deleted nodes: ["lab-control-plane" "lab-worker" "lab-worker2"]
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kind delete cluster</code> removes the node containers <b>and</b> the <code>kind-lab</code> entry from your kubeconfig.</li><li>Want to keep practising? Skip this step — Module 3 starts from the same 3-node cluster, and recreating it takes about a minute.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>docker ps</code> shows no <code>lab-</code> containers.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>kind create cluster</code> fails with <code>Cannot connect to the Docker daemon</code></dt><dd>Docker isn't running. Start Docker Desktop (or <code>sudo systemctl start docker</code>) and try again.</dd><dt><code>ERROR: failed to create cluster: node(s) already exist for a cluster with the name "lab"</code></dt><dd>A previous cluster is still there. Run <code>kind delete cluster --name lab</code>, then create it again.</dd><dt><code>The connection to the server localhost:8080 was refused</code></dt><dd>kubectl has no kubeconfig context. Check <code>kubectl config get-contexts</code> and run <code>kubectl config use-context kind-lab</code>.</dd><dt><code>No resources found in default namespace</code> but you expected pods</dt><dd>You're in a different namespace or context. Add <code>-n &lt;namespace&gt;</code>, use <code>-A</code> for all namespaces, or check <code>kubectl config get-contexts</code>.</dd><dt>Pods stuck in <code>ImagePullBackOff</code></dt><dd>The node can't download the image. Check the image name with <code>kubectl describe pod &lt;name&gt;</code>. For a Docker Hub image, check that the user name and tag exist on hub.docker.com; images only on your laptop need <code>kind load docker-image</code>.</dd><dt>Tab completion doesn't work for <code>k</code></dt><dd>Install <code>bash-completion</code> and add the <code>complete -o default -F __start_kubectl k</code> line (Step 10).</dd><dt>Cluster creation is slow or times out on the first run</dt><dd>The first run downloads the ~1 GB node image. Give Docker at least 4 GB of memory in Docker Desktop settings.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 2 — Kubernetes Architecture &amp; kubectl · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
