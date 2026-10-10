@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 3 Lab — Pods, Pod Lifecycle & Services</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 3 · Hands-on lab</div>
+  <h1>Pods, Pod Lifecycle &amp; Services — Step-by-Step Lab</h1>
+  <p>Create Pods three ways, watch their lifecycle, break them on purpose and fix them, then give them stable names with Services and DNS. Finish with multi-container Pods, two 2026 features and user namespaces. Sixteen steps, in order.</p>
+  <div class="meta"><span>16 steps · about 1 h 17 min</span><span>Kubernetes v1.37 · kind</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Your first Pods</div><a href="#step-1"><span class="n">1</span>Start the cluster and a client Pod</a><a href="#step-2"><span class="n">2</span>Create a Pod imperatively — kubectl run</a><a href="#step-3"><span class="n">3</span>Generate YAML, then apply it</a><a href="#step-4"><span class="n">4</span>Talk to a Pod by its IP</a><div class="grp">Part B · Lifecycle and debugging</div><a href="#step-5"><span class="n">5</span>Watch the lifecycle: Pending → Running → Succeeded</a><a href="#step-6"><span class="n">6</span>ImagePullBackOff — a bad image tag</a><a href="#step-7"><span class="n">7</span>CrashLoopBackOff — read the real error</a><div class="grp">Part C · Services</div><a href="#step-8"><span class="n">8</span>Create a Service from YAML</a><a href="#step-9"><span class="n">9</span>Service discovery with DNS</a><a href="#step-10"><span class="n">10</span>Labels decide which Pods a Service uses</a><a href="#step-11"><span class="n">11</span>The Service survives Pod replacement</a><a href="#step-12"><span class="n">12</span>Reach it from outside: NodePort and port-forward</a><div class="grp">Part D · Multi-container Pods and 2026 features</div><a href="#step-13"><span class="n">13</span>Two containers, one Pod</a><a href="#step-14"><span class="n">14</span>2026 features: native sidecar and in-place resize</a><div class="grp">Part E · User namespaces</div><a href="#step-15"><span class="n">15</span>User namespaces: root in the Pod, nobody on the node</a><div class="grp">Part F · Clean up</div><a href="#step-16"><span class="n">16</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Your first Pods</div><div class="psub">Steps 1–4 · run, inspect, YAML, Pod IPs · ~25 min</div><div class="chips"><a href="#step-1">1. Start the cluster and a client Pod</a><a href="#step-2">2. Create a Pod imperatively — kubectl run</a><a href="#step-3">3. Generate YAML, then apply it</a><a href="#step-4">4. Talk to a Pod by its IP</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Lifecycle and debugging</div><div class="psub">Steps 5–7 · phases, ImagePullBackOff, CrashLoopBackOff · ~20 min</div><div class="chips"><a href="#step-5">5. Watch the lifecycle: Pending → Running → Succeeded</a><a href="#step-6">6. ImagePullBackOff — a bad image tag</a><a href="#step-7">7. CrashLoopBackOff — read the real error</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">Services</div><div class="psub">Steps 8–12 · YAML, DNS, labels, replacement, outside access · ~35 min</div><div class="chips"><a href="#step-8">8. Create a Service from YAML</a><a href="#step-9">9. Service discovery with DNS</a><a href="#step-10">10. Labels decide which Pods a Service uses</a><a href="#step-11">11. The Service survives Pod replacement</a><a href="#step-12">12. Reach it from outside: NodePort and port-forward</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Multi-container Pods and 2026 features</div><div class="psub">Steps 13–14 · shared network, sidecars, resize · ~15 min</div><div class="chips"><a href="#step-13">13. Two containers, one Pod</a><a href="#step-14">14. 2026 features: native sidecar and in-place resize</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">User namespaces</div><div class="psub">Step 15 · root in the Pod, not on the node · ~6 min</div><div class="chips"><a href="#step-15">15. User namespaces: root in the Pod, nobody on the node</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Clean up</div><div class="psub">Step 16 · ~2 min</div><div class="chips"><a href="#step-16">16. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Module 2 first.</b> This lab uses the same 3-node kind cluster (<code>kind-lab</code>).</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Pod IPs, ports, times and random suffixes will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code>PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+for img in nginx:1.28-alpine busybox:1.37; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+rm -f image.tar</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Your first Pods</b><span>Steps 1–4 · run, inspect, YAML, Pod IPs · ~25 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start the cluster and a client Pod</h2><div class="tags"><span>Module 2</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Make sure the 3-node kind cluster from Module 2 is running, and start a small <code>client</code> Pod we'll use to test things from inside the cluster.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module3-lab
+cd module3-lab</code></pre></div><div class="code"><div class="code-bar"><span>Is the Module 2 cluster still there?</span><button class="copy" type="button">Copy</button></div><pre><code>kind get clusters
+kubectl config current-context</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>lab
+kind-lab</pre></div><p>If <code>kind get clusters</code> printed nothing, create the cluster again with the <code>kind-cluster.yaml</code> from Module 2, Step 2:</p><div class="code"><div class="code-bar"><span>Only if you need a new cluster</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; kind-cluster.yaml &lt;&lt;'EOF'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+EOF
+kind create cluster --config kind-cluster.yaml</code></pre></div><div class="code"><div class="code-bar"><span>Start the client Pod</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl wait --for=condition=Ready nodes --all --timeout=120s
+kubectl run client --image=busybox:1.37 -- sleep 3600
+kubectl wait --for=condition=Ready pod/client --timeout=60s</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-control-plane condition met
+node/lab-worker condition met
+node/lab-worker2 condition met
+pod/client created
+pod/client condition met</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>client</code> is a tiny BusyBox Pod that just sleeps. We'll use <code>kubectl exec client -- …</code> to run <code>wget</code> and <code>nslookup</code> from <b>inside</b> the cluster.</li><li>BusyBox already includes <code>wget</code> and <code>nslookup</code>, so nothing needs to be installed in the Pod.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get pod client</code> shows <b>1/1 Running</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Create a Pod imperatively — kubectl run</h2><div class="tags"><span>Slides 9–15</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Create one Pod with a single command, then inspect it with get, describe and logs.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run nginx-pod --image=nginx:1.28-alpine
+kubectl wait --for=condition=Ready pod/nginx-pod --timeout=60s
+kubectl get pods
+kubectl get pod nginx-pod -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/nginx-pod created
+pod/nginx-pod condition met
+NAME        READY   STATUS    RESTARTS   AGE
+client      1/1     Running   0          40s
+nginx-pod   1/1     Running   0          2s
+NAME        READY   STATUS    RESTARTS   AGE   IP           NODE          NOMINATED NODE   READINESS GATES
+nginx-pod   1/1     Running   0          2s    10.244.2.2   lab-worker2   &lt;none&gt;           &lt;none&gt;</pre></div><div class="code"><div class="code-bar"><span>Deep inspection — scan the key fields, then the events</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl describe pod nginx-pod | grep -E '^(Name|Namespace|Node|Status|IP):|Image:|Restart Count'
+kubectl describe pod nginx-pod | sed -n '/^Events:/,$p'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Name:             nginx-pod
+Namespace:        default
+Node:             lab-worker2/172.19.0.3
+Status:           Running
+IP:               10.244.2.2
+    Image:          nginx:1.28-alpine
+    Restart Count:  0
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  5s    default-scheduler  Successfully assigned default/nginx-pod to lab-worker2
+  Normal  Pulled     4s    kubelet            spec.containers{nginx-pod}: Container image "nginx:1.28-alpine" already present on machine ...
+  Normal  Created    3s    kubelet            spec.containers{nginx-pod}: Container created
+  Normal  Started    3s    kubelet            spec.containers{nginx-pod}: Container started</pre></div><div class="code"><div class="code-bar"><span>Read the logs, then delete the Pod</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl logs nginx-pod | tail -3
+kubectl delete pod nginx-pod</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>2026/09/28 17:41:10 [notice] 1#1: start worker process 23
+2026/09/28 17:41:10 [notice] 1#1: start worker process 24
+2026/09/28 17:41:10 [notice] 1#1: start worker process 25
+pod "nginx-pod" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl run</code> is the fastest way to get one Pod — great for experiments and debugging.</li><li><code>-o wide</code> adds the <b>Pod IP</b> and the <b>node</b>. Your IP and node may differ.</li><li>Events tell the story: the scheduler picked a node, then the kubelet pulled the image and started the container.</li><li>Deleting the Pod removes it for good. Nothing brings it back — no controller is watching it. (Module 4 changes that.)</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get pods</code> shows only <code>client</code>.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Generate YAML, then apply it</h2><div class="tags"><span>Slides 16–18, 28</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Let kubectl write a draft manifest, compare it with the clean pod.yaml, and create the Pod declaratively.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Draft a manifest — nothing is created</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run nginx-pod --image=nginx:1.28-alpine --port=80 -l app=nginx \
+  --dry-run=client -o yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: nginx
+  name: nginx-pod
+spec:
+  containers:
+  - image: nginx:1.28-alpine
+    name: nginx-pod
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}</pre></div><div class="code"><div class="code-bar"><span>Creates: pod.yaml (the clean version from slide 17)</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.28-alpine
+      ports:
+        - containerPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f pod.yaml
+kubectl wait --for=condition=Ready pod/nginx-pod --timeout=60s
+kubectl get pod nginx-pod --show-labels</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/nginx-pod created
+pod/nginx-pod condition met
+NAME        READY   STATUS    RESTARTS   AGE   LABELS
+nginx-pod   1/1     Running   0          2s    app=nginx</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Every manifest has the same four top-level keys: <b>apiVersion → kind → metadata → spec</b>.</li><li><code>--dry-run=client -o yaml</code> gives you a correct starting point. Delete the empty fields (<code>resources: {}</code>, <code>status: {}</code>) and keep the rest.</li><li>The label <code>app: nginx</code> matters — the Service in Step 8 finds the Pod through it.</li><li>Imperative: "run this". Declarative: "make the cluster match this file". From now on we use files.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The Pod is Running with the label <code>app=nginx</code>.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Talk to a Pod by its IP</h2><div class="tags"><span>Slides 5, 13</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Reach nginx from another Pod using its Pod IP, and see why that IP isn't something to rely on.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>POD_IP=$(kubectl get pod nginx-pod -o jsonpath='{.status.podIP}')
+echo "nginx-pod IP: $POD_IP"
+kubectl exec client -- wget -qO- http://$POD_IP | grep title</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>nginx-pod IP: 10.244.1.2
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Every Pod gets its own IP on the cluster network. Any Pod can reach any other Pod directly.</li><li>That IP only exists <b>inside</b> the cluster. From your laptop, <code>curl 10.244.x.x</code> would just time out.</li><li>And it changes whenever the Pod is recreated — Step 11 proves it. That's why we need Services.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw <b>Welcome to nginx!</b> through the Pod IP.</div></div></section><div class="part-head" id="part-B"><b>Part B — Lifecycle and debugging</b><span>Steps 5–7 · phases, ImagePullBackOff, CrashLoopBackOff · ~20 min</span></div><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Watch the lifecycle: Pending → Running → Succeeded</h2><div class="tags"><span>Slides 6–7, 29 · Quiz Q8</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Run a Pod that does one job and exits, and watch it move through every phase.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Watch for 12 seconds</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run short-job --image=busybox:1.37 --restart=Never -- sh -c 'echo working; sleep 5; echo done'
+kubectl get pod short-job -w --request-timeout=12s</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/short-job created
+NAME        READY   STATUS              RESTARTS   AGE
+short-job   0/1     ContainerCreating   0          0s
+short-job   1/1     Running             0          1s
+short-job   0/1     Completed           0          7s</pre></div><div class="code"><div class="code-bar"><span>Check the phase and the output</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pod short-job -o jsonpath='{.status.phase}{"\n"}'
+kubectl logs short-job</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Succeeded
+working
+done</pre></div><div class="code"><div class="code-bar"><span>Compare: a container that exits with an error</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run fail-once --image=busybox:1.37 --restart=Never -- sh -c 'echo oops; exit 3'
+sleep 5
+kubectl get pod fail-once -o jsonpath='phase={.status.phase} exitCode={.status.containerStatuses[0].state.terminated.exitCode}{"\n"}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/fail-once created
+phase=Failed exitCode=3</pre></div><div class="table-wrap"><table><thead><tr><th>You saw</th><th>Pod phase</th><th>Container state</th></tr></thead><tbody><tr><td><code>ContainerCreating</code></td><td>Pending</td><td>Waiting</td></tr><tr><td><code>Running</code></td><td>Running</td><td>Running</td></tr><tr><td><code>Completed</code> (exit 0)</td><td>Succeeded</td><td>Terminated</td></tr><tr><td><code>Error</code> (exit 3)</td><td>Failed</td><td>Terminated</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>--restart=Never</code> means: when the container stops, don't start it again. That's what lets the Pod finish.</li><li>The STATUS column shows a friendly summary. The real <b>phase</b> lives in <code>.status.phase</code>.</li><li><code>-w</code> watches for changes. <code>--request-timeout</code> stops the watch for you (or press Ctrl + C).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>short-job</code> is <b>Succeeded</b> and <code>fail-once</code> is <b>Failed</b>.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>ImagePullBackOff — a bad image tag</h2><div class="tags"><span>Slides 8, 30 · Quiz Q5</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a Pod with an image tag that doesn't exist, and find the reason in the events.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run bad-image --image=nginx:9.99-doesnotexist
+sleep 20
+kubectl get pod bad-image
+kubectl describe pod bad-image | grep -E 'Warning' | head -3</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/bad-image created
+NAME        READY   STATUS             RESTARTS   AGE
+bad-image   0/1     ImagePullBackOff   0          20s
+  Warning  Failed   15s (x2 over 20s)  kubelet  spec.containers{bad-image}: Failed to pull image "nginx:9.99-doesnotexist": ... not found
+  Warning  Failed   15s (x2 over 20s)  kubelet  spec.containers{bad-image}: Error: ErrImagePull
+  Warning  Failed   3s (x2 over 19s)   kubelet  spec.containers{bad-image}: Error: ImagePullBackOff</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>ErrImagePull</b> is the failure. <b>ImagePullBackOff</b> means the kubelet is now waiting longer and longer between retries.</li><li>The event message tells you why: <i>not found</i> (bad name or tag), <i>unauthorized</i> (a private registry needs credentials), or a network error.</li><li>The fix is always in the Pod spec — correct the image. Deleting and re-creating the same Pod won't help.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You found the words <b>not found</b> in the events.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>CrashLoopBackOff — read the real error</h2><div class="tags"><span>Slides 8, 30 · Quiz Q4</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Run an app that crashes on start-up, and use logs and describe to find the root cause.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run crasher --image=busybox:1.37 -- \
+  sh -c 'echo "starting app..."; echo "ERROR: DATABASE_URL is not set"; exit 1'
+sleep 45
+kubectl get pod crasher</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/crasher created
+NAME      READY   STATUS             RESTARTS      AGE
+crasher   0/1     CrashLoopBackOff   3 (28s ago)   45s</pre></div><div class="code"><div class="code-bar"><span>Find the cause</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl logs crasher
+kubectl describe pod crasher | grep -E 'Last State|Exit Code|Restart Count|BackOff'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>starting app...
+ERROR: DATABASE_URL is not set
+      Exit Code:    1
+    Last State:     Terminated
+      Exit Code:    1
+    Restart Count:  3
+  Warning  BackOff    11s (x3 over 43s)  kubelet  ... Back-off restarting failed container crasher ...</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl run</code> uses <code>restartPolicy: Always</code>, so the kubelet restarts the crashing container — waiting 10 s, 20 s, 40 s… up to 5 minutes.</li><li>STATUS flips between <b>Error</b> and <b>CrashLoopBackOff</b>. Both mean the same thing: it keeps crashing.</li><li>CrashLoopBackOff is only the <b>symptom</b>. The <b>cause</b> is in the logs: a missing setting. The fix is in the app's configuration (Module 6).</li><li>Use <code>kubectl logs --previous</code> when a container crashed and has <b>already restarted and is running again</b> — it shows the crashed run's output.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You found <b>DATABASE_URL is not set</b> in the logs.</div></div></section><div class="part-head" id="part-C"><b>Part C — Services</b><span>Steps 8–12 · YAML, DNS, labels, replacement, outside access · ~35 min</span></div><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Create a Service from YAML</h2><div class="tags"><span>Slides 19–24</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Put a stable name and IP in front of nginx-pod with a ClusterIP Service.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: service.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; service.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f service.yaml
+kubectl get service nginx-svc
+kubectl describe service nginx-svc | grep -E 'Selector|Type:|^IP:|Port|Endpoints'
+kubectl get endpointslices -l kubernetes.io/service-name=nginx-svc</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/nginx-svc created
+NAME        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+nginx-svc   ClusterIP   10.96.189.200   &lt;none&gt;        80/TCP    0s
+Selector:                 app=nginx
+Type:                     ClusterIP
+IP:                       10.96.189.200
+Port:                     &lt;unset&gt;  80/TCP
+TargetPort:               80/TCP
+Endpoints:                10.244.1.2:80
+NAME              ADDRESSTYPE   PORTS   ENDPOINTS    AGE
+nginx-svc-n2v26   IPv4          80      10.244.1.2   1s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The Service got a stable <b>ClusterIP</b> (<code>10.96.189.200</code>). It never changes while the Service exists.</li><li><b>Selector</b> <code>app=nginx</code> found our Pod — its IP shows up as the <b>Endpoint</b>.</li><li><code>port: 80</code> is where clients connect. <code>targetPort: 80</code> is where the Pod listens. They must match what the app really uses (Quiz Q7).</li><li>Kubernetes tracks endpoints in <b>EndpointSlice</b> objects. <code>kube-proxy</code> on every node reads them to route traffic (Module 2).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>Endpoints</code> shows nginx-pod's IP.</div></div></section><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>Service discovery with DNS</h2><div class="tags"><span>Slides 25, 31 · Quiz Q9</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Reach nginx by the Service's name, look up its full DNS name, and prove Pods have no names of their own.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl exec client -- wget -qO- http://nginx-svc | grep title
+kubectl exec client -- nslookup nginx-svc.default.svc.cluster.local
+kubectl exec client -- cat /etc/resolv.conf</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+Server:		10.96.0.10
+Address:	10.96.0.10:53
+
+Name:	nginx-svc.default.svc.cluster.local
+Address: 10.96.189.200
+
+search default.svc.cluster.local svc.cluster.local cluster.local
+nameserver 10.96.0.10
+options ndots:5</pre></div><div class="code"><div class="code-bar"><span>Pods do NOT get a DNS name</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl exec client -- wget -qO- -T 3 http://nginx-pod</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>wget: bad address 'nginx-pod'
+command terminated with exit code 1</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The full name is <code>&lt;service&gt;.&lt;namespace&gt;.svc.cluster.local</code>. CoreDNS answers at <code>10.96.0.10</code>.</li><li>The <b>search</b> line lets you use short names: <code>nginx-svc</code> works inside the same namespace. From another namespace, use <code>nginx-svc.default</code>.</li><li><code>nginx-pod</code> doesn't resolve — only Services get names. Always talk to a Service, never to a Pod directly.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>nginx-svc</code> works and <code>nginx-pod</code> gives <b>bad address</b>.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Labels decide which Pods a Service uses</h2><div class="tags"><span>Slides 22, 32, 37 · Quiz Q3</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Break the selector match on purpose, watch the endpoint disappear, then fix it.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Change the Pod's label</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label pod nginx-pod app=web --overwrite
+sleep 2
+kubectl get endpointslices -l kubernetes.io/service-name=nginx-svc
+kubectl exec client -- wget -qO- -T 3 http://nginx-svc</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/nginx-pod labeled
+NAME              ADDRESSTYPE   PORTS     ENDPOINTS   AGE
+nginx-svc-n2v26   IPv4          &lt;unset&gt;   &lt;unset&gt;     2m
+wget: can't connect to remote host (10.96.189.200): Connection refused
+command terminated with exit code 1</pre></div><div class="code"><div class="code-bar"><span>Put the label back</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label pod nginx-pod app=nginx --overwrite
+sleep 2
+kubectl get endpointslices -l kubernetes.io/service-name=nginx-svc
+kubectl exec client -- wget -qO- http://nginx-svc | grep title</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/nginx-pod labeled
+NAME              ADDRESSTYPE   PORTS   ENDPOINTS    AGE
+nginx-svc-n2v26   IPv4          80      10.244.1.2   2m
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A Service doesn't point at Pods by name. It points at <b>whatever Pods have matching labels</b>, right now.</li><li>No match = no endpoints = <b>connection refused</b>, even though the Pod is perfectly healthy.</li><li>This is the #1 Service bug in real life: a typo in a label or selector. Check endpoints first.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Endpoints came back and <b>Welcome to nginx!</b> works again.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>The Service survives Pod replacement</h2><div class="tags"><span>Slides 19, 33 · Quiz Q2</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Replace the Pod, see its IP change, and prove the Service name still works.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pod nginx-pod -o jsonpath='old IP: {.status.podIP}{"\n"}'
+kubectl delete pod nginx-pod
+kubectl apply -f pod.yaml
+kubectl wait --for=condition=Ready pod/nginx-pod --timeout=60s
+kubectl get pod nginx-pod -o jsonpath='new IP: {.status.podIP}{"\n"}'
+kubectl get endpointslices -l kubernetes.io/service-name=nginx-svc
+kubectl exec client -- wget -qO- http://nginx-svc | grep title</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>old IP: 10.244.1.2
+pod "nginx-pod" deleted from default namespace
+pod/nginx-pod created
+pod/nginx-pod condition met
+new IP: 10.244.1.3
+NAME              ADDRESSTYPE   PORTS   ENDPOINTS    AGE
+nginx-svc-n2v26   IPv4          80      10.244.1.3   2m
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A new Pod always gets a new IP. Anything that saved the old IP is now broken.</li><li>The Service's selector found the new Pod automatically, and its endpoint moved to the new IP.</li><li>Clients using <code>nginx-svc</code> never noticed. That's the whole point of a Service.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The IP changed, but <code>nginx-svc</code> still answers.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Reach it from outside: NodePort and port-forward</h2><div class="tags"><span>Slides 21, 23</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Expose nginx on a port on every node, then reach it from your laptop.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl expose pod nginx-pod --type=NodePort --port=80 --name=nginx-nodeport
+kubectl get service nginx-nodeport
+NODE_PORT=$(kubectl get service nginx-nodeport -o jsonpath='{.spec.ports[0].nodePort}')
+echo "NodePort: $NODE_PORT"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/nginx-nodeport exposed
+NAME             TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+nginx-nodeport   NodePort   10.96.12.57   &lt;none&gt;        80:32353/TCP   0s
+NodePort: 32353</pre></div><div class="code"><div class="code-bar"><span>Call the NodePort on every node (from inside kind's Docker network)</span><button class="copy" type="button">Copy</button></div><pre><code>sleep 3   # give kube-proxy a moment to program every node
+for node in lab-control-plane lab-worker lab-worker2; do
+  docker exec lab-control-plane curl -s -o /dev/null -w "$node:$NODE_PORT -&gt; %{http_code}\n" http://$node:$NODE_PORT
+done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>lab-control-plane:32353 -&gt; 200
+lab-worker:32353 -&gt; 200
+lab-worker2:32353 -&gt; 200</pre></div><div class="code"><div class="code-bar"><span>From your laptop: port-forward</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl port-forward service/nginx-svc 8080:80 &gt;/dev/null &amp;
+PF_PID=$!
+sleep 2
+curl -s http://localhost:8080 | grep title
+kill $PF_PID</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A NodePort opens the <b>same port on every node</b> (30000–32767) — even nodes that don't run the Pod. kube-proxy forwards the traffic.</li><li>kind nodes are containers, so we tested from inside kind's network. On a real cluster you'd use <code>http://&lt;node-ip&gt;:&lt;nodePort&gt;</code>.</li><li><code>port-forward</code> is the everyday way to reach a Service from your laptop while developing.</li><li>We used <code>--name=nginx-nodeport</code> so the Service isn't called <code>nginx-pod</code> — a Service and a Pod with the same name is confusing.</li></ul></div><div class="callout warn"><b>Careful:</b> Don't mix <code>kubectl expose</code> and <code>kubectl apply</code> on the <b>same</b> Service. <code>apply</code> will warn about a missing <code>last-applied-configuration</code> and quietly change the Service. Pick one way per object — files are best.</div><div class="check"><span>Checkpoint</span><div class="ct">All three nodes returned <b>200</b>, and port-forward showed the nginx page.</div></div></section><div class="part-head" id="part-D"><b>Part D — Multi-container Pods and 2026 features</b><span>Steps 13–14 · shared network, sidecars, resize · ~15 min</span></div><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Two containers, one Pod</h2><div class="tags"><span>Slides 3–4, 34 · Quiz Q1</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Run nginx and a helper container in one Pod, and prove they share localhost and a volume.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: two-containers.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; two-containers.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: two-containers
+  labels:
+    app: shared-demo
+spec:
+  volumes:
+    - name: shared-html
+      emptyDir: {}
+  containers:
+    - name: web
+      image: nginx:1.28-alpine
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: shared-html
+          mountPath: /usr/share/nginx/html
+    - name: writer
+      image: busybox:1.37
+      command: ["sh", "-c"]
+      args:
+        - while true; do
+            echo "&lt;h1&gt;Written by the writer container at $(date +%T)&lt;/h1&gt;" &gt; /html/index.html;
+            sleep 5;
+          done
+      volumeMounts:
+        - name: shared-html
+          mountPath: /html
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f two-containers.yaml
+kubectl wait --for=condition=Ready pod/two-containers --timeout=60s
+kubectl get pod two-containers</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/two-containers created
+pod/two-containers condition met
+NAME             READY   STATUS    RESTARTS   AGE
+two-containers   2/2     Running   0          2s</pre></div><div class="code"><div class="code-bar"><span>The writer calls nginx over localhost</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl exec two-containers -c writer -- wget -qO- http://localhost:80
+kubectl logs two-containers -c web --tail=1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>&lt;h1&gt;Written by the writer container at 17:44:41&lt;/h1&gt;
+127.0.0.1 - - [28/Sep/2026:17:44:41 +0000] "GET / HTTP/1.1" 200 53 "-" "Wget" "-"</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>READY 2/2</b>: one Pod, two containers, scheduled together on the same node.</li><li><b>Shared network:</b> <code>writer</code> reached nginx at <code>localhost:80</code>, and nginx logged the visitor as <code>127.0.0.1</code>.</li><li><b>Shared volume:</b> nginx served the page that <code>writer</code> wrote into the <code>emptyDir</code> volume.</li><li>Use <code>-c &lt;name&gt;</code> to pick a container for <code>logs</code> and <code>exec</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The page says <b>Written by the writer container</b>.</div></div></section><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>2026 features: native sidecar and in-place resize</h2><div class="tags"><span>Slides 35–36</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Run a native sidecar that ships nginx's logs, then change the Pod's CPU without restarting it.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: sidecar-resize.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; sidecar-resize.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: modern-pod
+spec:
+  initContainers:
+    - name: log-shipper
+      image: busybox:1.37
+      restartPolicy: Always
+      command: ["sh", "-c", "tail -F /logs/access.log"]
+      volumeMounts:
+        - name: logs
+          mountPath: /logs
+  containers:
+    - name: web
+      image: nginx:1.28-alpine
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+      resizePolicy:
+        - resourceName: cpu
+          restartPolicy: NotRequired
+        - resourceName: memory
+          restartPolicy: RestartContainer
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log/nginx
+  volumes:
+    - name: logs
+      emptyDir: {}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f sidecar-resize.yaml
+kubectl wait --for=condition=Ready pod/modern-pod --timeout=60s
+kubectl get pod modern-pod
+kubectl exec modern-pod -c web -- wget -qO- http://localhost &gt;/dev/null
+sleep 2
+kubectl logs modern-pod -c log-shipper --tail=1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/modern-pod created
+pod/modern-pod condition met
+NAME         READY   STATUS    RESTARTS   AGE
+modern-pod   2/2     Running   0          1s
+127.0.0.1 - - [28/Sep/2026:17:45:00 +0000] "GET / HTTP/1.1" 200 615 "-" "Wget" "-"</pre></div><div class="code"><div class="code-bar"><span>Resize the CPU in place</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pod modern-pod -o jsonpath='before: cpu limit={.spec.containers[0].resources.limits.cpu} restarts={.status.containerStatuses[0].restartCount}{"\n"}'
+kubectl patch pod modern-pod --subresource resize \
+  --patch '{"spec":{"containers":[{"name":"web","resources":{"requests":{"cpu":"200m"},"limits":{"cpu":"400m"}}}]}}'
+sleep 3
+kubectl get pod modern-pod -o jsonpath='after:  cpu limit={.status.containerStatuses[0].resources.limits.cpu} restarts={.status.containerStatuses[0].restartCount}{"\n"}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>before: cpu limit=200m restarts=0
+pod/modern-pod patched
+after:  cpu limit=400m restarts=0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>Native sidecar</b> (stable since v1.33): an <code>initContainer</code> with <code>restartPolicy: Always</code>. It starts first, keeps running beside the app, and stops after it.</li><li>The sidecar reads nginx's log file from a shared volume — a common pattern for log shipping.</li><li><b>In-place resize</b> (stable since v1.35): change CPU or memory with <code>--subresource resize</code>. With <code>restartPolicy: NotRequired</code> for CPU, the container keeps running — <b>restarts=0</b>.</li><li>Memory in this file uses <code>RestartContainer</code>, because many apps only read their memory size at start-up.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The sidecar printed nginx's access log, and the CPU limit changed to <b>400m</b> with <b>0 restarts</b>.</div></div></section><div class="part-head" id="part-E"><b>Part E — User namespaces</b><span>Step 15 · root in the Pod, not on the node · ~6 min</span></div><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>User namespaces: root in the Pod, nobody on the node</h2><div class="tags"><span>Slide 37</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Run the same command as root in two Pods — one with its own user namespace — and see which UID each really has on the node.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: userns-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; userns-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: userns-pod
+spec:
+  hostUsers: false          # give this Pod its own user namespace
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3700"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Inside the Pods</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f userns-pod.yaml
+kubectl run normal-pod --image=busybox:1.37 -- sleep 3701
+kubectl wait --for=condition=Ready pod/userns-pod pod/normal-pod --timeout=60s
+kubectl exec userns-pod -- id
+kubectl exec userns-pod -- cat /proc/self/uid_map
+kubectl exec normal-pod -- cat /proc/self/uid_map</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/userns-pod created
+pod/normal-pod created
+pod/userns-pod condition met
+pod/normal-pod condition met
+uid=0(root) gid=0(root) groups=0(root),10(wheel)
+         0 4153409536      65536
+         0          0 4294967295</pre></div><div class="code"><div class="code-bar"><span>On the node (kind nodes are containers, so we can look)</span><button class="copy" type="button">Copy</button></div><pre><code>for p in userns-pod:3700 normal-pod:3701; do
+  pod=${p%:*}; secs=${p#*:}
+  node=$(kubectl get pod $pod -o jsonpath='{.spec.nodeName}')
+  echo "$pod on $node runs as host UID $(docker exec $node sh -c "stat -c %u /proc/\$(pgrep -f '^sleep $secs')")"
+done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>userns-pod on lab-worker runs as host UID 4153409536
+normal-pod on lab-worker runs as host UID 0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Both containers think they're <b>root</b> (uid 0). The <code>uid_map</code> line shows the truth: in <code>userns-pod</code>, uid 0 inside maps to a high, unprivileged UID on the node; in <code>normal-pod</code>, uid 0 <b>is</b> uid 0 on the node.</li><li>If an attacker breaks out of <code>userns-pod</code>'s container, they land on the node as a nobody — not as root. That's why <code>hostUsers: false</code> is one of the strongest single protections you can add.</li><li>User namespaces are stable in Kubernetes v1.37. They need a recent Linux kernel and container runtime — kind on a current Docker host has both.</li><li>Apps that really need host-level powers (loading kernel modules, host networking tools) can't use it. For normal apps it's usually free.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>userns-pod</code> maps to a large host UID (the exact number changes every time), <code>normal-pod</code> to <b>0</b>. The node names may differ too.</div></div></section><div class="part-head" id="part-F"><b>Part F — Clean up</b><span>Step 16 · ~2 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up</h2><div class="tags"><span>Slide 51</span><span>~2 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete everything this module created. Keep the cluster for Module 4.</p><div class="folder">Run from: <code>module3-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete -f service.yaml -f pod.yaml -f two-containers.yaml -f sidecar-resize.yaml
+kubectl delete service nginx-nodeport
+kubectl delete pod client short-job fail-once bad-image crasher userns-pod normal-pod --now
+kubectl get all</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service "nginx-svc" deleted from default namespace
+pod "nginx-pod" deleted from default namespace
+pod "two-containers" deleted from default namespace
+pod "modern-pod" deleted from default namespace
+service "nginx-nodeport" deleted from default namespace
+pod "client" deleted from default namespace
+...
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   30m</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl delete -f</code> removes exactly what the files created — the declarative way to clean up.</li><li><code>service/kubernetes</code> always stays. It's how Pods reach the API server.</li><li>Module 4 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get all</code> shows only <code>service/kubernetes</code>.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>error: the server doesn't have a resource type</code> or <code>connection refused</code></dt><dd>kubectl can't reach the cluster. Check <code>kind get clusters</code> and <code>kubectl config current-context</code> (Step 1).</dd><dt><code>Error from server (AlreadyExists): pods "client" already exists</code></dt><dd>It's still there from a previous run. Use it, or remove it: <code>kubectl delete pod client --now</code>.</dd><dt><code>wget: bad address 'nginx-svc'</code></dt><dd>The Service doesn't exist or is in another namespace. Check <code>kubectl get svc</code>. From another namespace, use <code>nginx-svc.default</code>.</dd><dt><code>Connection refused</code> to a Service</dt><dd>No endpoints. Compare <code>kubectl get pods --show-labels</code> with the Service's selector (Step 10).</dd><dt>A Pod stays <code>Pending</code></dt><dd>Run <code>kubectl describe pod &lt;name&gt;</code> and read Events. Usually no node fits, or nodes aren't Ready.</dd><dt><code>kubectl logs</code> says <code>a container name must be specified</code></dt><dd>The Pod has more than one container. Add <code>-c &lt;container&gt;</code> (Step 13).</dd><dt><code>error: unknown flag: --subresource</code></dt><dd>Your kubectl is too old for in-place resize. Use kubectl v1.32 or newer.</dd><dt><code>port-forward</code> says <code>address already in use</code></dt><dd>Something already uses port 8080. Pick another local port: <code>kubectl port-forward service/nginx-svc 8081:80</code>.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 3 — Pods, Pod Lifecycle &amp; Services · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
