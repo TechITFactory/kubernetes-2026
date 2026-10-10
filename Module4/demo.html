@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 4 Lab — Namespaces, Labels, Deployments & Service Types</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 4 + 4B · Hands-on lab</div>
+  <h1>Namespaces, Labels, Deployments &amp; Service Types — Step-by-Step Lab</h1>
+  <p>Budget a namespace, select Pods with labels, watch ReplicaSets heal and adopt, then run a Deployment through a real release, a broken release and a rollback. In Part E you expose your Module 1 app with all three Service types — including a real LoadBalancer IP — and in Part F you measure downtime for each update strategy. Part G adds headless and ExternalName Services. Twenty-two steps, in order.</p>
+  <div class="meta"><span>22 steps · about 2 h 17 min</span><span>Kubernetes v1.37 · kind</span><span>Covers Module 4 and Module 4B</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Namespaces and quotas</div><a href="#step-1"><span class="n">1</span>Start from the Module 3 cluster</a><a href="#step-2"><span class="n">2</span>Namespaces and your current context</a><a href="#step-3"><span class="n">3</span>ResourceQuota: watch the API server say no</a><a href="#step-4"><span class="n">4</span>LimitRange defaults — and a Deployment stuck by quota</a><div class="grp">Part B · Labels and annotations</div><a href="#step-5"><span class="n">5</span>Labels and selectors</a><a href="#step-6"><span class="n">6</span>Annotations</a><div class="grp">Part C · ReplicaSets</div><a href="#step-7"><span class="n">7</span>A ReplicaSet heals itself</a><a href="#step-8"><span class="n">8</span>Adoption and orphans</a><div class="grp">Part D · Deployments</div><a href="#step-9"><span class="n">9</span>A production-ready Deployment</a><a href="#step-10"><span class="n">10</span>Diff first, then roll out</a><a href="#step-11"><span class="n">11</span>A broken rollout that hurts nobody</a><a href="#step-12"><span class="n">12</span>Roll back — then fix it the right way</a><a href="#step-13"><span class="n">13</span>Scaling and drift</a><div class="grp">Part E · Service types and the API (Module 4B)</div><a href="#step-14"><span class="n">14</span>Your Module 1 app behind a ClusterIP Service</a><a href="#step-15"><span class="n">15</span>NodePort: a port on every node</a><a href="#step-16"><span class="n">16</span>LoadBalancer: a real external IP on kind</a><a href="#step-17"><span class="n">17</span>Resource anatomy and the live API</a><div class="grp">Part F · Update strategies, measured (Module 4B)</div><a href="#step-18"><span class="n">18</span>Recreate — measure the downtime</a><a href="#step-19"><span class="n">19</span>RollingUpdate — and the last few failed requests</a><a href="#step-20"><span class="n">20</span>Targeted rollback with history</a><div class="grp">Part G · Headless and ExternalName Services (Module 4B)</div><a href="#step-21"><span class="n">21</span>Headless and ExternalName Services</a><div class="grp">Part H · Clean up</div><a href="#step-22"><span class="n">22</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Namespaces and quotas</div><div class="psub">Steps 1–4 · Module 4 slides 3–8, 31 · ~30 min</div><div class="chips"><a href="#step-1">1. Start from the Module 3 cluster</a><a href="#step-2">2. Namespaces and your current context</a><a href="#step-3">3. ResourceQuota: watch the API server say no</a><a href="#step-4">4. LimitRange defaults — and a Deployment stuck by quota</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Labels and annotations</div><div class="psub">Steps 5–6 · Module 4 slides 9–13, 32 · ~15 min</div><div class="chips"><a href="#step-5">5. Labels and selectors</a><a href="#step-6">6. Annotations</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">ReplicaSets</div><div class="psub">Steps 7–8 · Module 4 slides 14–17, 33 · ~15 min</div><div class="chips"><a href="#step-7">7. A ReplicaSet heals itself</a><a href="#step-8">8. Adoption and orphans</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Deployments: roll out, break, roll back</div><div class="psub">Steps 9–13 · Module 4 slides 18–30, 34–37 · ~40 min</div><div class="chips"><a href="#step-9">9. A production-ready Deployment</a><a href="#step-10">10. Diff first, then roll out</a><a href="#step-11">11. A broken rollout that hurts nobody</a><a href="#step-12">12. Roll back — then fix it the right way</a><a href="#step-13">13. Scaling and drift</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">Service types and the API (Module 4B)</div><div class="psub">Steps 14–17 · Module 4B slides 3–18, 27–33 · ~35 min</div><div class="chips"><a href="#step-14">14. Your Module 1 app behind a ClusterIP Service</a><a href="#step-15">15. NodePort: a port on every node</a><a href="#step-16">16. LoadBalancer: a real external IP on kind</a><a href="#step-17">17. Resource anatomy and the live API</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Update strategies, measured (Module 4B)</div><div class="psub">Steps 18–20 · Module 4B slides 19–28, 32 · ~25 min</div><div class="chips"><a href="#step-18">18. Recreate — measure the downtime</a><a href="#step-19">19. RollingUpdate — and the last few failed requests</a><a href="#step-20">20. Targeted rollback with history</a></div></div></div><div class="part"><div class="letter">G</div><div><div class="ptitle">Headless and ExternalName Services (Module 4B)</div><div class="psub">Step 21 · Module 4B slides 13–14, 34 · ~10 min</div><div class="chips"><a href="#step-21">21. Headless and ExternalName Services</a></div></div></div><div class="part"><div class="letter">H</div><div><div class="ptitle">Clean up</div><div class="psub">Step 22 · ~3 min</div><div class="chips"><a href="#step-22">22. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 1–3 first.</b> This lab uses the 3-node kind cluster (<code>kind-lab</code>) and the <code>module1-demo-api:1.0.0</code> image you built in Module 1.</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows. Step 16 needs a <b>second terminal</b>.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Pod names, IPs, hashes, times and failure counts will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code>PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+for img in nginx:1.28-alpine nginx:1.29-alpine busybox:1.37; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+rm -f image.tar
+kind load docker-image module1-demo-api:1.0.0 --name lab   # your own image loads directly
+docker pull envoyproxy/envoy:v1.33.2   # used by cloud-provider-kind in Step 16</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Namespaces and quotas</b><span>Steps 1–4 · Module 4 slides 3–8, 31 · ~30 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start from the Module 3 cluster</h2><div class="tags"><span>Module 2–3</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Make sure the 3-node kind cluster is running and create a folder for this lab.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module4-lab
+cd module4-lab</code></pre></div><div class="code"><div class="code-bar"><span>Is the cluster still there?</span><button class="copy" type="button">Copy</button></div><pre><code>kind get clusters
+kubectl config current-context
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>lab
+kind-lab
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   2h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          2h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          2h    v1.37.0</pre></div><p>If <code>kind get clusters</code> printed nothing, create the cluster again with the <code>kind-cluster.yaml</code> from Module 2, Step 2:</p><div class="code"><div class="code-bar"><span>Only if you need a new cluster</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; kind-cluster.yaml &lt;&lt;'EOF'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+EOF
+kind create cluster --config kind-cluster.yaml
+kubectl wait --for=condition=Ready nodes --all --timeout=120s</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Module 4 builds on everything so far: Pods and Services (Module 3) on a real multi-node cluster (Module 2).</li><li>All work in Parts A–D happens in the <code>default</code> and <code>testns</code> namespaces. Part E adds your Module 1 app.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three nodes, all <b>Ready</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Namespaces and your current context</h2><div class="tags"><span>M4 slides 3–5 · Quiz Q8</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> See the built-in namespaces, create one from YAML, and switch your default namespace — then switch back.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get namespaces
+kubectl api-resources --namespaced=false | head -5</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                 STATUS   AGE
+default              Active   2h
+kube-node-lease      Active   2h
+kube-public          Active   2h
+kube-system          Active   2h
+local-path-storage   Active   2h
+NAME                SHORTNAMES   APIVERSION   NAMESPACED   KIND
+componentstatuses   cs           v1           false        ComponentStatus
+namespaces          ns           v1           false        Namespace
+nodes               no           v1           false        Node
+persistentvolumes   pv           v1           false        PersistentVolume</pre></div><div class="code"><div class="code-bar"><span>Creates: namespace.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; namespace.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: testns
+  labels:
+    team: training
+    env: dev
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f namespace.yaml
+kubectl get namespace testns --show-labels</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/testns created
+NAME     STATUS   AGE   LABELS
+testns   Active   0s    env=dev,kubernetes.io/metadata.name=testns,team=training</pre></div><div class="code"><div class="code-bar"><span>Change your default namespace, look, and change it back</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl config set-context --current --namespace=testns
+kubectl config view --minify -o jsonpath='{..namespace}'; echo
+kubectl get pods
+kubectl config set-context --current --namespace=default</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Context "kind-lab" modified.
+testns
+No resources found in testns namespace.
+Context "kind-lab" modified.</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A Namespace is a folder for objects. Pods, Services and Deployments live <b>in</b> a namespace; Nodes and Namespaces themselves are cluster-wide (<code>NAMESPACED false</code>).</li><li>Every kubectl command runs against your context's namespace unless you add <code>-n</code>. The message <i>No resources found in <b>testns</b> namespace</i> always tells you where you looked (Quiz Q8).</li><li>Kubernetes adds the <code>kubernetes.io/metadata.name</code> label to every namespace, so policies can select namespaces by name.</li><li>Switching the context namespace is handy, but easy to forget. Always switch back — later steps expect <code>default</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The last command printed <code>Context "kind-lab" modified.</code> — you're back on <code>default</code>.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>ResourceQuota: watch the API server say no</h2><div class="tags"><span>M4 slides 6–8, 31 · Quiz Q2</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Put a budget on testns, then try two Pods that break it: one with no resource numbers, one that asks for too much memory.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: resourcequota.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; resourcequota.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: testnsquota
+  namespace: testns
+spec:
+  hard:
+    pods: "2"
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f resourcequota.yaml
+kubectl get resourcequota -n testns</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>resourcequota/testnsquota created
+NAME          REQUEST                                                LIMIT                                   AGE
+testnsquota   pods: 0/2, requests.cpu: 0/1, requests.memory: 0/1Gi   limits.cpu: 0/2, limits.memory: 0/2Gi   0s</pre></div><div class="code"><div class="code-bar"><span>A Pod with no requests or limits</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run nores -n testns --image=nginx:1.28-alpine</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Error from server (Forbidden): pods "nores" is forbidden: failed quota: testnsquota: must specify limits.cpu for: nores; limits.memory for: nores; requests.cpu for: nores; requests.memory for: nores</pre></div><div class="code"><div class="code-bar"><span>Creates: highmem-pod.yaml — asks for 2Gi of memory</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; highmem-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: highmem-pod
+  namespace: testns
+spec:
+  containers:
+    - name: app
+      image: nginx:1.28-alpine
+      resources:
+        requests:
+          cpu: 100m
+          memory: 2Gi
+        limits:
+          cpu: 200m
+          memory: 2Gi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f highmem-pod.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Error from server (Forbidden): error when creating "highmem-pod.yaml": pods "highmem-pod" is forbidden: exceeded quota: testnsquota, requested: requests.memory=2Gi, used: requests.memory=0, limited: requests.memory=1Gi</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A ResourceQuota is checked at <b>admission</b> — before anything is saved. Rejected Pods never exist, so there's nothing to <code>describe</code>; the error message is all you get.</li><li>Once a quota tracks CPU or memory, <b>every</b> new Pod must say how much it needs. Otherwise the quota can't count it, so the API server refuses it.</li><li>The second error is plain arithmetic: 2Gi requested + 0 used &gt; 1Gi allowed.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Both Pods were <b>Forbidden</b>, and <code>kubectl get pods -n testns</code> shows nothing.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>LimitRange defaults — and a Deployment stuck by quota</h2><div class="tags"><span>M4 slides 8, 31, 39 · Quiz Q1</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Give testns sensible defaults, fill the Pod quota, and see how a Deployment fails <i>quietly</i> when the quota is full.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: limitrange.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; limitrange.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: testns
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 100m
+        memory: 64Mi
+      default:
+        cpu: 200m
+        memory: 128Mi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f limitrange.yaml
+kubectl run web1 -n testns --image=nginx:1.28-alpine
+kubectl run web2 -n testns --image=nginx:1.28-alpine
+kubectl get pod web1 -n testns -o jsonpath='{.spec.containers[0].resources}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>limitrange/defaults created
+pod/web1 created
+pod/web2 created
+{"limits":{"cpu":"200m","memory":"128Mi"},"requests":{"cpu":"100m","memory":"64Mi"}}</pre></div><div class="code"><div class="code-bar"><span>The third Pod is one too many</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run web3 -n testns --image=nginx:1.28-alpine
+kubectl describe resourcequota testnsquota -n testns</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Error from server (Forbidden): pods "web3" is forbidden: exceeded quota: testnsquota, requested: pods=1, used: pods=2, limited: pods=2
+Name:            testnsquota
+Namespace:       testns
+Resource         Used   Hard
+--------         ----   ----
+limits.cpu       400m   2
+limits.memory    256Mi  2Gi
+pods             2      2
+requests.cpu     200m   1
+requests.memory  128Mi  1Gi</pre></div><div class="code"><div class="code-bar"><span>Now a Deployment</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create deployment qdemo -n testns --image=nginx:1.28-alpine --replicas=2
+sleep 3
+kubectl get deploy qdemo -n testns
+kubectl get deploy qdemo -n testns -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}{"\n"}{end}'
+kubectl get events -n testns --field-selector reason=FailedCreate -o custom-columns=MESSAGE:.message | head -2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/qdemo created
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+qdemo   0/2     0            0           3s
+Progressing=True NewReplicaSetCreated
+Available=False MinimumReplicasUnavailable
+ReplicaFailure=True FailedCreate
+MESSAGE
+Error creating: pods "qdemo-697d44df9-t22j6" is forbidden: exceeded quota: testnsquota, requested: pods=1, used: pods=2, limited: pods=2</pre></div><div class="code"><div class="code-bar"><span>Delete the namespace — and everything in it</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete namespace testns</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace "testns" deleted</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The <b>LimitRange</b> filled in requests and limits for Pods that didn't set any. That's why <code>web1</code> was accepted this time.</li><li>The Deployment said <b>created</b> — no error! The <i>ReplicaSet</i> tries to create Pods, and <b>it</b> gets rejected. You only see that in the Deployment's conditions (<code>ReplicaFailure</code>) and in events (Quiz Q1).</li><li>Production habit: when READY stays at 0, check <code>kubectl describe deploy</code> and events before you look at logs. There are no Pods to log yet.</li><li>Deleting a Namespace deletes every object inside it: Pods, the Deployment, the quota and the LimitRange. Handy for cleanup, dangerous in production.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get namespace testns</code> now says <b>NotFound</b> (it may show <code>Terminating</code> for a few seconds first).</div></div></section><div class="part-head" id="part-B"><b>Part B — Labels and annotations</b><span>Steps 5–6 · Module 4 slides 9–13, 32 · ~15 min</span></div><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Labels and selectors</h2><div class="tags"><span>M4 slides 9–11, 32</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Label four Pods like a real team would, then select them with equality and set-based selectors.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Four Pods, three labels each (pod-d has no env)</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run pod-a --image=nginx:1.28-alpine --labels=app=web,tier=frontend,env=prod
+kubectl run pod-b --image=nginx:1.28-alpine --labels=app=web,tier=frontend,env=staging
+kubectl run pod-c --image=nginx:1.28-alpine --labels=app=api,tier=backend,env=prod
+kubectl run pod-d --image=nginx:1.28-alpine --labels=app=web,tier=backend
+kubectl wait --for=condition=Ready pod -l 'app in (web,api)' --timeout=60s
+kubectl get pods --show-labels</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/pod-a created
+pod/pod-b created
+pod/pod-c created
+pod/pod-d created
+pod/pod-a condition met
+pod/pod-b condition met
+pod/pod-c condition met
+pod/pod-d condition met
+NAME    READY   STATUS    RESTARTS   AGE   LABELS
+pod-a   1/1     Running   0          3s    app=web,env=prod,tier=frontend
+pod-b   1/1     Running   0          3s    app=web,env=staging,tier=frontend
+pod-c   1/1     Running   0          3s    app=api,env=prod,tier=backend
+pod-d   1/1     Running   0          3s    app=web,tier=backend</pre></div><div class="code"><div class="code-bar"><span>Select them four ways</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get pods -l app=web -L tier,env
+kubectl get pods -o name -l 'app=web,tier!=backend'
+kubectl get pods -o name -l 'env in (prod)'
+kubectl get pods -o name -l '!env'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME    READY   STATUS    RESTARTS   AGE   TIER       ENV
+pod-a   1/1     Running   0          3s    frontend   prod
+pod-b   1/1     Running   0          3s    frontend   staging
+pod-d   1/1     Running   0          2s    backend    
+pod/pod-a
+pod/pod-b
+pod/pod-a
+pod/pod-c
+pod/pod-d</pre></div><div class="code"><div class="code-bar"><span>Add, change and remove a label</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label pod pod-d env=dev
+kubectl label pod pod-d env=prod
+kubectl label pod pod-d env=prod --overwrite
+kubectl label pod pod-d env-</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/pod-d labeled
+error: 'env' already has a value (dev), and --overwrite is false
+pod/pod-d labeled
+pod/pod-d unlabeled</pre></div><div class="code"><div class="code-bar"><span>Delete by selector</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete pod -l 'app in (web,api)'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "pod-a" deleted from default namespace
+pod "pod-b" deleted from default namespace
+pod "pod-c" deleted from default namespace
+pod "pod-d" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Comma means <b>AND</b>: <code>app=web,tier!=backend</code> needs both to be true.</li><li>Set-based selectors: <code>in (a,b)</code>, <code>notin (a,b)</code>, and <code>!env</code> ("has no env label"). Deployments and ReplicaSets accept these through <code>matchExpressions</code>.</li><li><code>-L tier,env</code> adds label columns — faster to read than <code>--show-labels</code>.</li><li>Changing a label needs <code>--overwrite</code>. That safety net stops you from silently re-routing a Service by accident (Module 3, Step 10).</li><li><code>kubectl delete -l</code> is powerful. Always run the same selector with <code>get</code> first.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>!env</code> returned only <code>pod-d</code>, and all four Pods are gone.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Annotations</h2><div class="tags"><span>M4 slides 12–13 · Quiz Q7</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Attach metadata for tools and people, change it safely, and see that annotations can't be used to select objects.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run annotation-demo --image=nginx:1.28-alpine --annotations=build-version=1.2.3 --annotations=owner=dev-team
+kubectl annotate pod annotation-demo description="demo pod for module 4"
+kubectl get pod annotation-demo -o jsonpath='{.metadata.annotations}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/annotation-demo created
+pod/annotation-demo annotated
+{"build-version":"1.2.3","description":"demo pod for module 4","owner":"dev-team"}</pre></div><div class="code"><div class="code-bar"><span>Change one, remove one, try to select by one</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl annotate pod annotation-demo owner=platform-team
+kubectl annotate pod annotation-demo owner=platform-team --overwrite
+kubectl annotate pod annotation-demo description-
+kubectl get pod annotation-demo -o jsonpath='{.metadata.annotations}'; echo
+kubectl get pods -l owner=platform-team</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>error: --overwrite is false but found the following declared annotation(s): 'owner' already has a value (dev-team)
+pod/annotation-demo annotated
+pod/annotation-demo annotated
+{"build-version":"1.2.3","owner":"platform-team"}
+No resources found in default namespace.</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete pod annotation-demo --now</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "annotation-demo" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Annotations hold <b>information</b>: build numbers, Git commits, owners, links to dashboards, tool settings. Values can be long — up to 256 KB in total.</li><li>Labels are for <b>selection</b>. <code>-l owner=…</code> found nothing because <code>owner</code> is an annotation, not a label.</li><li>Rule of thumb: "Should Kubernetes pick this object by it?" → label. "Should a person or tool read it?" → annotation.</li><li>You'll use one annotation all the time: <code>kubernetes.io/change-cause</code> (Step 9).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The annotations show <b>owner: platform-team</b> and no <b>description</b>.</div></div></section><div class="part-head" id="part-C"><b>Part C — ReplicaSets</b><span>Steps 7–8 · Module 4 slides 14–17, 33 · ~15 min</span></div><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>A ReplicaSet heals itself</h2><div class="tags"><span>M4 slides 14–16, 33</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Run 3 copies of nginx with a ReplicaSet, check who owns each Pod, then delete one and watch it come back.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: nginx-rs.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; nginx-rs.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-rs
+  labels:
+    app: nginx-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-rs
+  template:
+    metadata:
+      labels:
+        app: nginx-rs
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          ports:
+            - containerPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f nginx-rs.yaml
+kubectl wait --for=condition=Ready pod -l app=nginx-rs --timeout=60s
+kubectl get rs nginx-rs
+kubectl get pods -l app=nginx-rs -o custom-columns=NAME:.metadata.name,OWNER:.metadata.ownerReferences[0].name</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>replicaset.apps/nginx-rs created
+pod/nginx-rs-8dttg condition met
+pod/nginx-rs-h7jmt condition met
+pod/nginx-rs-v6lsx condition met
+NAME       DESIRED   CURRENT   READY   AGE
+nginx-rs   3         3         3       2s
+NAME             OWNER
+nginx-rs-8dttg   nginx-rs
+nginx-rs-h7jmt   nginx-rs
+nginx-rs-v6lsx   nginx-rs</pre></div><div class="code"><div class="code-bar"><span>Delete one Pod</span><button class="copy" type="button">Copy</button></div><pre><code>POD=$(kubectl get pods -l app=nginx-rs -o jsonpath='{.items[0].metadata.name}')
+kubectl delete pod $POD
+kubectl get pods -l app=nginx-rs</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "nginx-rs-8dttg" deleted from default namespace
+NAME             READY   STATUS              RESTARTS   AGE
+nginx-rs-g5hg7   0/1     ContainerCreating   0          1s
+nginx-rs-h7jmt   1/1     Running             0          10s
+nginx-rs-v6lsx   1/1     Running             0          10s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The ReplicaSet compares <b>desired</b> (3) with <b>actual</b> (2) and creates a Pod from its template. That loop never stops.</li><li>Each Pod has an <code>ownerReference</code> pointing at the ReplicaSet. That's how Kubernetes knows what to clean up later.</li><li>Compare Module 3: a bare Pod you delete is gone forever. Here a replacement appears within seconds, with a new name and a new IP.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Still 3 Pods — one of them is brand new.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Adoption and orphans</h2><div class="tags"><span>M4 slides 15, 17, 33 · Quiz Q3</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Prove that a ReplicaSet counts <b>every</b> Pod that matches its selector — even ones it didn't create.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Start a Pod by hand with the same label</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run stray --image=nginx:1.28-alpine --labels=app=nginx-rs
+sleep 3
+kubectl get pods -l app=nginx-rs
+kubectl get events --field-selector involvedObject.name=nginx-rs,reason=SuccessfulDelete -o custom-columns=REASON:.reason,MESSAGE:.message</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/stray created
+NAME             READY   STATUS    RESTARTS   AGE
+nginx-rs-g5hg7   1/1     Running   0          20s
+nginx-rs-h7jmt   1/1     Running   0          28s
+nginx-rs-v6lsx   1/1     Running   0          28s
+REASON             MESSAGE
+SuccessfulDelete   Deleted pod: stray</pre></div><div class="code"><div class="code-bar"><span>Delete only the ReplicaSet, then bring it back</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete rs nginx-rs --cascade=orphan
+kubectl get pods -l app=nginx-rs -o custom-columns=NAME:.metadata.name,OWNER:.metadata.ownerReferences[0].name
+kubectl apply -f nginx-rs.yaml
+sleep 2
+kubectl get pods -l app=nginx-rs -o custom-columns=NAME:.metadata.name,OWNER:.metadata.ownerReferences[0].name</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>replicaset.apps "nginx-rs" deleted from default namespace
+NAME             OWNER
+nginx-rs-g5hg7   &lt;none&gt;
+nginx-rs-h7jmt   &lt;none&gt;
+nginx-rs-v6lsx   &lt;none&gt;
+replicaset.apps/nginx-rs created
+NAME             OWNER
+nginx-rs-g5hg7   nginx-rs
+nginx-rs-h7jmt   nginx-rs
+nginx-rs-v6lsx   nginx-rs</pre></div><div class="code"><div class="code-bar"><span>Clean up — the Pods go with it</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete -f nginx-rs.yaml
+sleep 3
+kubectl get pods -l app=nginx-rs</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>replicaset.apps "nginx-rs" deleted from default namespace
+No resources found in default namespace.</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The stray Pod matched <code>app=nginx-rs</code>, so the ReplicaSet <b>adopted</b> it. Now it had 4 Pods but wanted 3 — so it deleted one. Your debug Pod vanished without an error (Quiz Q3).</li><li>Lesson: never reuse a controller's labels for your own Pods. Use unique labels like <code>app=checkout-debug</code>.</li><li><code>--cascade=orphan</code> deletes the owner but keeps the Pods running with no owner. The new ReplicaSet adopted all 3 — no restarts. Teams use this to change a selector or migrate between controllers.</li><li>The default (<code>--cascade=background</code>) deletes the Pods too, as you saw in the last command.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>stray</code> was deleted by the ReplicaSet, and the orphans were adopted again.</div></div></section><div class="part-head" id="part-D"><b>Part D — Deployments: roll out, break, roll back</b><span>Steps 9–13 · Module 4 slides 18–30, 34–37 · ~40 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>A production-ready Deployment</h2><div class="tags"><span>M4 slides 18–22, 34 · Quiz Q9</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Write a Deployment with the fields production teams actually use, check it with both dry-runs, then apply it.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: deployment.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; deployment.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+  annotations:
+    kubernetes.io/change-cause: "Initial deploy nginx 1.28-alpine"
+spec:
+  replicas: 4
+  revisionHistoryLimit: 5        # keep 5 old ReplicaSets for rollback
+  progressDeadlineSeconds: 60    # a rollout stuck for 60 s is marked failed
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1                # at most 1 extra Pod during a rollout
+      maxUnavailable: 0          # never drop below 4 ready Pods
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 5
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Check it first — nothing is saved</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply --dry-run=client -f deployment.yaml
+kubectl apply --dry-run=server -f deployment.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment created (dry run)
+deployment.apps/nginx-deployment created (server dry run)</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f deployment.yaml
+kubectl rollout status deployment/nginx-deployment --timeout=120s
+kubectl get deploy,rs -l app=nginx
+kubectl get pods -l app=nginx --show-labels</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment created
+Waiting for deployment "nginx-deployment" rollout to finish: 0 of 4 updated replicas are available...
+Waiting for deployment "nginx-deployment" rollout to finish: 1 of 4 updated replicas are available...
+Waiting for deployment "nginx-deployment" rollout to finish: 2 of 4 updated replicas are available...
+Waiting for deployment "nginx-deployment" rollout to finish: 3 of 4 updated replicas are available...
+deployment "nginx-deployment" successfully rolled out
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-deployment   4/4     4            4           6s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-deployment-7546988c87   4         4         4       6s
+NAME                                READY   STATUS    RESTARTS   AGE   LABELS
+nginx-deployment-7546988c87-5cz88   1/1     Running   0          6s    app=nginx,pod-template-hash=7546988c87
+...</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The chain is <b>Deployment → ReplicaSet → Pods</b>. The ReplicaSet name ends with the <code>pod-template-hash</code>, and every Pod carries that label.</li><li><code>--dry-run=client</code> only renders the object on your laptop. <code>--dry-run=server</code> sends it to the API server for full validation and admission (quotas, policies) — but still saves nothing.</li><li><code>readinessProbe</code>: a Pod gets traffic only after nginx answers. <code>resources</code>: the scheduler knows the size, and quotas can count it.</li><li><code>maxSurge: 1, maxUnavailable: 0</code>: during a rollout there are at most <b>5</b> Pods, and never fewer than <b>4</b> ready (Quiz Q9).</li><li><code>progressDeadlineSeconds: 60</code> turns a stuck rollout into a clear failure after one minute (Step 11). <code>revisionHistoryLimit: 5</code> keeps 5 old ReplicaSets for rollback.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><b>4/4</b> ready, one ReplicaSet.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Diff first, then roll out</h2><div class="tags"><span>M4 slides 22–25, 35</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Make a new version of the file, see exactly what will change, roll it out and read the history.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: deployment-v2.yaml — then diff it against the live object</span><button class="copy" type="button">Copy</button></div><pre><code>sed -e 's/nginx:1.28-alpine/nginx:1.29-alpine/' \
+    -e 's/Initial deploy nginx 1.28-alpine/Upgrade nginx to 1.29-alpine/' \
+    deployment.yaml &gt; deployment-v2.yaml
+kubectl diff -f deployment-v2.yaml | grep -E '^[-+] '</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>-    kubernetes.io/change-cause: Initial deploy nginx 1.28-alpine
++    kubernetes.io/change-cause: Upgrade nginx to 1.29-alpine
+-  generation: 1
++  generation: 2
+-      - image: nginx:1.28-alpine
++      - image: nginx:1.29-alpine</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f deployment-v2.yaml
+kubectl rollout status deployment/nginx-deployment --timeout=120s
+kubectl get rs -l app=nginx
+kubectl rollout history deployment/nginx-deployment</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment configured
+Waiting for deployment "nginx-deployment" rollout to finish: 1 out of 4 new replicas have been updated...
+...
+Waiting for deployment "nginx-deployment" rollout to finish: 1 old replicas are pending termination...
+deployment "nginx-deployment" successfully rolled out
+NAME                          DESIRED   CURRENT   READY   AGE
+nginx-deployment-5c4d6d6d66   4         4         4       8s
+nginx-deployment-7546988c87   0         0         0       40s
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+1         Initial deploy nginx 1.28-alpine
+2         Upgrade nginx to 1.29-alpine</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl diff</code> compares your file with the live object. Exit code 1 means "there are differences" — it's not an error. Many CI pipelines run it on every pull request.</li><li>Changing the Pod <b>template</b> (the image) created a <b>new ReplicaSet</b>. The old one was scaled to 0 but kept — that's your rollback.</li><li>The <b>CHANGE-CAUSE</b> column comes from the <code>kubernetes.io/change-cause</code> annotation in the file. Without it you only see <code>&lt;none&gt;</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Two ReplicaSets (4 and 0 Pods) and two revisions with readable reasons.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>A broken rollout that hurts nobody</h2><div class="tags"><span>M4 slides 27–28, 36 · Quiz Q4</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Push an image tag that doesn't exist and watch the safety settings from Step 9 protect your users.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Takes about one minute — the progress deadline</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl set image deployment/nginx-deployment nginx=nginx:1.99-doesnotexist
+kubectl annotate deployment/nginx-deployment kubernetes.io/change-cause="Bad release: nginx 1.99-doesnotexist" --overwrite
+kubectl rollout status deployment/nginx-deployment --timeout=120s; echo "exit code: $?"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment image updated
+deployment.apps/nginx-deployment annotated
+Waiting for deployment "nginx-deployment" rollout to finish: 1 out of 4 new replicas have been updated...
+error: deployment "nginx-deployment" exceeded its progress deadline
+exit code: 1</pre></div><div class="code"><div class="code-bar"><span>What state are we in?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get deploy nginx-deployment
+kubectl get pods -l app=nginx
+kubectl get deploy nginx-deployment -o jsonpath='{range .status.conditions[*]}{.type}={.status} {.reason}{"\n"}{end}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   4/4     1            4           2m
+NAME                                READY   STATUS             RESTARTS   AGE
+nginx-deployment-5c4d6d6d66-5cz88   1/1     Running            0          90s
+nginx-deployment-5c4d6d6d66-c72tr   1/1     Running            0          88s
+nginx-deployment-5c4d6d6d66-cgzg7   1/1     Running            0          91s
+nginx-deployment-5c4d6d6d66-jlptr   1/1     Running            0          87s
+nginx-deployment-dcbd9d64f-5drzn    0/1     ErrImagePull       0          65s
+Available=True MinimumReplicasAvailable
+Progressing=False ProgressDeadlineExceeded</pre></div><div class="code"><div class="code-bar"><span>Why? Events first, then logs</span><button class="copy" type="button">Copy</button></div><pre><code>BAD=$(kubectl get pods -l app=nginx --field-selector=status.phase=Pending -o jsonpath='{.items[0].metadata.name}')
+kubectl describe pod $BAD | grep -E 'Failed|BackOff' | head -3
+kubectl logs $BAD</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>  Warning  Failed     20s (x3 over 65s)  kubelet  spec.containers{nginx}: Failed to pull image "nginx:1.99-doesnotexist": ... docker.io/library/nginx:1.99-doesnotexist: not found
+  Warning  Failed     20s (x3 over 65s)  kubelet  spec.containers{nginx}: Error: ErrImagePull
+  Normal   BackOff    5s (x4 over 65s)   kubelet  spec.containers{nginx}: Back-off pulling image "nginx:1.99-doesnotexist"
+Error from server (BadRequest): container "nginx" in pod "nginx-deployment-dcbd9d64f-5drzn" is waiting to start: image can't be pulled</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>READY is still 4/4.</b> Because <code>maxUnavailable: 0</code>, Kubernetes only removes an old Pod after a new one is ready. The new Pod never became ready, so all 4 old Pods kept serving.</li><li>After 60 s (<code>progressDeadlineSeconds</code>) the Deployment reports <code>ProgressDeadlineExceeded</code>, and <code>rollout status</code> exits with code 1. CI pipelines use that exit code to fail the deploy.</li><li>Kubernetes does <b>not</b> roll back by itself. It stops and waits for you.</li><li><code>describe</code> → Events shows the real reason. <code>kubectl logs</code> has nothing — the container never started.</li></ul></div><div class="callout"><b>Note:</b> The STATUS flips between <code>ErrImagePull</code> (a pull just failed) and <code>ImagePullBackOff</code> (waiting before the next try), and <code>kubectl logs</code> says either <i>image can't be pulled</i> or <i>trying and failing to pull image</i>. On some networks the pull error shows a proxy or DNS problem instead of <code>not found</code>. Same diagnosis every time: the image can't be pulled.</div><div class="check"><span>Checkpoint</span><div class="ct"><b>4/4</b> old Pods Running, one new Pod in <b>ErrImagePull</b> / <b>ImagePullBackOff</b>, condition <b>ProgressDeadlineExceeded</b>.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Roll back — then fix it the right way</h2><div class="tags"><span>M4 slides 25, 37 · Quiz Q5</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Undo the bad release, jump to a specific revision, and finally put the real fix in the file.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout undo deployment/nginx-deployment
+kubectl rollout status deployment/nginx-deployment --timeout=60s
+kubectl rollout history deployment/nginx-deployment</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Warning: resource deployments/nginx-deployment was previously managed with 'kubectl apply'. Rolling back will not update the kubectl.kubernetes.io/last-applied-configuration annotation, which may cause unexpected behavior on future 'kubectl apply' operations. Consider using 'kubectl apply' with your previous configuration file instead.
+deployment.apps/nginx-deployment rolled back
+deployment "nginx-deployment" successfully rolled out
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+1         Initial deploy nginx 1.28-alpine
+3         Bad release: nginx 1.99-doesnotexist
+4         Upgrade nginx to 1.29-alpine</pre></div><div class="code"><div class="code-bar"><span>Jump to a specific revision</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout undo deployment/nginx-deployment --to-revision=1 2&gt;/dev/null
+kubectl rollout status deployment/nginx-deployment --timeout=60s
+kubectl get deploy nginx-deployment -o jsonpath='{.spec.template.spec.containers[0].image}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment rolled back
+Waiting for deployment "nginx-deployment" rollout to finish: 1 out of 4 new replicas have been updated...
+...
+deployment "nginx-deployment" successfully rolled out
+nginx:1.28-alpine</pre></div><div class="code"><div class="code-bar"><span>Roll forward from the file — the Git way</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f deployment-v2.yaml
+kubectl rollout status deployment/nginx-deployment --timeout=120s
+kubectl rollout history deployment/nginx-deployment</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment configured
+...
+deployment "nginx-deployment" successfully rolled out
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+3         Bad release: nginx 1.99-doesnotexist
+5         Initial deploy nginx 1.28-alpine
+6         Upgrade nginx to 1.29-alpine</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>rollout undo</code> copies an old ReplicaSet's template back. The old revision gets a <b>new number</b> — revision 2 became 4, then revision 1 became 5.</li><li>kubectl warns you: undo changes the live object but <b>not your YAML</b>. If CI later applies a file that still has the bad tag, the bad release comes back (Quiz Q5).</li><li>Production pattern: <code>undo</code> is the emergency brake. The real fix is a commit to the YAML, applied like any other change — exactly what the last command did.</li><li>Only 5 old ReplicaSets are kept (<code>revisionHistoryLimit: 5</code>). Older revisions disappear from the history.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The last history shows revision <b>6 — Upgrade nginx to 1.29-alpine</b>.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Scaling and drift</h2><div class="tags"><span>M4 slides 26, 30 · Quiz Q6</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Scale by hand, then see the YAML win the next time someone applies it.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl scale deployment nginx-deployment --replicas=6
+kubectl rollout status deployment/nginx-deployment --timeout=60s
+kubectl get deploy nginx-deployment</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment scaled
+Waiting for deployment "nginx-deployment" rollout to finish: 4 of 6 updated replicas are available...
+Waiting for deployment "nginx-deployment" rollout to finish: 5 of 6 updated replicas are available...
+deployment "nginx-deployment" successfully rolled out
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   6/6     6            6           4m</pre></div><div class="code"><div class="code-bar"><span>Someone re-applies the file…</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f deployment-v2.yaml
+sleep 3
+kubectl get deploy nginx-deployment
+kubectl scale deployment nginx-deployment --current-replicas=6 --replicas=2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/nginx-deployment configured
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   4/4     4            4           4m
+error: Expected replicas to be 6, was 4</pre></div><div class="code"><div class="code-bar"><span>Clean up Part D</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete -f deployment-v2.yaml
+sleep 3
+kubectl get rs,pods -l app=nginx</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps "nginx-deployment" deleted from default namespace
+No resources found in default namespace.</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl scale</code> changes only the live object. The file still says <code>replicas: 4</code>, so the next <code>apply</code> quietly scaled you back down (Quiz Q6).</li><li>Pick one owner for the replica count: the YAML, or an autoscaler (HorizontalPodAutoscaler, Module 5). If an HPA owns it, remove <code>replicas</code> from the file.</li><li><code>--current-replicas</code> is a safety check: scale only if the count is what you expect. Scripts use it to avoid fighting each other.</li><li>Deleting the Deployment removed its ReplicaSets and Pods too — ownerReferences again.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">After the apply: <b>4/4</b>. After the delete: no ReplicaSets or Pods.</div></div></section><div class="part-head" id="part-E"><b>Part E — Service types and the API (Module 4B)</b><span>Steps 14–17 · Module 4B slides 3–18, 27–33 · ~35 min</span></div><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Your Module 1 app behind a ClusterIP Service</h2><div class="tags"><span>M4B slides 3–8, 14, 29 · Quiz Q1</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Run 3 copies of your own app and watch the Service spread requests across them.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Copy your Module 1 image into the cluster</span><button class="copy" type="button">Copy</button></div><pre><code>docker images module1-demo-api
+kind load docker-image module1-demo-api:1.0.0 --name lab</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+IMAGE                    ID             DISK USAGE   CONTENT SIZE   EXTRA
+module1-demo-api:1.0.0   3647081729cd        263MB         63.2MB
+Image: "module1-demo-api:1.0.0" with ID "sha256:3647…" not yet present on node "lab-worker", loading...
+...</pre></div><p>If the image is gone, rebuild it first: <code>cd path/to/module1-lab/demo-api &amp;&amp; docker build -t module1-demo-api:1.0.0 . &amp;&amp; cd -</code></p><div class="code"><div class="code-bar"><span>Creates: web.yaml — Deployment + ClusterIP Service</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: api
+          image: module1-demo-api:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GREETING
+              value: "Hello from v1"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  type: ClusterIP
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web.yaml
+kubectl rollout status deployment/web --timeout=120s
+kubectl run client --image=busybox:1.37 -- sleep 3600
+kubectl wait --for=condition=Ready pod/client --timeout=60s
+kubectl get svc web
+kubectl get endpointslices -l kubernetes.io/service-name=web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web created
+service/web created
+Waiting for deployment "web" rollout to finish: 0 of 3 updated replicas are available...
+...
+deployment "web" successfully rolled out
+pod/client created
+pod/client condition met
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+web    ClusterIP   10.96.81.46   &lt;none&gt;        80/TCP    6s
+NAME        ADDRESSTYPE   PORTS   ENDPOINTS                          AGE
+web-pxtqk   IPv4          3000    10.244.1.2,10.244.2.2,10.244.1.3   6s</pre></div><div class="code"><div class="code-bar"><span>Six requests to the same name</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl exec client -- sh -c 'for i in 1 2 3 4 5 6; do wget -qO- http://web; echo; done'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>{"message":"Hello from v1","servedBy":"web-5887fb9744-wszw5","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-fm8hs","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-fm8hs","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-rqjlp","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-fm8hs","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-rqjlp","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>servedBy</code> is the Pod's hostname. Different names prove the Service is <b>load balancing</b> across the 3 Pods.</li><li>It's random per connection, not a strict round-robin — some Pods answer twice. Over many requests it evens out.</li><li><code>port: 80</code> on the Service, <code>targetPort: 3000</code> on the Pod. Clients never need to know the app's real port.</li><li>ClusterIP is internal only. It's the right choice for anything that only other Pods call: databases, internal APIs, caches (Quiz Q1). <code>visits</code> is <code>null</code> because there is no Redis this time.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">At least two different <code>servedBy</code> names.</div></div></section><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>NodePort: a port on every node</h2><div class="tags"><span>M4B slides 9–10, 30 · Quiz Q3</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Open port 30080 on every node and prove that even a node without a web Pod answers.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: web-nodeport.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web-nodeport.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-nodeport
+spec:
+  type: NodePort
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      nodePort: 30080
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web-nodeport.yaml
+kubectl get svc web-nodeport
+kubectl get pods -l app=web -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/web-nodeport created
+NAME           TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+web-nodeport   NodePort   10.96.44.34   &lt;none&gt;        80:30080/TCP   0s
+POD                    NODE
+web-5887fb9744-fm8hs   lab-worker
+web-5887fb9744-rqjlp   lab-worker2
+web-5887fb9744-wszw5   lab-worker2</pre></div><div class="code"><div class="code-bar"><span>Call port 30080 on each node</span><button class="copy" type="button">Copy</button></div><pre><code>sleep 3   # let kube-proxy program every node
+for n in lab-control-plane lab-worker lab-worker2; do
+  echo -n "$n -&gt; "; docker exec lab-control-plane curl -s http://$n:30080; echo
+done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>lab-control-plane -&gt; {"message":"Hello from v1","servedBy":"web-5887fb9744-fm8hs","visits":null}
+lab-worker -&gt; {"message":"Hello from v1","servedBy":"web-5887fb9744-wszw5","visits":null}
+lab-worker2 -&gt; {"message":"Hello from v1","servedBy":"web-5887fb9744-rqjlp","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A NodePort Service is a ClusterIP Service <b>plus</b> the same port (30000–32767) on every node.</li><li><code>lab-control-plane</code> runs no web Pod, yet it answered. kube-proxy on every node forwards NodePort traffic to a ready Pod anywhere in the cluster (Quiz Q3).</li><li>We set <code>nodePort: 30080</code> by hand. Leave it out and Kubernetes picks a free port — safer when many teams share a cluster.</li><li>kind nodes are Docker containers, so we call them from inside kind's network. On a real cluster: <code>curl http://&lt;node-ip&gt;:30080</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">All three nodes returned a JSON answer.</div></div></section><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>LoadBalancer: a real external IP on kind</h2><div class="tags"><span>M4B slides 11–13, 27, 31 · Quiz Q2</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> See a LoadBalancer Service stuck at &lt;pending&gt;, then run cloud-provider-kind — a tiny "cloud" for kind — and get a real IP.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: web-lb.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web-lb.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Without a provider</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web-lb.yaml
+sleep 5
+kubectl get svc web-lb</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/web-lb created
+NAME     TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+web-lb   LoadBalancer   10.96.34.143   &lt;pending&gt;     80:32157/TCP   5s</pre></div><p><code>&lt;pending&gt;</code> forever: nothing in a kind cluster knows how to build a load balancer. In EKS, GKE or AKS the cloud controller does it. Here we install <b>cloud-provider-kind</b>, the official kind project for this.</p><div class="code"><div class="code-bar"><span>Install cloud-provider-kind (once)</span><button class="copy" type="button">Copy</button></div><pre><code># Option 1 — with Go installed (works on Linux, macOS, WSL2)
+go install sigs.k8s.io/cloud-provider-kind@v0.11.1
+# Option 2 — download a release binary for your OS from
+#   https://github.com/kubernetes-sigs/cloud-provider-kind/releases</code></pre></div><div class="code"><div class="code-bar"><span>In a SECOND terminal — leave it running</span><button class="copy" type="button">Copy</button></div><pre><code>cloud-provider-kind</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>I0929 04:43:47.296161   17464 controller.go:234] "Started workers" logger="ingress"
+I0929 04:43:47.313472   17464 controller.go:365] Finished syncing gatewayclass "cloud-provider-kind" (16.007005ms)
+...</pre></div><p>If it says <code>command not found</code>, run <code>~/go/bin/cloud-provider-kind</code>. If it reports a Docker permission error, run it with <code>sudo</code>.</p><div class="code"><div class="code-bar"><span>Back in terminal 1 — wait for the IP</span><button class="copy" type="button">Copy</button></div><pre><code>until kubectl get svc web-lb -o jsonpath='{..ip}' | grep -q .; do sleep 2; done
+kubectl get svc web-lb
+LB_IP=$(kubectl get svc web-lb -o jsonpath='{..ip}')
+echo "LoadBalancer IP: $LB_IP"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME     TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+web-lb   LoadBalancer   10.96.34.143   172.19.0.5    80:32157/TCP   2m
+LoadBalancer IP: 172.19.0.5</pre></div><div class="code"><div class="code-bar"><span>Who is the load balancer? Call it</span><button class="copy" type="button">Copy</button></div><pre><code>docker ps --filter name=kindccm --format '{{.Names}}  {{.Image}}'
+for i in 1 2 3; do docker exec lab-control-plane curl -s http://$LB_IP/; echo; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>kindccm-e1b23e1f7834  envoyproxy/envoy:v1.33.2
+{"message":"Hello from v1","servedBy":"web-5887fb9744-fm8hs","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-wszw5","visits":null}
+{"message":"Hello from v1","servedBy":"web-5887fb9744-rqjlp","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A LoadBalancer Service is a NodePort Service <b>plus</b> an external load balancer that someone else builds. No builder → <code>&lt;pending&gt;</code> (Quiz Q2). On bare metal, MetalLB plays that role.</li><li>cloud-provider-kind started an <b>Envoy</b> container on kind's Docker network and gave it the IP. Envoy forwards to the NodePort on the nodes, and kube-proxy takes it to a Pod.</li><li>The Service YAML is exactly what you'd use on EKS, GKE or AKS. Only the thing that fulfils it changes.</li><li>On Linux you can also run <code>curl http://$LB_IP/</code> straight from your laptop. Docker Desktop (macOS/Windows) can't reach container IPs directly, so we call it from a node.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>EXTERNAL-IP</code> is a real address and the curl answers from different Pods.</div></div></section><section class="step" id="step-17"><div class="step-top"><div class="step-num">17</div><div><h2>Resource anatomy and the live API</h2><div class="tags"><span>M4B slides 15–18, 33 · Quiz Q7</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Read spec vs status on a live object, look up API versions, and see what happens with an outdated apiVersion.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Desired vs observed, and where kinds live</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get deploy web -o jsonpath='spec.replicas={.spec.replicas}  status.readyReplicas={.status.readyReplicas}  generation={.metadata.generation}  observedGeneration={.status.observedGeneration}{"\n"}'
+kubectl api-resources | grep -E '^NAME|^deployments |^ingresses |^cronjobs '</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>spec.replicas=3  status.readyReplicas=3  generation=1  observedGeneration=1
+NAME          SHORTNAMES   APIVERSION             NAMESPACED   KIND
+deployments   deploy       apps/v1                true         Deployment
+cronjobs      cj           batch/v1               true         CronJob
+ingresses     ing          networking.k8s.io/v1   true         Ingress</pre></div><div class="code"><div class="code-bar"><span>Creates: old-api.yaml — a manifest from 2018</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; old-api.yaml &lt;&lt;'EOF'
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: legacy
+spec:
+  replicas: 1
+EOF
+kubectl apply -f old-api.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>error: resource mapping not found for name: "legacy" namespace: "" from "old-api.yaml": no matches for kind "Deployment" in version "extensions/v1beta1"
+ensure CRDs are installed first</pre></div><div class="code"><div class="code-bar"><span>Documentation straight from the cluster</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl explain deployment.spec.strategy.rollingUpdate.maxSurge | sed -n '1,12p'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>GROUP:      apps
+KIND:       Deployment
+VERSION:    v1
+
+FIELD: maxSurge &lt;IntOrString&gt;
+
+
+DESCRIPTION:
+    The maximum number of pods that can be scheduled above the desired number of
+    pods. Value can be an absolute number (ex: 5) or a percentage of desired
+    pods (ex: 10%). This can not be 0 if MaxUnavailable is 0. Absolute number is
+    calculated from percentage by rounding up. Defaults to 25%. Example: when</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>spec</b> is what you asked for; <b>status</b> is what the controllers report. <code>observedGeneration = generation</code> means the controller has seen your latest change.</li><li>Deployments moved to <code>apps/v1</code> years ago; <code>extensions/v1beta1</code> was removed in v1.16. The error says "no matches for kind" — check <code>kubectl api-resources</code> and fix the <code>apiVersion</code> (Quiz Q7).</li><li>The "ensure CRDs are installed first" hint is generic. Here the kind exists — it's the version that's wrong.</li><li><code>kubectl explain</code> reads the schema from <b>your</b> cluster, so it always matches your version.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw the <b>no matches for kind</b> error and the maxSurge documentation.</div></div></section><div class="part-head" id="part-F"><b>Part F — Update strategies, measured (Module 4B)</b><span>Steps 18–20 · Module 4B slides 19–28, 32 · ~25 min</span></div><section class="step" id="step-18"><div class="step-top"><div class="step-num">18</div><div><h2>Recreate — measure the downtime</h2><div class="tags"><span>M4B slides 19–21, 28, 32 · Quiz Q4, Q8</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Send steady traffic while a Recreate rollout runs, and count the failed requests.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: probe.sh — 60 requests through the Service</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; probe.sh &lt;&lt;'EOF'
+#!/usr/bin/env bash
+# Sends 60 requests to the web Service (one every 0.2 s) from the client Pod.
+# Prints . for a success and X for a failure, then a summary.
+kubectl exec client -- sh -c '
+ok=0; fail=0
+for i in $(seq 1 60); do
+  if wget -qO- -T 1 http://web &gt;/dev/null 2&gt;&amp;1; then ok=$((ok+1)); printf .
+  else fail=$((fail+1)); printf X; fi
+  sleep 0.2
+done
+echo; echo "ok=$ok failed=$fail"'
+EOF
+chmod +x probe.sh
+./probe.sh</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>............................................................
+ok=60 failed=0</pre></div><div class="code"><div class="code-bar"><span>Switch to Recreate — the obvious way fails</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch deployment web --type=merge -p '{"spec":{"strategy":{"type":"Recreate"}}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>The Deployment "web" is invalid: spec.strategy.rollingUpdate: Forbidden: may not be specified when strategy `type` is 'Recreate'</pre></div><div class="code"><div class="code-bar"><span>Clear rollingUpdate in the same patch</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch deployment web --type=merge -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
+kubectl get deploy web -o jsonpath='{.spec.strategy}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web patched
+{"type":"Recreate"}</pre></div><div class="code"><div class="code-bar"><span>Roll out v2 while traffic flows</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl set env deployment/web GREETING="Hello from v2" &amp;&amp; ./probe.sh
+kubectl rollout status deployment/web --timeout=60s
+kubectl exec client -- wget -qO- http://web; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web env updated
+XXXXXX......................................................
+ok=54 failed=6
+deployment "web" successfully rolled out
+{"message":"Hello from v2","servedBy":"web-65dfb56d97-gf7dv","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Recreate stops <b>all</b> old Pods first, then starts the new ones. Every <code>X</code> is a user getting an error. Your count will differ — but it won't be zero.</li><li>When is that OK? When two versions must <b>never</b> run together — for example a database schema change that old code can't handle (Quiz Q4).</li><li>The first patch failed because the old <code>rollingUpdate</code> settings were still there. A merge patch only changes what you send, so you must clear it with <code>null</code> (Quiz Q8).</li><li><code>kubectl set env</code> changed the Pod template, so it started a rollout — just like changing the image.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Some <b>X</b> at the start and <code>failed</code> greater than 0. The app now says <b>Hello from v2</b>.</div></div></section><section class="step" id="step-19"><div class="step-top"><div class="step-num">19</div><div><h2>RollingUpdate — and the last few failed requests</h2><div class="tags"><span>M4B slides 22–23, 32 · Quiz Q5, Q6</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Switch back to RollingUpdate, measure again, then add a preStop hook and reach zero failed requests.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>RollingUpdate, surge 1, unavailable 0</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch deployment web --type=merge -p '{"spec":{"strategy":{"type":"RollingUpdate","rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'
+kubectl set env deployment/web GREETING="Hello from v3" &amp;&amp; ./probe.sh
+kubectl rollout status deployment/web --timeout=60s</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web patched
+deployment.apps/web env updated
+.......................X..X....................X............
+ok=57 failed=3
+deployment "web" successfully rolled out</pre></div><p>Much better — but maybe not perfect. Each old Pod gets SIGTERM and stops listening <b>at the same moment</b> it is removed from the Service. For a second, some nodes still send it traffic. The fix is a short pause before shutdown:</p><div class="code"><div class="code-bar"><span>Add a preStop sleep (this is itself a rollout) — then wait until old Pods are really gone</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch deployment web -p '{"spec":{"template":{"spec":{"containers":[{"name":"api","lifecycle":{"preStop":{"sleep":{"seconds":5}}}}]}}}}'
+kubectl rollout status deployment/web --timeout=120s
+kubectl get deploy web -o jsonpath='terminatingReplicas={.status.terminatingReplicas}{"\n"}'
+until [ "$(kubectl get deploy web -o jsonpath='{.status.terminatingReplicas}')" = "0" ]; do sleep 1; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web patched
+Waiting for deployment "web" rollout to finish: 1 out of 3 new replicas have been updated...
+...
+deployment "web" successfully rolled out
+terminatingReplicas=1</pre></div><div class="code"><div class="code-bar"><span>Measure again</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl set env deployment/web GREETING="Hello from v4" &amp;&amp; ./probe.sh
+kubectl rollout status deployment/web --timeout=120s</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web env updated
+............................................................
+ok=60 failed=0
+deployment "web" successfully rolled out</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>maxSurge: 1, maxUnavailable: 0</code> with 3 replicas: at most <b>4</b> Pods, always <b>3</b> ready. Capacity never dips (Quiz Q5 uses different numbers — do the math).</li><li>The remaining failures came from the shutdown race, not from capacity. <code>preStop: sleep: 5</code> keeps the old Pod serving for 5 s while every node removes it from the Service. Then SIGTERM arrives and the app shuts down gracefully (Quiz Q6).</li><li>"Successfully rolled out" came <b>before</b> the old Pods finished shutting down: <code>terminatingReplicas</code> was still 1 (you may see 1–3). That field is new in v1.37 (beta, on by default). We wait for it to reach 0 so the next measurement starts clean.</li><li><code>sleep</code> is a built-in preStop action — no <code>sleep</code> binary needed in the image. The Pod's <code>terminationGracePeriodSeconds</code> (default 30 s) must be longer than the sleep.</li><li>Your numbers may differ from run to run. If you saw 0 failures in the first measurement, run it again — the race is timing-dependent. With preStop it stays at 0.</li></ul></div><p>In a real repo, put the hook in <code>web.yaml</code> instead of patching:</p><div class="output"><div class="output-label">web.yaml — the declarative version</div><pre>      containers:
+        - name: api
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5</pre></div><div class="check"><span>Checkpoint</span><div class="ct">The last probe shows <b>ok=60 failed=0</b>.</div></div></section><section class="step" id="step-20"><div class="step-top"><div class="step-num">20</div><div><h2>Targeted rollback with history</h2><div class="tags"><span>M4B slides 24–26</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Look at the web revisions and jump straight back to v1.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Which revision had which greeting?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout history deployment/web
+kubectl rollout history deployment/web --revision=2 | grep GREETING</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web 
+REVISION  CHANGE-CAUSE
+1         &lt;none&gt;
+2         &lt;none&gt;
+3         &lt;none&gt;
+4         &lt;none&gt;
+5         &lt;none&gt;
+      GREETING:	Hello from v2</pre></div><div class="code"><div class="code-bar"><span>Back to v1</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout undo deployment/web --to-revision=1
+kubectl rollout status deployment/web --timeout=120s
+kubectl exec client -- wget -qO- http://web; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Warning: resource deployments/web was previously managed with 'kubectl apply'. Rolling back will not update the kubectl.kubernetes.io/last-applied-configuration annotation, ...
+deployment.apps/web rolled back
+...
+deployment "web" successfully rolled out
+{"message":"Hello from v1","servedBy":"web-5887fb9744-2xk8p","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>CHANGE-CAUSE</code> is empty because we used <code>set env</code> and <code>patch</code> without an annotation. <code>--revision=N</code> shows the full template of any revision, so you can still find the right one.</li><li>The Pod name hash <code>5887fb9744</code> is back: revision 1's ReplicaSet was reused, not rebuilt.</li><li>Revision 1 has no preStop hook — a rollback restores the <b>whole</b> template, not just the field you care about. Another reason to fix forward in YAML.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The app answers <b>Hello from v1</b>.</div></div></section><div class="part-head" id="part-G"><b>Part G — Headless and ExternalName Services (Module 4B)</b><span>Step 21 · Module 4B slides 13–14, 34 · ~10 min</span></div><section class="step" id="step-21"><div class="step-top"><div class="step-num">21</div><div><h2>Headless and ExternalName Services</h2><div class="tags"><span>M4B slides 13–14, 34</span><span>~10 min</span></div></div></div><p class="goal"><b>Goal:</b> Meet the two Service kinds that don't load-balance: a headless Service that returns Pod IPs, and an ExternalName Service that is only a DNS alias.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: db-headless.yaml — a StatefulSet and its headless Service</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; db-headless.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  clusterIP: None          # headless: no virtual IP, DNS returns Pod IPs
+  selector:
+    app: db
+  ports:
+    - port: 80
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+spec:
+  serviceName: db          # gives each Pod a DNS name: db-0.db, db-1.db
+  replicas: 2
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: nginx:1.28-alpine
+          ports:
+            - containerPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f db-headless.yaml
+kubectl rollout status statefulset/db --timeout=120s
+kubectl get svc web db
+kubectl get pods -l app=db -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/db created
+statefulset.apps/db created
+Waiting for 2 pods to be ready...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 2 new pods have been updated...
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+web    ClusterIP   10.96.38.92   &lt;none&gt;        80/TCP    20m
+db     ClusterIP   None          &lt;none&gt;        80/TCP    1s
+NAME   READY   STATUS    RESTARTS   AGE   IP             NODE          NOMINATED NODE   READINESS GATES
+db-0   1/1     Running   0          2s    10.244.1.159   lab-worker2   &lt;none&gt;           &lt;none&gt;
+db-1   1/1     Running   0          1s    10.244.2.156   lab-worker    &lt;none&gt;           &lt;none&gt;</pre></div><div class="code"><div class="code-bar"><span>Normal vs headless DNS</span><button class="copy" type="button">Copy</button></div><pre><code>for n in web db db-0.db; do
+  echo "## $n"
+  kubectl exec client -- nslookup $n.default.svc.cluster.local | grep -E '^Name|^Address: '
+done
+kubectl exec client -- wget -qO- http://db-0.db | grep '&lt;title&gt;'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>## web
+Name:	web.default.svc.cluster.local
+Address: 10.96.38.92
+## db
+Name:	db.default.svc.cluster.local
+Address: 10.244.1.159
+Name:	db.default.svc.cluster.local
+Address: 10.244.2.156
+## db-0.db
+Name:	db-0.db.default.svc.cluster.local
+Address: 10.244.1.159
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>web</code> is a normal ClusterIP Service: DNS returns <b>one</b> virtual IP, and kube-proxy spreads the traffic.</li><li><code>db</code> has <code>clusterIP: None</code> — it's <b>headless</b>. There is no virtual IP; DNS returns the IP of <b>every ready Pod</b>, and the client chooses.</li><li>With a StatefulSet, each Pod also gets its own stable name: <code>db-0.db</code>, <code>db-1.db</code>. Databases use this so replicas can find the primary by name.</li><li>We use full names with busybox's <code>nslookup</code> to keep the output short. Apps can use the short names — <code>wget http://db-0.db</code> just worked.</li></ul></div><div class="code"><div class="code-bar"><span>Creates: partner-api.yaml — an ExternalName Service</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; partner-api.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: partner-api
+spec:
+  type: ExternalName
+  externalName: web.default.svc.cluster.local   # in real life: api.partner.com
+EOF
+kubectl apply -f partner-api.yaml
+kubectl get svc partner-api</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/partner-api created
+NAME          TYPE           CLUSTER-IP   EXTERNAL-IP                     PORT(S)   AGE
+partner-api   ExternalName   &lt;none&gt;       web.default.svc.cluster.local   &lt;none&gt;    0s</pre></div><div class="code"><div class="code-bar"><span>Follow the alias</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl exec client -- nslookup partner-api.default.svc.cluster.local | grep -E 'canonical|^Name|^Address: '
+kubectl exec client -- wget -qO- http://partner-api; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>partner-api.default.svc.cluster.local	canonical name = web.default.svc.cluster.local
+Name:	web.default.svc.cluster.local
+Address: 10.96.38.92
+{"message":"Hello from v1","servedBy":"web-5887fb9744-8mdbb","visits":null}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>An <b>ExternalName</b> Service has no Pods, no IP and no ports. DNS simply answers with a <b>CNAME</b>: "partner-api is really web.default.svc.cluster.local".</li><li>In real life it points outside the cluster — a managed database or a partner API. Apps call <code>partner-api</code>; when the address changes, you edit one Service, not every app.</li><li>It is only DNS. There is no proxying, so HTTPS certificates and HTTP <code>Host</code> headers still see the original name. Some APIs reject that — test before you rely on it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>db</code> returned two Pod IPs, <code>db-0.db</code> returned one, and <code>partner-api</code> answered with the web app's JSON.</div></div></section><div class="part-head" id="part-H"><b>Part H — Clean up</b><span>Step 22 · ~3 min</span></div><section class="step" id="step-22"><div class="step-top"><div class="step-num">22</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete the web app, the db StatefulSet and all the Services, and stop cloud-provider-kind. Keep the cluster for Module 5.</p><div class="folder">Run from: <code>module4-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal 1</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete -f partner-api.yaml -f db-headless.yaml
+kubectl delete -f web-lb.yaml -f web-nodeport.yaml -f web.yaml
+kubectl delete pod client --now
+kubectl wait --for=delete pod -l 'app in (web,db)' --timeout=60s
+kubectl get all</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service "partner-api" deleted from default namespace
+service "db" deleted from default namespace
+statefulset.apps "db" deleted from default namespace
+service "web-lb" deleted from default namespace
+service "web-nodeport" deleted from default namespace
+deployment.apps "web" deleted from default namespace
+service "web" deleted from default namespace
+pod "client" deleted from default namespace
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   3h</pre></div><p>In terminal 2, press <b>Ctrl+C</b> to stop cloud-provider-kind. It already removed the Envoy container when <code>web-lb</code> was deleted — check with <code>docker ps --filter name=kindccm</code>.</p><div class="why"><div class="why-label">What just happened</div><ul><li>Deleting the LoadBalancer Service is what releases the external load balancer. In a cloud, forgetting this keeps a paid load balancer running.</li><li>Module 5 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get all</code> shows only <code>service/kubernetes</code>.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>Error from server (Forbidden): … exceeded quota</code> or <code>must specify limits.cpu</code></dt><dd>A ResourceQuota is active in that namespace. Add requests and limits to the Pod, or add a LimitRange with defaults (Steps 3–4).</dd><dt>A Deployment says <code>created</code> but stays at <code>READY 0/N</code></dt><dd>Run <code>kubectl describe deploy &lt;name&gt;</code> and <code>kubectl get events</code>. Look for <code>ReplicaFailure</code> / <code>FailedCreate</code> (Step 4).</dd><dt><code>No resources found in … namespace</code> but you expected Pods</dt><dd>You're in another namespace. Check <code>kubectl config view --minify -o jsonpath='{..namespace}'</code> and switch back with <code>kubectl config set-context --current --namespace=default</code>.</dd><dt><code>kubectl rollout status</code> hangs or ends with <code>exceeded its progress deadline</code></dt><dd>The new Pods never become ready. Check <code>kubectl get pods</code> and <code>describe</code> the new Pod. Fix the YAML or run <code>kubectl rollout undo</code> (Steps 11–12).</dd><dt>Pods stuck in <code>ImagePullBackOff</code> for <code>module1-demo-api</code></dt><dd>The image isn't inside the kind nodes. Run <code>kind load docker-image module1-demo-api:1.0.0 --name lab</code> (Step 14). The YAML uses <code>imagePullPolicy: IfNotPresent</code>.</dd><dt><code>EXTERNAL-IP</code> stays <code>&lt;pending&gt;</code></dt><dd>cloud-provider-kind isn't running. Start it in a second terminal and keep it open (Step 16).</dd><dt><code>go: command not found</code> when installing cloud-provider-kind</dt><dd>Install Go from go.dev, or download the release binary for your OS from the project's GitHub releases page and put it on your PATH.</dd><dt><code>spec.strategy.rollingUpdate: Forbidden</code></dt><dd>You switched to Recreate but the old rollingUpdate block is still there. Add <code>"rollingUpdate":null</code> to the same patch (Step 18).</dd><dt><code>./probe.sh: Permission denied</code> or <code>pods "client" not found</code></dt><dd>Run <code>chmod +x probe.sh</code>. The probe uses the <code>client</code> Pod from Step 14 — create it again if you deleted it.</dd><dt><code>curl</code> to the NodePort or LoadBalancer IP hangs from your laptop</dt><dd>On Docker Desktop, container IPs aren't reachable from the host. Call it from a node: <code>docker exec lab-control-plane curl -s http://&lt;ip&gt;:&lt;port&gt;</code>.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 4 + 4B — Namespaces, Labels, Deployments &amp; Service Types · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
