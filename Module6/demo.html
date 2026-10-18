@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 6 Lab — ConfigMaps, Secrets, Init Containers & Sidecars</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 6 · Hands-on lab</div>
+  <h1>ConfigMaps, Secrets, Init Containers &amp; Sidecars — Step-by-Step Lab</h1>
+  <p>Feed configuration into Pods three ways and find out which ones update, catch a real Secret leak in <code>kubectl apply</code>, make init containers wait and render config, and build sidecar, adapter and ambassador Pods — finishing with native sidecars that fix start-up order and let Jobs complete. Sixteen steps, in order.</p>
+  <div class="meta"><span>16 steps · about 1 h 21 min</span><span>Kubernetes v1.37 · kind</span><span>Only nginx and busybox images</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · ConfigMaps</div><a href="#step-1"><span class="n">1</span>Start from the Module 5 cluster</a><a href="#step-2"><span class="n">2</span>Create ConfigMaps three ways</a><a href="#step-3"><span class="n">3</span>Consume a ConfigMap: env, volume and subPath</a><a href="#step-4"><span class="n">4</span>Change the ConfigMap — who notices?</a><a href="#step-5"><span class="n">5</span>Missing, optional and immutable ConfigMaps</a><div class="grp">Part B · Secrets</div><a href="#step-6"><span class="n">6</span>Secrets: base64 is not encryption</a><a href="#step-7"><span class="n">7</span>Mount a Secret the safe way</a><a href="#step-8"><span class="n">8</span>Rotate a Secret</a><div class="grp">Part C · Init containers</div><a href="#step-9"><span class="n">9</span>An init container that waits for a dependency</a><a href="#step-10"><span class="n">10</span>A failing init container</a><a href="#step-11"><span class="n">11</span>An init container renders a config file</a><div class="grp">Part D · Multi-container patterns</div><a href="#step-12"><span class="n">12</span>Sidecar: ship the app's logs</a><a href="#step-13"><span class="n">13</span>Adapter: turn plain text into JSON</a><a href="#step-14"><span class="n">14</span>Ambassador: a local proxy — and startup order</a><div class="grp">Part E · Native sidecars</div><a href="#step-15"><span class="n">15</span>Native sidecars let Jobs finish</a><div class="grp">Part F · Clean up</div><a href="#step-16"><span class="n">16</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">ConfigMaps</div><div class="psub">Steps 1–5 · slides 3–10, 34–35 · ~35 min</div><div class="chips"><a href="#step-1">1. Start from the Module 5 cluster</a><a href="#step-2">2. Create ConfigMaps three ways</a><a href="#step-3">3. Consume a ConfigMap: env, volume and subPath</a><a href="#step-4">4. Change the ConfigMap — who notices?</a><a href="#step-5">5. Missing, optional and immutable ConfigMaps</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Secrets</div><div class="psub">Steps 6–8 · slides 11–17, 36–37 · ~25 min</div><div class="chips"><a href="#step-6">6. Secrets: base64 is not encryption</a><a href="#step-7">7. Mount a Secret the safe way</a><a href="#step-8">8. Rotate a Secret</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">Init containers</div><div class="psub">Steps 9–11 · slides 18–23, 38 · ~20 min</div><div class="chips"><a href="#step-9">9. An init container that waits for a dependency</a><a href="#step-10">10. A failing init container</a><a href="#step-11">11. An init container renders a config file</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Multi-container patterns</div><div class="psub">Steps 12–14 · slides 24–31, 39 · ~25 min</div><div class="chips"><a href="#step-12">12. Sidecar: ship the app's logs</a><a href="#step-13">13. Adapter: turn plain text into JSON</a><a href="#step-14">14. Ambassador: a local proxy — and startup order</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">Native sidecars</div><div class="psub">Step 15 · slides 32, 40 · ~10 min</div><div class="chips"><a href="#step-15">15. Native sidecars let Jobs finish</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Clean up</div><div class="psub">Step 16 · ~3 min</div><div class="chips"><a href="#step-16">16. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 2–5 first.</b> This lab uses the kind cluster (<code>kind-lab</code>).</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Pod names, times and update delays will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code>PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+for img in nginx:1.28-alpine busybox:1.37; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+rm -f image.tar</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — ConfigMaps</b><span>Steps 1–5 · slides 3–10, 34–35 · ~35 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start from the Module 5 cluster</h2><div class="tags"><span>Modules 2–5</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Make sure the kind cluster is running and create a folder for this lab.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module6-lab
+cd module6-lab</code></pre></div><div class="code"><div class="code-bar"><span>Is the cluster still there?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get nodes
+kubectl get configmaps</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   4h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          4h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          4h    v1.37.0
+NAME               DATA   AGE
+kube-root-ca.crt   1      4h</pre></div><p>If there's no cluster, create it again with the <code>kind-cluster.yaml</code> from Module 2, Step 2: <code>kind create cluster --config kind-cluster.yaml</code>.</p><div class="why"><div class="why-label">What just happened</div><ul><li>Every namespace already has one ConfigMap: <code>kube-root-ca.crt</code>. Kubernetes puts the cluster's CA certificate there so Pods can verify the API server. You'll see it in every list.</li><li>This module is about how settings, passwords and helper processes get <b>into</b> a Pod — without rebuilding the image.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three nodes <b>Ready</b> and the <code>kube-root-ca.crt</code> ConfigMap.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Create ConfigMaps three ways</h2><div class="tags"><span>Slides 3–6</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Create one ConfigMap from YAML and one from a file, then look at what Kubernetes stored.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: configmap.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; configmap.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  APP_MODE: "production"
+  APP_VERSION: "v1.0"
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Declarative — the way to go for anything you keep</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f configmap.yaml
+kubectl describe configmap my-config | sed -n '/^Data/,/^BinaryData/p'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/my-config created
+Data
+====
+APP_MODE:
+----
+production
+
+APP_VERSION:
+----
+v1.0
+
+
+BinaryData</pre></div><div class="code"><div class="code-bar"><span>From a file — generate the YAML, then apply it</span><button class="copy" type="button">Copy</button></div><pre><code>printf 'APP_MODE=production\nAPP_VERSION=v1.0\n' &gt; app.properties
+kubectl create configmap config-volume --from-file=app.properties \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl get configmap config-volume -o jsonpath='{.data}'; echo
+kubectl get configmaps</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/config-volume created
+{"app.properties":"APP_MODE=production\nAPP_VERSION=v1.0\n"}
+NAME               DATA   AGE
+config-volume      1      0s
+kube-root-ca.crt   1      4h
+my-config          2      5s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A ConfigMap is a small key–value store for <b>non-secret</b> settings: URLs, feature flags, log levels, whole config files.</li><li><code>describe</code> prints the <b>values</b> in clear text. That's fine for a ConfigMap — and the reason passwords never go in one.</li><li><code>--from-file</code> makes the file name the key and the file content the value. Handy for <code>nginx.conf</code>, <code>app.properties</code> and friends.</li><li><code>create … --dry-run=client -o yaml | kubectl apply -f -</code> is a common idiom: generate YAML from a file, then apply it. Run it again after editing the file and it updates the ConfigMap.</li><li>The quick imperative way also exists — <code>kubectl create configmap my-config --from-literal=APP_MODE=production</code> — great for experiments, but it leaves nothing to review in Git.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three ConfigMaps: <code>config-volume</code> (1 key), <code>kube-root-ca.crt</code>, <code>my-config</code> (2 keys).</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Consume a ConfigMap: env, volume and subPath</h2><div class="tags"><span>Slides 7–8, 34</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Give one Pod the same data three ways and see how each one looks inside the container.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: cm-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; cm-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cm-pod
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      envFrom:
+        - configMapRef:
+            name: my-config
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+        - name: config
+          mountPath: /etc/app.properties
+          subPath: app.properties
+  volumes:
+    - name: config
+      configMap:
+        name: config-volume
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f cm-pod.yaml
+kubectl wait --for=condition=Ready pod/cm-pod --timeout=60s
+kubectl exec cm-pod -- sh -c 'echo "env:     APP_MODE=$APP_MODE"; echo "volume:"; ls -l /etc/config; echo "subPath:"; ls -l /etc/app.properties'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/cm-pod created
+pod/cm-pod condition met
+env:     APP_MODE=production
+volume:
+total 0
+lrwxrwxrwx    1 root     root            21 Sep 29 06:44 app.properties -&gt; ..data/app.properties
+subPath:
+-rw-r--r--    1 root     root            37 Sep 29 06:44 /etc/app.properties</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>envFrom</code> turns every key of <code>my-config</code> into an environment variable.</li><li>A <b>volume</b> turns every key of <code>config-volume</code> into a file. Look closely: it's a <b>symlink</b> into a hidden <code>..data</code> folder. The kubelet updates it by swapping that folder in one step.</li><li><code>subPath</code> mounts a single file at an exact path — useful when the folder already has other files (like <code>/etc/nginx</code>). But it's a plain <b>copy</b>, not a symlink. Remember that for the next step.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The env var says <b>production</b>, the volume file is a symlink, and the subPath file is a regular file.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Change the ConfigMap — who notices?</h2><div class="tags"><span>Slides 9, 34 · Quiz Q1, Q2</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Update both ConfigMaps while the Pod runs, and find out which of the three views changes.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Update the file-based and the env-based ConfigMap</span><button class="copy" type="button">Copy</button></div><pre><code>printf 'APP_MODE=development\nAPP_VERSION=v2.0\n' &gt; app.properties
+kubectl create configmap config-volume --from-file=app.properties \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl patch configmap my-config -p '{"data":{"APP_MODE":"development"}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/config-volume configured
+configmap/my-config patched</pre></div><div class="code"><div class="code-bar"><span>Wait for the kubelet, then compare (can take up to ~2 minutes)</span><button class="copy" type="button">Copy</button></div><pre><code>start=$(date +%s)
+until kubectl exec cm-pod -- grep -q development /etc/config/app.properties 2&gt;/dev/null; do sleep 3; done
+echo "volume updated after $(( $(date +%s) - start ))s"
+kubectl exec cm-pod -- sh -c 'echo "env:     APP_MODE=$APP_MODE"; echo "volume:  $(head -1 /etc/config/app.properties)"; echo "subPath: $(head -1 /etc/app.properties)"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>volume updated after 64s
+env:     APP_MODE=production
+volume:  APP_MODE=development
+subPath: APP_MODE=production</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>Volume</b>: updated in place. The kubelet refreshes ConfigMap volumes on its sync loop — anything from a few seconds to a minute or two. Apps that re-read their file (or watch it) pick up changes without a restart.</li><li><b>Env var</b>: still <code>production</code>. Environment variables are set <b>once</b>, when the container starts (Quiz Q1).</li><li><b>subPath</b>: still <code>production</code>. A subPath mount is a copy made at start-up and <b>never</b> updates (Quiz Q2).</li><li>The fix for both is a restart. For a Deployment: <code>kubectl rollout restart deployment/&lt;name&gt;</code> — a normal rolling update with no downtime.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Only the <b>volume</b> line says <code>development</code>.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Missing, optional and immutable ConfigMaps</h2><div class="tags"><span>Slides 10, 35, 41 · Quiz Q3</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> See the two errors a missing ConfigMap causes, the <code>optional</code> escape hatch, and a ConfigMap that can't be changed.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Delete the ConfigMap that env vars need</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete pod cm-pod --now
+kubectl delete configmap my-config</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "cm-pod" deleted from default namespace
+configmap "my-config" deleted from default namespace</pre></div><div class="code"><div class="code-bar"><span>Creates: three Pods that reference missing ConfigMaps</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; needs-config.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: needs-config
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      envFrom:
+        - configMapRef:
+            name: my-config          # we delete it first
+EOF
+cat &gt; needs-volume.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: needs-volume
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+  volumes:
+    - name: config
+      configMap:
+        name: nope                   # does not exist
+EOF
+cat &gt; optional-config.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: optional-config
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      envFrom:
+        - configMapRef:
+            name: my-config
+            optional: true           # start even if it is missing
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f needs-config.yaml -f needs-volume.yaml -f optional-config.yaml
+sleep 10
+kubectl get pods needs-config needs-volume optional-config
+kubectl get events --field-selector involvedObject.name=needs-config,reason=Failed -o custom-columns=MESSAGE:.message | tail -1
+kubectl get events --field-selector involvedObject.name=needs-volume,reason=FailedMount -o custom-columns=MESSAGE:.message | tail -1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/needs-config created
+pod/needs-volume created
+pod/optional-config created
+NAME              READY   STATUS                       RESTARTS   AGE
+needs-config      0/1     CreateContainerConfigError   0          10s
+needs-volume      0/1     ContainerCreating            0          10s
+optional-config   1/1     Running                      0          10s
+MESSAGE
+Error: configmap "my-config" not found
+MESSAGE
+MountVolume.SetUp failed for volume "config" : configmap "nope" not found</pre></div><div class="code"><div class="code-bar"><span>Creates: app-config-v1.yaml — an immutable ConfigMap</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; app-config-v1.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-v1
+immutable: true
+data:
+  APP_MODE: production
+EOF
+kubectl apply -f app-config-v1.yaml
+kubectl patch configmap app-config-v1 -p '{"data":{"APP_MODE":"debug"}}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/app-config-v1 created
+The ConfigMap "app-config-v1" is invalid: data: Forbidden: field is immutable when `immutable` is set</pre></div><div class="code"><div class="code-bar"><span>Tidy up</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete pod needs-config needs-volume optional-config --now
+kubectl delete configmap app-config-v1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "needs-config" deleted from default namespace
+pod "needs-volume" deleted from default namespace
+pod "optional-config" deleted from default namespace
+configmap "app-config-v1" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Missing ConfigMap for <b>env</b> → <b>CreateContainerConfigError</b>. Missing ConfigMap for a <b>volume</b> → stuck in <b>ContainerCreating</b> with a FailedMount event. Both fix themselves as soon as the ConfigMap exists (Quiz Q3).</li><li><code>optional: true</code> lets the Pod start anyway — only for settings the app can really live without.</li><li><code>immutable: true</code> (stable since v1.21) blocks edits. To change config you create <code>app-config-v2</code> and point the Deployment at it — a normal rollout you can roll back. It also saves the kubelet from watching the object.</li><li>Pods that were already running keep what they had when a ConfigMap is deleted. Only new Pods fail.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>needs-config</code> and <code>needs-volume</code> were stuck, <code>optional-config</code> ran, and the immutable ConfigMap refused the patch.</div></div></section><div class="part-head" id="part-B"><b>Part B — Secrets</b><span>Steps 6–8 · slides 11–17, 36–37 · ~25 min</span></div><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Secrets: base64 is not encryption</h2><div class="tags"><span>Slides 11–13, 17, 36 · Quiz Q4, Q5</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a Secret two ways, decode it in one command, and catch a real leak in <code>kubectl apply</code>.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Imperative — and decode it</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create secret generic my-secret \
+  --from-literal=DB_USER=admin --from-literal=DB_PASSWORD=SuperSecret123
+kubectl get secret my-secret
+kubectl describe secret my-secret | sed -n '/^Data/,$p'
+kubectl get secret my-secret -o jsonpath='{.data.DB_PASSWORD}' | base64 -d; echo
+kubectl delete secret my-secret</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret/my-secret created
+NAME        TYPE     DATA   AGE
+my-secret   Opaque   2      0s
+Data
+====
+DB_PASSWORD:  14 bytes
+DB_USER:      5 bytes
+SuperSecret123
+secret "my-secret" deleted from default namespace</pre></div><div class="code"><div class="code-bar"><span>Creates: secret.yaml — stringData lets you write clear text</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; secret.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+type: Opaque
+stringData:
+  DB_USER: app_user
+  DB_PASSWORD: "S3cure-Pa55w0rd!"
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Client-side apply — look at the annotations</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f secret.yaml
+kubectl get secret db-credentials -o jsonpath='{.metadata.annotations}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret/db-credentials created
+{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"name\":\"db-credentials\",\"namespace\":\"default\"},\"stringData\":{\"DB_PASSWORD\":\"S3cure-Pa55w0rd!\",\"DB_USER\":\"app_user\"},\"type\":\"Opaque\"}\n"}</pre></div><div class="code"><div class="code-bar"><span>Server-side apply — the fix</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete secret db-credentials
+kubectl apply --server-side -f secret.yaml
+kubectl get secret db-credentials -o jsonpath='{.metadata.annotations}'; echo "(no annotations)"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret "db-credentials" deleted from default namespace
+secret/db-credentials serverside-applied
+(no annotations)</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>describe</code> shows only byte counts. But anyone who can <code>get</code> the Secret can decode it with <code>base64 -d</code>. Base64 is <b>encoding</b>, not encryption (Quiz Q4).</li><li><code>stringData</code> is a write-only convenience: you write clear text, Kubernetes stores it base64-encoded under <code>data</code>.</li><li><b>The leak</b>: a normal (client-side) <code>kubectl apply</code> saves the whole file in the <code>last-applied-configuration</code> annotation — including your password in clear text. Anyone who can read Secret metadata can see it.</li><li><code>kubectl apply --server-side</code> tracks ownership on the server and writes no such annotation. Use it — or <code>kubectl create secret</code> — for every Secret (Quiz Q5).</li><li>In real teams the value comes from a secret manager (External Secrets Operator, Secrets Store CSI driver). Real Secret YAML never goes into Git.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You decoded <b>SuperSecret123</b>, saw <b>S3cure-Pa55w0rd!</b> in an annotation, and the server-side apply left no annotations.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Mount a Secret the safe way</h2><div class="tags"><span>Slides 14–15, 37</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Use one key as an env var and mount the Secret as read-only files with tight permissions.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: secret-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; secret-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-pod
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_USER
+      volumeMounts:
+        - name: creds
+          mountPath: /etc/db
+          readOnly: true
+  volumes:
+    - name: creds
+      secret:
+        secretName: db-credentials
+        defaultMode: 0440
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f secret-pod.yaml
+kubectl wait --for=condition=Ready pod/secret-pod --timeout=60s
+kubectl exec secret-pod -- sh -c 'id; echo DB_USER=$DB_USER; ls -lL /etc/db; mount | grep /etc/db'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/secret-pod created
+pod/secret-pod condition met
+uid=1000 gid=1000 groups=1000
+DB_USER=app_user
+total 8
+-r--r-----    1 root     1000            16 Sep 29 06:45 DB_PASSWORD
+-r--r-----    1 root     1000             8 Sep 29 06:45 DB_USER
+tmpfs on /etc/db type tmpfs (ro,relatime,size=16481980k,noswap)</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>securityContext</code> (the <code>runAsUser</code> and <code>fsGroup</code> lines in the file) is used here only so the app can read the Secret files. It is taught properly in <b>Module 7</b>, slides 11–13.</li><li><code>secretKeyRef</code> picks one key into one env var. Prefer <b>files</b> for passwords: env vars show up in crash dumps, <code>/proc</code> and careless debug logs.</li><li><code>defaultMode: 0440</code> + <code>fsGroup: 1000</code>: the files are readable by the app's group only. Kubernetes' default (0644) is readable by every user in the container.</li><li>The mount is <b>tmpfs</b> — the Secret lives in the node's memory and is never written to its disk.</li><li><code>readOnly: true</code> means the app can't change or delete its credentials by mistake.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Permissions <b>-r--r-----</b>, group <b>1000</b>, and a <b>tmpfs</b> mount.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Rotate a Secret</h2><div class="tags"><span>Slides 16, 37</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Change the password and see which view of the Secret follows.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Takes up to ~2 minutes</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch secret db-credentials -p '{"stringData":{"DB_PASSWORD":"Rotated-2026!"}}'
+start=$(date +%s)
+until kubectl exec secret-pod -- grep -q Rotated /etc/db/DB_PASSWORD 2&gt;/dev/null; do sleep 5; done
+echo "file updated after $(( $(date +%s) - start ))s"
+kubectl exec secret-pod -- cat /etc/db/DB_PASSWORD; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret/db-credentials patched
+file updated after 5s
+Rotated-2026!</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The mounted file changed without a restart. Secrets use the same kubelet sync as ConfigMaps — from a few seconds up to a minute or two, depending on where the sync loop happens to be. Your Step 4 and Step 8 times will differ.</li><li>An app that re-reads the file on every new connection picks up the new password automatically. Env vars (<code>$DB_USER</code> here) would need a Pod restart.</li><li>Real rotation needs overlap: the database must accept the old and the new password for a while, or connections fail during the switch.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The file shows <b>Rotated-2026!</b>.</div></div></section><div class="part-head" id="part-C"><b>Part C — Init containers</b><span>Steps 9–11 · slides 18–23, 38 · ~20 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>An init container that waits for a dependency</h2><div class="tags"><span>Slides 18–20, 38 · Quiz Q6</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Hold an app back until its database Service exists — instead of letting it crash-loop.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: wait-for-db.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; wait-for-db.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: orders-app
+spec:
+  initContainers:
+    - name: wait-for-db
+      image: busybox:1.37
+      command: ["sh", "-c", "until nslookup orders-db.default.svc.cluster.local &gt;/dev/null 2&gt;&amp;1; do echo waiting for orders-db; sleep 2; done; echo orders-db is resolvable"]
+  containers:
+    - name: app
+      image: nginx:1.28-alpine
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>No database yet</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f wait-for-db.yaml
+sleep 8
+kubectl get pod orders-app
+kubectl logs orders-app -c wait-for-db --tail=2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/orders-app created
+NAME         READY   STATUS     RESTARTS   AGE
+orders-app   0/1     Init:0/1   0          8s
+waiting for orders-db
+waiting for orders-db</pre></div><div class="code"><div class="code-bar"><span>Create the Service — the app starts by itself</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create service clusterip orders-db --tcp=5432:5432
+kubectl wait --for=condition=Ready pod/orders-app --timeout=60s
+kubectl get pod orders-app
+kubectl logs orders-app -c wait-for-db --tail=1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>service/orders-db created
+pod/orders-app condition met
+NAME         READY   STATUS    RESTARTS   AGE
+orders-app   1/1     Running   0          12s
+orders-db is resolvable</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>Init:0/1</b> means "0 of 1 init containers finished". The app container hasn't even been created yet (Quiz Q6).</li><li>The init container polls DNS every 2 seconds. As soon as the Service exists, it exits with 0 and the app starts.</li><li>Without it, the app would start, fail to connect, crash, and back off — CrashLoopBackOff for a problem that isn't the app's fault.</li><li>Keep waits like this short and simple. The app should still retry its own connections — the database can go away later, too.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The Pod went from <b>Init:0/1</b> to <b>Running</b> right after the Service appeared.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>A failing init container</h2><div class="tags"><span>Slides 21–22, 38</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> See how a failing init container blocks the app, and how to read its logs.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: failing-init.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; failing-init.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failing-init
+spec:
+  initContainers:
+    - name: migrate
+      image: busybox:1.37
+      command: ["sh", "-c", "echo 'running migrations...'; echo 'ERROR: relation users already exists'; exit 1"]
+  containers:
+    - name: app
+      image: nginx:1.28-alpine
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Wait ~25 s for a few retries</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f failing-init.yaml
+sleep 25
+kubectl get pod failing-init
+kubectl logs failing-init -c migrate
+kubectl logs failing-init</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/failing-init created
+NAME           READY   STATUS                  RESTARTS      AGE
+failing-init   0/1     Init:Error   2 (23s ago)   25s
+running migrations...
+ERROR: relation users already exists
+Defaulted container "app" out of: app, migrate (init)
+Error from server (BadRequest): container "app" in pod "failing-init" is waiting to start: PodInitializing</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The kubelet retries the init container with growing back-off: <b>Init:Error</b>, then <b>Init:CrashLoopBackOff</b>. The app container never starts.</li><li><code>kubectl logs &lt;pod&gt;</code> picks the app container, which has no logs. Name the init container with <code>-c migrate</code> to see the real error.</li><li>Running database migrations in an init container is common — but every replica runs it. Make migrations safe to run twice, or run them once in a Job instead.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><b>Init:Error</b> (or Init:CrashLoopBackOff, between retries) and the <b>ERROR: relation users already exists</b> log line.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>An init container renders a config file</h2><div class="tags"><span>Slides 23, 38</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Combine a ConfigMap template and a Secret into one ready-to-use config file before the app starts.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: render-config.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; render-config.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-template
+data:
+  db.conf.tpl: |
+    host=orders-db.default.svc.cluster.local
+    port=5432
+    user=__DB_USER__
+    password=__DB_PASSWORD__
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: render-config
+spec:
+  volumes:
+    - name: templates
+      configMap:
+        name: db-template
+    - name: config
+      emptyDir:
+        medium: Memory                 # rendered secrets stay in RAM
+  initContainers:
+    - name: render
+      image: busybox:1.37
+      command:
+        - sh
+        - -c
+        - |
+          sed -e "s/__DB_USER__/$DB_USER/" -e "s/__DB_PASSWORD__/$DB_PASSWORD/" \
+              /templates/db.conf.tpl &gt; /config/db.conf
+          chmod 0400 /config/db.conf
+          echo "rendered /config/db.conf"
+      env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_PASSWORD
+      volumeMounts:
+        - name: templates
+          mountPath: /templates
+        - name: config
+          mountPath: /config
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "grep -v password /config/db.conf; sleep 3600"]
+      volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f render-config.yaml
+kubectl wait --for=condition=Ready pod/render-config --timeout=60s
+kubectl logs render-config -c render
+kubectl logs render-config -c app
+kubectl exec render-config -c app -- ls -l /config/db.conf</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/db-template created
+pod/render-config created
+pod/render-config condition met
+rendered /config/db.conf
+host=orders-db.default.svc.cluster.local
+port=5432
+user=app_user
+-r--------    1 root     root            88 Sep 29 06:58 /config/db.conf</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Init writes → shared <code>emptyDir</code> → app reads. The app gets one finished file and needs no templating logic of its own.</li><li><code>emptyDir: medium: Memory</code> keeps the rendered file (with the password) in RAM, like a Secret volume.</li><li>The app only prints lines without <code>password</code> — the password is in the file, just not in our logs.</li><li>The Secret is consumed only by the init container. The app container never sees it as an env var.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>user=app_user</code> in the app's log and a <b>-r--------</b> config file.</div></div></section><div class="part-head" id="part-D"><b>Part D — Multi-container patterns</b><span>Steps 12–14 · slides 24–31, 39 · ~25 min</span></div><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Sidecar: ship the app's logs</h2><div class="tags"><span>Slides 24–26</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Run nginx with a helper container that follows its access log.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: sidecar-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; sidecar-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-pod
+spec:
+  volumes:
+    - name: logs
+      emptyDir: {}
+  containers:
+    - name: web
+      image: nginx:1.28-alpine
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log/nginx
+    - name: log-shipper
+      image: busybox:1.37
+      command: ["sh", "-c", "trap 'exit 0' TERM; touch /var/log/nginx/access.log; tail -F /var/log/nginx/access.log &amp; wait"]
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log/nginx
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f sidecar-pod.yaml
+kubectl wait --for=condition=Ready pod/sidecar-pod --timeout=60s
+kubectl exec sidecar-pod -c web -- wget -qO- http://localhost | grep title
+sleep 2
+kubectl logs sidecar-pod -c log-shipper</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/sidecar-pod created
+pod/sidecar-pod condition met
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+127.0.0.1 - - [29/Sep/2026:06:49:45 +0000] "GET / HTTP/1.1" 200 615 "-" "Wget" "-"</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Both containers mount the same <code>emptyDir</code> at <code>/var/log/nginx</code>. nginx writes, the sidecar reads.</li><li>The request came from <code>127.0.0.1</code>: containers in one Pod share one network, so <code>localhost</code> is the same for both.</li><li>With more than one container, <code>kubectl logs</code> and <code>exec</code> need <code>-c</code> to pick one.</li><li>The <code>trap … TERM</code> line lets the sidecar stop instantly when the Pod is deleted, instead of waiting 30 seconds.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The sidecar printed nginx's access-log line.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Adapter: turn plain text into JSON</h2><div class="tags"><span>Slides 27–28 · Quiz Q9</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Let a helper translate a legacy app's log format into what your logging system expects.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: adapter-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; adapter-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: adapter-pod
+spec:
+  volumes:
+    - name: logs
+      emptyDir: {}
+  containers:
+    - name: app                        # legacy app: plain-text log lines
+      image: busybox:1.37
+      command:
+        - sh
+        - -c
+        - |
+          trap 'exit 0' TERM
+          while true; do
+            echo "$(date -u +%T) error: payment failed order=$RANDOM" &gt;&gt; /logs/app.log
+            sleep 3 &amp; wait $!
+          done
+      volumeMounts:
+        - name: logs
+          mountPath: /logs
+    - name: json-adapter               # turns each line into JSON on stdout
+      image: busybox:1.37
+      command:
+        - sh
+        - -c
+        - |
+          trap 'exit 0' TERM
+          touch /logs/app.log
+          tail -F /logs/app.log | while read t level msg; do
+            echo "{\"time\":\"$t\",\"level\":\"${level%:}\",\"msg\":\"$msg\"}"
+          done &amp;
+          wait
+      volumeMounts:
+        - name: logs
+          mountPath: /logs
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f adapter-pod.yaml
+kubectl wait --for=condition=Ready pod/adapter-pod --timeout=60s
+sleep 7
+kubectl exec adapter-pod -c app -- tail -2 /logs/app.log
+kubectl logs adapter-pod -c json-adapter --tail=2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/adapter-pod created
+pod/adapter-pod condition met
+06:49:48 error: payment failed order=6841
+06:49:51 error: payment failed order=18591
+{"time":"06:49:48","level":"error","msg":"payment failed order=6841"}
+{"time":"06:49:51","level":"error","msg":"payment failed order=18591"}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>An <b>adapter</b> changes the <b>shape</b> of what the app produces — here plain text into JSON on stdout, where the cluster's log collector picks it up (Quiz Q9).</li><li>The legacy app didn't change at all. That's the point: fix the format next to the app, not inside it.</li><li>Real-world adapters: log reformatters, metrics exporters that turn an app's stats page into Prometheus metrics.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The same two events, once as plain text and once as JSON.</div></div></section><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Ambassador: a local proxy — and startup order</h2><div class="tags"><span>Slides 29–31, 39 · Quiz Q8</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Let the app call <code>localhost:8080</code> while an nginx ambassador talks to the real backend. Then fix a start-up race with a native sidecar.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: orders-api.yaml — the backend</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; orders-api.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-api-content
+data:
+  index.html: |
+    {"service":"orders-api","orders":42}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orders-api
+  template:
+    metadata:
+      labels:
+        app: orders-api
+    spec:
+      containers:
+        - name: api
+          image: nginx:1.28-alpine
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: content
+          configMap:
+            name: orders-api-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-api
+spec:
+  selector:
+    app: orders-api
+  ports:
+    - port: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: ambassador-pod.yaml — proxy config + Pod</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; ambassador-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ambassador-config
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      location / {
+        proxy_pass http://orders-api.default.svc.cluster.local;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 5s;
+        add_header X-Via ambassador;
+      }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ambassador-pod
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "while true; do wget -qO- http://localhost:8080; sleep 5; done"]
+    - name: ambassador
+      image: nginx:1.28-alpine
+      ports:
+        - containerPort: 8080
+      volumeMounts:
+        - name: config
+          mountPath: /etc/nginx/conf.d
+  volumes:
+    - name: config
+      configMap:
+        name: ambassador-config
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f orders-api.yaml
+kubectl rollout status deployment/orders-api --timeout=60s
+kubectl apply -f ambassador-pod.yaml
+kubectl wait --for=condition=Ready pod/ambassador-pod --timeout=60s
+sleep 6
+kubectl logs ambassador-pod -c app | head -2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/orders-api-content created
+deployment.apps/orders-api created
+service/orders-api created
+deployment "orders-api" successfully rolled out
+configmap/ambassador-config created
+pod/ambassador-pod created
+pod/ambassador-pod condition met
+wget: can't connect to remote host (127.0.0.1): Connection refused
+{"service":"orders-api","orders":42}</pre></div><div class="code"><div class="code-bar"><span>Creates: ambassador-native.yaml — the same proxy as a native sidecar</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; ambassador-native.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ambassador-native
+spec:
+  initContainers:
+    - name: ambassador
+      image: nginx:1.28-alpine
+      restartPolicy: Always              # native sidecar
+      ports:
+        - containerPort: 8080
+      startupProbe:                      # app starts only after this passes
+        tcpSocket:
+          port: 8080
+        periodSeconds: 1
+        failureThreshold: 30
+      volumeMounts:
+        - name: config
+          mountPath: /etc/nginx/conf.d
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "while true; do wget -qO- http://localhost:8080; echo; sleep 5; done"]
+  volumes:
+    - name: config
+      configMap:
+        name: ambassador-config
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f ambassador-native.yaml
+kubectl wait --for=condition=Ready pod/ambassador-native --timeout=60s
+sleep 2
+kubectl logs ambassador-native -c app | head -1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/ambassador-native created
+pod/ambassador-native condition met
+{"service":"orders-api","orders":42}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The app only knows <code>localhost:8080</code>. The <b>ambassador</b> owns the real address, timeouts and headers — change them in the ConfigMap, not in the app.</li><li>In the classic version the first request <b>failed</b>: both containers start at the same time, and the app was faster than nginx. You may or may not hit this race on your machine — in production you will, eventually.</li><li>In the native version the ambassador is an <code>initContainer</code> with <code>restartPolicy: Always</code> and a <code>startupProbe</code>. Kubernetes starts it first and waits until port 8080 answers before starting the app (Quiz Q8).</li><li>This also combines Parts A and D: a ConfigMap delivers the nginx config file into the sidecar.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The classic Pod may log a <b>Connection refused</b> first; the native one answers correctly from the first request.</div></div></section><div class="part-head" id="part-E"><b>Part E — Native sidecars</b><span>Step 15 · slides 32, 40 · ~10 min</span></div><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Native sidecars let Jobs finish</h2><div class="tags"><span>Slides 32, 40 · Quiz Q7</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Run the same batch Job with a classic and with a native log-shipper sidecar.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: job-classic-sidecar.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job-classic-sidecar.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: export-classic
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: logs
+          emptyDir: {}
+      containers:
+        - name: export
+          image: busybox:1.37
+          command: ["sh", "-c", "for i in 1 2 3; do echo \"exported batch $i\" &gt;&gt; /logs/export.log; sleep 2; done"]
+          volumeMounts:
+            - name: logs
+              mountPath: /logs
+        - name: log-shipper
+          image: busybox:1.37
+          command: ["sh", "-c", "trap 'exit 0' TERM; touch /logs/export.log; tail -F /logs/export.log &amp; wait"]
+          volumeMounts:
+            - name: logs
+              mountPath: /logs
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: job-native-sidecar.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job-native-sidecar.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: export-native
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: logs
+          emptyDir: {}
+      initContainers:
+        - name: log-shipper
+          image: busybox:1.37
+          restartPolicy: Always          # &lt;- this makes it a native sidecar
+          command: ["sh", "-c", "trap 'exit 0' TERM; touch /logs/export.log; tail -F /logs/export.log &amp; wait"]
+          volumeMounts:
+            - name: logs
+              mountPath: /logs
+      containers:
+        - name: export
+          image: busybox:1.37
+          command: ["sh", "-c", "for i in 1 2 3; do echo \"exported batch $i\" &gt;&gt; /logs/export.log; sleep 2; done"]
+          volumeMounts:
+            - name: logs
+              mountPath: /logs
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f job-classic-sidecar.yaml -f job-native-sidecar.yaml
+kubectl wait --for=condition=Complete job/export-native --timeout=90s
+sleep 5
+kubectl get jobs export-classic export-native
+kubectl get pods -l 'job-name in (export-classic,export-native)'
+kubectl logs job/export-native -c log-shipper</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/export-classic created
+job.batch/export-native created
+job.batch/export-native condition met
+NAME             STATUS     COMPLETIONS   DURATION   AGE
+export-classic   Running    0/1           15s        15s
+export-native    Complete   1/1           9s         15s
+NAME                   READY   STATUS      RESTARTS   AGE
+export-classic-mns4r   1/2     NotReady    0          15s
+export-native-5l6bb    0/2     Completed   0          15s
+exported batch 1
+exported batch 2
+exported batch 3</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>Classic</b>: the export finished, but the sidecar in <code>containers</code> runs forever, so the Pod never completes and the Job stays <b>Running</b> — forever (Quiz Q7).</li><li><b>Native</b>: an <code>initContainer</code> with <code>restartPolicy: Always</code> starts first, runs next to the app, and is <b>stopped automatically</b> when the main container exits. The Job completed in 9 seconds.</li><li>Native sidecars are stable since v1.33. Before that, teams hacked around this with shared "done" files and <code>kill</code> scripts.</li><li>Service meshes, log shippers and secret-refreshers all move to native sidecars for the same reason: clean start-up and shut-down order.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><b>export-native Complete 1/1</b> and <b>export-classic Running 0/1</b>.</div></div></section><div class="part-head" id="part-F"><b>Part F — Clean up</b><span>Step 16 · ~3 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete everything this module created. Keep the cluster for Module 7.</p><div class="folder">Run from: <code>module6-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete job export-classic export-native
+kubectl delete -f ambassador-native.yaml -f ambassador-pod.yaml -f orders-api.yaml -f adapter-pod.yaml -f sidecar-pod.yaml -f render-config.yaml --now
+kubectl delete pod failing-init orders-app secret-pod --now
+kubectl delete service orders-db
+kubectl delete secret db-credentials
+kubectl delete configmap config-volume
+kubectl get all,configmaps,secrets</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch "export-classic" deleted from default namespace
+job.batch "export-native" deleted from default namespace
+...
+secret "db-credentials" deleted from default namespace
+configmap "config-volume" deleted from default namespace
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   4h
+
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      4h</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>kubectl delete -f</code> removes exactly what each file created — including the ConfigMaps inside multi-document files.</li><li>Module 7 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Only <code>service/kubernetes</code> and <code>kube-root-ca.crt</code> are left.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt>Pod stuck in <code>CreateContainerConfigError</code></dt><dd>A ConfigMap or Secret used for env vars doesn't exist, or a key is missing. Read <code>kubectl describe pod</code> → Events, then create it (Step 5).</dd><dt>Pod stuck in <code>ContainerCreating</code> with <code>FailedMount</code></dt><dd>A ConfigMap or Secret used as a volume doesn't exist. Create it, or set <code>optional: true</code> if the app can run without it (Step 5).</dd><dt>The mounted file doesn't change after <code>kubectl apply</code></dt><dd>Wait up to 2 minutes for the kubelet sync. If it's mounted with <code>subPath</code>, it never updates — restart the Pod (Step 4).</dd><dt><code>error: … is invalid: data: Forbidden: field is immutable</code></dt><dd>The ConfigMap or Secret has <code>immutable: true</code>. Create a new one with a new name and point the Pod or Deployment at it.</dd><dt><code>base64: invalid input</code> when decoding</dt><dd>Use <code>-o jsonpath='{.data.KEY}'</code> for exactly one value. On macOS, use <code>base64 -D</code> if <code>-d</code> isn't accepted.</dd><dt>Pod stuck in <code>Init:0/1</code></dt><dd>An init container hasn't finished. Read its logs: <code>kubectl logs &lt;pod&gt; -c &lt;init-container&gt;</code> (Steps 9–10).</dd><dt><code>kubectl logs</code> says <code>Defaulted container …</code> or shows the wrong output</dt><dd>The Pod has several containers. Add <code>-c &lt;name&gt;</code>. List them with <code>kubectl get pod &lt;pod&gt; -o jsonpath='{.spec.containers[*].name}'</code>.</dd><dt>A Pod takes 30 seconds to delete</dt><dd>A shell script running as PID 1 ignores SIGTERM. Add <code>trap 'exit 0' TERM</code> (as in the lab files), or use <code>kubectl delete … --now</code> in labs.</dd><dt>A Job with a sidecar never completes</dt><dd>The sidecar is in <code>containers</code>. Move it to <code>initContainers</code> with <code>restartPolicy: Always</code> (Step 15).</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 6 — ConfigMaps, Secrets, Init Containers &amp; Sidecars · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
