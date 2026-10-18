@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 5 Lab — Cluster Scaling, Node Maintenance, DaemonSets, Jobs & CronJobs</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 5 · Hands-on lab</div>
+  <h1>Scaling, Node Maintenance, DaemonSets, Jobs &amp; CronJobs — Step-by-Step Lab</h1>
+  <p>Join a real fourth node with <code>kubeadm join</code>, take nodes out for maintenance with cordon and drain while a PodDisruptionBudget protects your app, run an agent on every node with a DaemonSet, and finish with Jobs and CronJobs configured the way production teams run them. Part F adds a HorizontalPodAutoscaler and surge updates for DaemonSets. Nineteen steps, in order.</p>
+  <div class="meta"><span>19 steps · about 1 h 48 min</span><span>Kubernetes v1.37 · kind</span><span>Real kubeadm join</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Scale out</div><a href="#step-1"><span class="n">1</span>Start from the Module 4 cluster</a><a href="#step-2"><span class="n">2</span>Bootstrap tokens and the join command</a><a href="#step-3"><span class="n">3</span>Add a fourth node with kubeadm join</a><div class="grp">Part B · Node maintenance</div><a href="#step-4"><span class="n">4</span>Cordon: stop new Pods, keep old ones</a><a href="#step-5"><span class="n">5</span>Drain: why it refuses</a><a href="#step-6"><span class="n">6</span>PodDisruptionBudgets: blocked drain, then a good one</a><a href="#step-7"><span class="n">7</span>Uncordon — and why Pods don't come back</a><a href="#step-8"><span class="n">8</span>Remove a node for good</a><div class="grp">Part C · DaemonSets</div><a href="#step-9"><span class="n">9</span>A DaemonSet node agent</a><a href="#step-10"><span class="n">10</span>Choose nodes with labels</a><a href="#step-11"><span class="n">11</span>Update and roll back a DaemonSet</a><div class="grp">Part D · Jobs</div><a href="#step-12"><span class="n">12</span>A Job that runs once</a><a href="#step-13"><span class="n">13</span>Retries and BackoffLimitExceeded</a><a href="#step-14"><span class="n">14</span>podFailurePolicy: stop retrying bugs</a><a href="#step-15"><span class="n">15</span>Parallel and Indexed Jobs</a><div class="grp">Part E · CronJobs</div><a href="#step-16"><span class="n">16</span>A production-ready CronJob</a><div class="grp">Part F · Autoscaling and surge updates</div><a href="#step-17"><span class="n">17</span>HorizontalPodAutoscaler: scale Pods on CPU</a><a href="#step-18"><span class="n">18</span>DaemonSet maxSurge: update without a gap</a><div class="grp">Part G · Clean up</div><a href="#step-19"><span class="n">19</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Scale out: add a real node</div><div class="psub">Steps 1–3 · slides 3–7, 37 · ~20 min</div><div class="chips"><a href="#step-1">1. Start from the Module 4 cluster</a><a href="#step-2">2. Bootstrap tokens and the join command</a><a href="#step-3">3. Add a fourth node with kubeadm join</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Node maintenance: cordon, drain, PDBs</div><div class="psub">Steps 4–8 · slides 8–18, 38–40 · ~40 min</div><div class="chips"><a href="#step-4">4. Cordon: stop new Pods, keep old ones</a><a href="#step-5">5. Drain: why it refuses</a><a href="#step-6">6. PodDisruptionBudgets: blocked drain, then a good one</a><a href="#step-7">7. Uncordon — and why Pods don't come back</a><a href="#step-8">8. Remove a node for good</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">DaemonSets</div><div class="psub">Steps 9–11 · slides 19–25, 41 · ~20 min</div><div class="chips"><a href="#step-9">9. A DaemonSet node agent</a><a href="#step-10">10. Choose nodes with labels</a><a href="#step-11">11. Update and roll back a DaemonSet</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">Jobs</div><div class="psub">Steps 12–15 · slides 26–31, 42 · ~20 min</div><div class="chips"><a href="#step-12">12. A Job that runs once</a><a href="#step-13">13. Retries and BackoffLimitExceeded</a><a href="#step-14">14. podFailurePolicy: stop retrying bugs</a><a href="#step-15">15. Parallel and Indexed Jobs</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">CronJobs</div><div class="psub">Step 16 · slides 32–36, 43 · ~10 min</div><div class="chips"><a href="#step-16">16. A production-ready CronJob</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Autoscaling and surge updates</div><div class="psub">Steps 17–18 · slides 45–48 · ~25 min</div><div class="chips"><a href="#step-17">17. HorizontalPodAutoscaler: scale Pods on CPU</a><a href="#step-18">18. DaemonSet maxSurge: update without a gap</a></div></div></div><div class="part"><div class="letter">G</div><div><div class="ptitle">Clean up</div><div class="psub">Step 19 · ~3 min</div><div class="chips"><a href="#step-19">19. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 2–4 first.</b> This lab uses the 3-node kind cluster (<code>kind-lab</code>).</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows. Docker must be running.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Pod names, hashes, ages and exact Pod counts per node will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code>PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+for img in nginx:1.28-alpine busybox:1.37 registry.k8s.io/metrics-server/metrics-server:v0.9.0; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+rm -f image.tar
+# after Step 3, run these lines again so lab-worker3 gets the images too</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Scale out: add a real node</b><span>Steps 1–3 · slides 3–7, 37 · ~20 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start from the Module 4 cluster</h2><div class="tags"><span>Modules 2–4</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Make sure the 3-node kind cluster is running and create a folder for this lab.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module5-lab
+cd module5-lab</code></pre></div><div class="code"><div class="code-bar"><span>Is the cluster still there?</span><button class="copy" type="button">Copy</button></div><pre><code>kind get clusters
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>lab
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   3h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          3h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          3h    v1.37.0</pre></div><p>If <code>kind get clusters</code> printed nothing, create the cluster again with the <code>kind-cluster.yaml</code> from Module 2, Step 2:</p><div class="code"><div class="code-bar"><span>Only if you need a new cluster</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; kind-cluster.yaml &lt;&lt;'EOF'
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+EOF
+kind create cluster --config kind-cluster.yaml
+kubectl wait --for=condition=Ready nodes --all --timeout=120s</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>This module is about the <b>nodes</b> themselves: adding one, taking one out for maintenance, and running work on every node or on a schedule.</li><li>kind nodes are Docker containers, so "adding a machine" means starting one more container. Everything after that — the token, <code>kubeadm join</code>, cordon, drain — is exactly what you'd do on real servers.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three nodes, all <b>Ready</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Bootstrap tokens and the join command</h2><div class="tags"><span>Slides 4–7 · Quiz Q5</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Look at the control plane's join tokens and print a fresh, ready-to-use join command.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Run kubeadm on the control-plane node</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec lab-control-plane kubeadm token list</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>TOKEN                     TTL   EXPIRES                USAGES                   DESCRIPTION   EXTRA GROUPS
+abcdef.0123456789abcdef   20h   2026-09-30T04:43:12Z   authentication,signing   &lt;none&gt;        system:bootstrappers:kubeadm:default-node-token</pre></div><div class="code"><div class="code-bar"><span>A fresh join command, valid for 1 hour</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec lab-control-plane kubeadm token create --print-join-command --ttl 1h</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>kubeadm join lab-control-plane:6443 --token 0pbaax.1ciutu1tiqmn2d42 --discovery-token-ca-cert-hash sha256:49953a3de3ce14f8aec05b990c8eec7bd94ed871aa669fc4f92e0c3e0e20a176</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A join command has three parts: the <b>API server address</b>, a <b>bootstrap token</b> (a short-lived password), and the <b>CA certificate hash</b> so the new node can trust it's talking to the right cluster.</li><li>Tokens expire — 24 hours by default. We asked for <code>--ttl 1h</code>. When a token has expired, <code>kubeadm join</code> keeps retrying with <i>could not find a JWS signature … for token ID</i> until it times out. The fix is always a fresh <code>token create</code> (Quiz Q5).</li><li>Treat tokens like passwords. Never paste a real production token into a ticket, a chat or a slide.</li><li>On a real server you'd run these commands on the control-plane host itself. We use <code>docker exec</code> because our control plane is a container.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You have a <code>kubeadm join …</code> line with a token and a <code>sha256:</code> hash.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Add a fourth node with kubeadm join</h2><div class="tags"><span>Slides 3–6, 19, 37</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Start a new, empty node, join it to the cluster with a real <code>kubeadm join</code>, and watch Kubernetes put its system agents on it automatically.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Provision the new "machine" — same image as the other nodes</span><button class="copy" type="button">Copy</button></div><pre><code>NODE_IMAGE=$(docker inspect lab-worker --format '{{.Config.Image}}')
+docker run -d --name lab-worker3 --hostname lab-worker3 \
+  --network kind --privileged --cgroupns=private \
+  --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
+  --tmpfs /run --tmpfs /tmp --volume /var \
+  --label io.x-k8s.kind.cluster=lab --label io.x-k8s.kind.role=worker \
+  "$NODE_IMAGE"
+until docker exec lab-worker3 systemctl is-active --quiet containerd 2&gt;/dev/null; do sleep 1; done
+echo "lab-worker3 is up"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>43f74e936f33b1c0e6c8d2e5a1f4b7c9d0e3f6a2b5c8d1e4f7a0b3c6d9e2f5a8
+lab-worker3 is up</pre></div><div class="code"><div class="code-bar"><span>Join it</span><button class="copy" type="button">Copy</button></div><pre><code>JOIN_CMD=$(docker exec lab-control-plane kubeadm token create --print-join-command --ttl 1h)
+docker exec lab-worker3 $JOIN_CMD --ignore-preflight-errors=all</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>[preflight] Running pre-flight checks
+...
+[kubelet-start] Starting the kubelet
+[kubelet-check] Waiting for a healthy kubelet at http://127.0.0.1:10248/healthz. This can take up to 4m0s
+[kubelet-check] The kubelet is healthy after 503.547807ms
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.</pre></div><div class="code"><div class="code-bar"><span>Verify from the control plane</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl wait --for=condition=Ready node/lab-worker3 --timeout=120s
+kubectl get nodes
+kubectl get pods -n kube-system -o wide | grep lab-worker3</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker3 condition met
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   3h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          3h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          3h    v1.37.0
+lab-worker3         Ready    &lt;none&gt;          13s   v1.37.0
+kindnet-4fgrd      1/1     Running   0          13s   172.19.0.5   lab-worker3   &lt;none&gt;   &lt;none&gt;
+kube-proxy-dv9nn   1/1     Running   0          13s   172.19.0.5   lab-worker3   &lt;none&gt;   &lt;none&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The container starts with kubelet, kubeadm and containerd installed but <b>not joined</b> — exactly like a freshly provisioned VM (slide 4).</li><li><code>kubeadm join</code> used the token to get a certificate for the new kubelet (the "TLS Bootstrap"). From then on the node talks to the API server with its own identity.</li><li><code>--ignore-preflight-errors=all</code> is needed only because a container isn't a real machine (kind itself skips these checks). On real servers, fix preflight errors — don't ignore them.</li><li><b>Nobody deployed anything</b> to lab-worker3, yet <code>kindnet</code> (networking) and <code>kube-proxy</code> are running there. Both are <b>DaemonSets</b>: one Pod on every node, including nodes that join later (slide 19).</li><li>The labels on the container let kind treat it as part of the cluster: <code>kind get nodes</code> lists it and <code>kind delete cluster</code> removes it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>lab-worker3</code> is <b>Ready</b> and runs a kindnet and a kube-proxy Pod.</div></div></section><div class="part-head" id="part-B"><b>Part B — Node maintenance: cordon, drain, PDBs</b><span>Steps 4–8 · slides 8–18, 38–40 · ~40 min</span></div><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Cordon: stop new Pods, keep old ones</h2><div class="tags"><span>Slides 9–11, 38 · Quiz Q3</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Run an app on every worker, cordon one node, and find out exactly what cordon does — and doesn't — stop.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: web.yaml — 6 replicas of nginx</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 5
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Deploy and count Pods per node</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web.yaml
+kubectl rollout status deployment/web --timeout=120s
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web created
+...
+deployment "web" successfully rolled out
+      2 lab-worker
+      2 lab-worker2
+      2 lab-worker3</pre></div><div class="code"><div class="code-bar"><span>Cordon lab-worker, then add 3 Pods</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl cordon lab-worker
+kubectl get nodes
+kubectl get node lab-worker -o jsonpath='{.spec.taints}'; echo
+kubectl scale deployment web --replicas=9
+kubectl rollout status deployment/web --timeout=120s
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker cordoned
+NAME                STATUS                     ROLES           AGE   VERSION
+lab-control-plane   Ready                      control-plane   3h    v1.37.0
+lab-worker          Ready,SchedulingDisabled   &lt;none&gt;          3h    v1.37.0
+lab-worker2         Ready                      &lt;none&gt;          3h    v1.37.0
+lab-worker3         Ready                      &lt;none&gt;          2m    v1.37.0
+[{"effect":"NoSchedule","key":"node.kubernetes.io/unschedulable","timeAdded":"2026-09-29T05:45:52Z"}]
+deployment.apps/web scaled
+...
+deployment "web" successfully rolled out
+      2 lab-worker
+      4 lab-worker2
+      3 lab-worker3</pre></div><div class="code"><div class="code-bar"><span>Creates: pinned-pod.yaml and bare-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; pinned-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pinned
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: lab-worker   # goes through the scheduler
+  containers:
+    - name: nginx
+      image: nginx:1.28-alpine
+EOF
+cat &gt; bare-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bare
+spec:
+  nodeName: lab-worker                   # skips the scheduler entirely
+  containers:
+    - name: nginx
+      image: nginx:1.28-alpine
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Two Pods that both want lab-worker</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f pinned-pod.yaml -f bare-pod.yaml
+sleep 5
+kubectl get pods pinned bare -o wide
+kubectl get events --field-selector involvedObject.name=pinned,reason=FailedScheduling -o custom-columns=MESSAGE:.message | tail -1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/pinned created
+pod/bare created
+NAME     READY   STATUS    RESTARTS   AGE   IP           NODE         NOMINATED NODE   READINESS GATES
+pinned   0/1     Pending   0          5s    &lt;none&gt;       &lt;none&gt;       &lt;none&gt;           &lt;none&gt;
+bare     1/1     Running   0          5s    10.244.1.9   lab-worker   &lt;none&gt;           &lt;none&gt;
+0/4 nodes are available: 1 node(s) had untolerated taint(s), 1 node(s) were unschedulable, 2 node(s) didn't match Pod's node affinity/selector. preemption: 0/4 nodes are available: 4 Preemption is not helpful for scheduling.</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Cordon marks the node <b>SchedulingDisabled</b> by adding the taint <code>node.kubernetes.io/unschedulable:NoSchedule</code>.</li><li>The 2 Pods already on lab-worker kept running. The 3 new Pods went to the other workers.</li><li><code>pinned</code> uses <code>nodeSelector</code>, which goes through the scheduler. The scheduler respects the cordon, so the Pod waits in <b>Pending</b>. The event explains every node: one unschedulable, one tainted (the control plane), two don't match.</li><li><code>bare</code> uses <code>nodeName</code>, which <b>skips the scheduler</b>. The kubelet just runs it — cordon can't stop it (Quiz Q3). Avoid <code>nodeName</code> in real manifests.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>pinned</code> is <b>Pending</b>, <code>bare</code> is <b>Running</b> on lab-worker, and no new web Pods landed there.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Drain: why it refuses</h2><div class="tags"><span>Slides 12–14, 24, 39 · Quiz Q2</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Try to empty lab-worker with a plain drain and read the two reasons it refuses.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl drain lab-worker</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker already cordoned
+error: unable to drain node "lab-worker" due to error: [cannot delete Pods that declare no controller (use --force to override): default/bare, cannot delete DaemonSet-managed Pods (use --ignore-daemonsets to ignore): kube-system/kindnet-2b649, kube-system/kube-proxy-fnjlw], continuing command...
+There are pending nodes to be drained:
+ lab-worker
+cannot delete Pods that declare no controller (use --force to override): default/bare
+cannot delete DaemonSet-managed Pods (use --ignore-daemonsets to ignore): kube-system/kindnet-2b649, kube-system/kube-proxy-fnjlw</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Drain = cordon + <b>evict</b> every Pod on the node. It checked first and found two problems, so it evicted nothing.</li><li><b>DaemonSet Pods</b> (kindnet, kube-proxy): evicting them is pointless — the DaemonSet would put them straight back on the same node. <code>--ignore-daemonsets</code> means "leave them, I know" (Quiz Q2).</li><li><b>A Pod with no controller</b> (<code>bare</code>): nothing would recreate it anywhere. Evicting it deletes it for good, so kubectl makes you say <code>--force</code>.</li><li>A third flag you'll meet: <code>--delete-emptydir-data</code>, for Pods using <code>emptyDir</code> volumes — their scratch data is lost on eviction.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The drain stopped with both error messages, and all Pods are still on lab-worker.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>PodDisruptionBudgets: blocked drain, then a good one</h2><div class="tags"><span>Slides 13, 16, 39–40, 44 · Quiz Q1</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> See a too-strict PodDisruptionBudget block maintenance, then replace it with one that protects the app <i>and</i> lets the drain finish.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: web-pdb-strict.yaml — a common mistake</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web-pdb-strict.yaml &lt;&lt;'EOF'
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  maxUnavailable: 0          # anti-pattern: no voluntary disruption, ever
+  selector:
+    matchLabels:
+      app: web
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web-pdb-strict.yaml
+kubectl get pdb web-pdb
+kubectl drain lab-worker --ignore-daemonsets --force --timeout=20s 2&gt;&amp;1 | grep -E 'evicting|Cannot evict|timeout' | head -4</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>poddisruptionbudget.policy/web-pdb created
+NAME      MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+web-pdb   N/A             0                 0                     0s
+evicting pod default/web-766d5c7b8d-vfnnj
+evicting pod default/bare
+evicting pod default/web-766d5c7b8d-4nffq
+error when evicting pods/"web-766d5c7b8d-vfnnj" -n "default" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.</pre></div><div class="code"><div class="code-bar"><span>Creates: web-pdb.yaml — the production version</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web-pdb.yaml &lt;&lt;'EOF'
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  maxUnavailable: 1                          # one Pod at a time may be evicted
+  unhealthyPodEvictionPolicy: AlwaysAllow    # broken Pods never block a drain
+  selector:
+    matchLabels:
+      app: web
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Same drain, better budget</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f web-pdb.yaml
+kubectl get pdb web-pdb
+kubectl drain lab-worker --ignore-daemonsets --force --timeout=120s
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>poddisruptionbudget.policy/web-pdb configured
+NAME      MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+web-pdb   N/A             1                 1                     25s
+node/lab-worker already cordoned
+Warning: ignoring DaemonSet-managed Pods: kube-system/kindnet-2b649, kube-system/kube-proxy-fnjlw
+evicting pod default/web-766d5c7b8d-vfnnj
+evicting pod default/web-766d5c7b8d-4nffq
+error when evicting pods/"web-766d5c7b8d-vfnnj" -n "default" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.
+pod/web-766d5c7b8d-4nffq evicted
+evicting pod default/web-766d5c7b8d-vfnnj
+pod/web-766d5c7b8d-vfnnj evicted
+node/lab-worker drained
+      5 lab-worker2
+      4 lab-worker3</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>PodDisruptionBudget</b> limits <i>voluntary</i> disruptions — drains, upgrades, autoscaler scale-downs. It can't stop a node from crashing.</li><li><code>maxUnavailable: 0</code> (or <code>minAvailable</code> equal to the replica count) means "never evict anything". ALLOWED DISRUPTIONS = 0, so the drain retries every 5 seconds forever. We stopped it with <code>--timeout</code> (Quiz Q1).</li><li><code>maxUnavailable: 1</code> lets the drain move <b>one Pod at a time</b>: evict, wait for the replacement to be ready elsewhere, evict the next. Look for that single retry in the output.</li><li><code>unhealthyPodEvictionPolicy: AlwaysAllow</code> (stable) lets a drain evict Pods that are Running but not Ready. Without it, an already-broken app can block node maintenance.</li><li>The first attempt already evicted <code>bare</code> — it has no PDB, and <code>--force</code> allowed it. It's gone for good; nothing recreated it. The web Pods were recreated on the other nodes.</li></ul></div><div class="callout warn"><b>Careful:</b> Never fix a blocked drain by force-deleting Pods or deleting the PDB in a hurry. Read ALLOWED DISRUPTIONS, then fix the budget or add replicas.</div><div class="check"><span>Checkpoint</span><div class="ct"><code>node/lab-worker drained</code>, and all 9 web Pods run on lab-worker2 and lab-worker3.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Uncordon — and why Pods don't come back</h2><div class="tags"><span>Slides 11, 15, 40 · Quiz Q4</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Finish the maintenance, uncordon the node, and rebalance the app on purpose.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Maintenance done — uncordon</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl uncordon lab-worker
+sleep 5
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c
+kubectl get pod pinned -o wide</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker uncordoned
+      5 lab-worker2
+      4 lab-worker3
+NAME     READY   STATUS    RESTARTS   AGE   IP            NODE         NOMINATED NODE   READINESS GATES
+pinned   1/1     Running   0          2m    10.244.2.95   lab-worker   &lt;none&gt;           &lt;none&gt;</pre></div><div class="code"><div class="code-bar"><span>Rebalance by replacing the Pods</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout restart deployment/web
+kubectl rollout status deployment/web --timeout=120s
+until [ "$(kubectl get pods -l app=web --no-headers | wc -l)" -eq 9 ]; do sleep 2; done
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web restarted
+...
+deployment "web" successfully rolled out
+      3 lab-worker
+      3 lab-worker2
+      3 lab-worker3</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>pinned</code> was Pending since Step 4. The moment the taint was gone, the scheduler placed it — Pending Pods are retried automatically.</li><li>Uncordon only removes the taint. The scheduler decides where a Pod goes <b>once</b>, when the Pod is created. Running Pods never move by themselves (Quiz Q4).</li><li>New Pods — from a rollout, a scale-up or a crash — will use lab-worker again. <code>rollout restart</code> replaces every Pod, so they spread out evenly.</li><li>The Deployment spread its Pods across nodes because the scheduler prefers to keep replicas of the same app apart. For hard guarantees, teams add <code>topologySpreadConstraints</code>.</li><li>The full routine from slide 15: <b>cordon → drain → maintain → uncordon</b>. Never power off a node before the drain has finished.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Roughly <b>3 / 3 / 3</b> web Pods per worker.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Remove a node for good</h2><div class="tags"><span>Slide 18</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Retire lab-worker3 the right way: drain, delete the Node object, then remove the machine.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl drain lab-worker3 --ignore-daemonsets --delete-emptydir-data --timeout=120s 2&gt;&amp;1 | tail -1
+kubectl delete node lab-worker3
+docker rm -f -v lab-worker3
+kubectl get nodes
+kubectl get pods -l app=web -o custom-columns=NODE:.spec.nodeName --no-headers | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker3 drained
+node "lab-worker3" deleted
+lab-worker3
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   3h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          3h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          3h    v1.37.0
+      5 lab-worker
+      4 lab-worker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Drain first, so the Pods move while the node still works. The PDB made sure only one web Pod was down at a time.</li><li><code>kubectl delete node</code> removes the Node <b>object</b> from the API. It doesn't touch the machine — we removed the container ourselves. On a real server you'd also run <code>kubeadm reset</code> and power it off; in a cloud you'd delete the VM.</li><li>If you delete the Node object but leave the machine running, its kubelet will register it again.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three nodes again, and all 9 web Pods on the two workers.</div></div></section><div class="part-head" id="part-C"><b>Part C — DaemonSets</b><span>Steps 9–11 · slides 19–25, 41 · ~20 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>A DaemonSet node agent</h2><div class="tags"><span>Slides 19–22, 41 · Quiz Q6</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Run a small agent on every node, see why the control plane is skipped, and include it with a toleration.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: daemonset.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; daemonset.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+  labels:
+    app: node-agent
+spec:
+  selector:
+    matchLabels:
+      app: node-agent
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: node-agent
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              trap 'echo "stopping on $NODE_NAME"; exit 0' TERM
+              while true; do
+                echo "$(date -u +%T) agent on $NODE_NAME (interval ${INTERVAL}s)"
+                sleep "$INTERVAL" &amp; wait $!
+              done
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: INTERVAL
+              value: "30"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f daemonset.yaml
+kubectl rollout status daemonset/node-agent --timeout=90s
+kubectl get daemonset node-agent
+kubectl get pods -l app=node-agent -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName
+kubectl logs daemonset/node-agent</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>daemonset.apps/node-agent created
+Waiting for daemon set "node-agent" rollout to finish: 0 of 2 updated pods are available...
+Waiting for daemon set "node-agent" rollout to finish: 1 of 2 updated pods are available...
+daemon set "node-agent" successfully rolled out
+NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+node-agent   2         2         2       2            2           &lt;none&gt;          3s
+POD                NODE
+node-agent-dqzdc   lab-worker2
+node-agent-w2z4r   lab-worker
+Found 2 pods, using pod/node-agent-dqzdc
+05:46:17 agent on lab-worker2 (interval 30s)</pre></div><div class="code"><div class="code-bar"><span>Creates: daemonset-all.yaml — same, plus a toleration</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; daemonset-all.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+  labels:
+    app: node-agent
+spec:
+  selector:
+    matchLabels:
+      app: node-agent
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: node-agent
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: agent
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              trap 'echo "stopping on $NODE_NAME"; exit 0' TERM
+              while true; do
+                echo "$(date -u +%T) agent on $NODE_NAME (interval ${INTERVAL}s)"
+                sleep "$INTERVAL" &amp; wait $!
+              done
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: INTERVAL
+              value: "30"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f daemonset-all.yaml
+kubectl rollout status daemonset/node-agent --timeout=120s
+kubectl get daemonset node-agent
+kubectl get pods -l app=node-agent -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>daemonset.apps/node-agent configured
+...
+daemon set "node-agent" successfully rolled out
+NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+node-agent   3         3         3       3            3           &lt;none&gt;          40s
+POD                NODE
+node-agent-5dk2p   lab-control-plane
+node-agent-8wqvr   lab-worker
+node-agent-lx7cj   lab-worker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>There's no <code>replicas</code> field. The number of Pods = the number of eligible nodes. Add a node, get a Pod — you saw that for kindnet in Step 3.</li><li>DESIRED was <b>2</b> on a 3-node cluster: the control plane has the taint <code>node-role.kubernetes.io/control-plane:NoSchedule</code>, and our Pod didn't tolerate it (Quiz Q6).</li><li>Log collectors and node exporters usually <b>do</b> need every node, so they carry that toleration. Your apps usually shouldn't.</li><li><code>trap … TERM</code> in the script: a shell running as PID 1 ignores SIGTERM unless it handles it, so every Pod would wait the full 30 s grace period on every update. With the trap it exits at once.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">DESIRED <b>3</b>, one Pod on each node including lab-control-plane.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Choose nodes with labels</h2><div class="tags"><span>Slides 23, 41</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Limit the agent to labelled nodes, then add and remove a label and watch Pods follow.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label node lab-worker2 monitoring=enabled
+kubectl patch daemonset node-agent -p '{"spec":{"template":{"spec":{"nodeSelector":{"monitoring":"enabled"}}}}}'
+kubectl rollout status daemonset/node-agent --timeout=90s
+kubectl get daemonset node-agent</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker2 labeled
+daemonset.apps/node-agent patched
+daemon set "node-agent" successfully rolled out
+NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR        AGE
+node-agent   1         1         1       1            1           monitoring=enabled   90s</pre></div><div class="code"><div class="code-bar"><span>Label a node, then unlabel it</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label node lab-worker monitoring=enabled
+sleep 5
+kubectl get pods -l app=node-agent -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName
+kubectl label node lab-worker monitoring-
+sleep 5
+kubectl get pods -l app=node-agent -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-worker labeled
+POD                NODE
+node-agent-2msq7   lab-worker
+node-agent-tmch5   lab-worker2
+node/lab-worker unlabeled
+POD                NODE
+node-agent-tmch5   lab-worker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>nodeSelector</code> narrows "every node" to "every node with this label".</li><li>The DaemonSet reacts to label changes by itself: a new matching node gets a Pod, a node that stops matching loses it.</li><li>Use labels that describe <b>intent</b> — <code>monitoring=enabled</code>, <code>disk=ssd</code>, <code>gpu=true</code> — not hostnames. Hostnames change when nodes are replaced.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The Pod appeared on lab-worker and disappeared again when the label was removed.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>Update and roll back a DaemonSet</h2><div class="tags"><span>Slide 25</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Change the agent's settings, watch the node-by-node rollout, then undo it.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>All three nodes, then a new setting</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label node lab-control-plane lab-worker monitoring=enabled
+kubectl rollout status daemonset/node-agent --timeout=90s &gt;/dev/null
+kubectl set env daemonset/node-agent INTERVAL=10
+kubectl rollout status daemonset/node-agent --timeout=120s
+kubectl rollout history daemonset/node-agent
+sleep 12; kubectl logs daemonset/node-agent --tail=2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>node/lab-control-plane labeled
+node/lab-worker labeled
+daemonset.apps/node-agent env updated
+Waiting for daemon set "node-agent" rollout to finish: 1 out of 3 new pods have been updated...
+Waiting for daemon set "node-agent" rollout to finish: 2 out of 3 new pods have been updated...
+...
+daemon set "node-agent" successfully rolled out
+daemonset.apps/node-agent 
+REVISION  CHANGE-CAUSE
+1         &lt;none&gt;
+2         &lt;none&gt;
+3         &lt;none&gt;
+4         &lt;none&gt;
+Found 3 pods, using pod/node-agent-9xk2d
+05:52:10 agent on lab-worker (interval 10s)
+05:52:20 agent on lab-worker (interval 10s)</pre></div><div class="code"><div class="code-bar"><span>Undo</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl rollout undo daemonset/node-agent
+kubectl rollout status daemonset/node-agent --timeout=120s | tail -1
+kubectl get daemonset node-agent -o jsonpath='{.spec.template.spec.containers[0].env[1]}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Warning: resource daemonsets/node-agent was previously managed with 'kubectl apply'. Rolling back will not update the kubectl.kubernetes.io/last-applied-configuration annotation, ...
+daemonset.apps/node-agent rolled back
+daemon set "node-agent" successfully rolled out
+{"name":"INTERVAL","value":"30"}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Any change to the Pod <b>template</b> starts a rollout. With <code>RollingUpdate</code> and <code>maxUnavailable: 1</code>, one node at a time loses its agent for a moment.</li><li><code>rollout status</code>, <code>history</code> and <code>undo</code> work exactly like for Deployments (Module 4).</li><li>Labelling a node is not a template change, so it didn't create a revision. The patch in Step 10, the toleration and the env change did.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Logs showed <b>interval 10s</b>, and after the undo INTERVAL is <b>30</b> again.</div></div></section><div class="part-head" id="part-D"><b>Part D — Jobs</b><span>Steps 12–15 · slides 26–31, 42 · ~20 min</span></div><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>A Job that runs once</h2><div class="tags"><span>Slides 26–28</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Run a task to completion, read its output, and let Kubernetes clean it up later.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: job.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello-job
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: hello
+          image: busybox:1.37
+          command: ["sh", "-c", "echo Hello from a Kubernetes Job; date"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f job.yaml
+kubectl wait --for=condition=Complete job/hello-job --timeout=60s
+kubectl get job hello-job
+kubectl get pods -l job-name=hello-job
+kubectl logs job/hello-job</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/hello-job created
+job.batch/hello-job condition met
+NAME        STATUS     COMPLETIONS   DURATION   AGE
+hello-job   Complete   1/1           3s         4s
+NAME              READY   STATUS      RESTARTS   AGE
+hello-job-5krrn   0/1     Completed   0          4s
+Hello from a Kubernetes Job
+Tue Sep 29 05:49:33 UTC 2026</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A Deployment keeps Pods running forever. A <b>Job</b> runs a Pod until it <b>succeeds</b> (exit code 0), then stops.</li><li><code>restartPolicy</code> must be <code>Never</code> or <code>OnFailure</code> — <code>Always</code> would make no sense for a task that finishes.</li><li>The Pod stays in <b>Completed</b> so you can read its logs. <code>ttlSecondsAfterFinished: 600</code> deletes the Job and its Pod 10 minutes after it finishes — otherwise finished Jobs pile up forever.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">STATUS <b>Complete</b>, COMPLETIONS <b>1/1</b>, and the log line.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Retries and BackoffLimitExceeded</h2><div class="tags"><span>Slide 29</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Watch a failing Job retry with growing delays, then give up.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: job-fail.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job-fail.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fail-job
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: task
+          image: busybox:1.37
+          command: ["sh", "-c", "echo 'cannot reach the database'; exit 1"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Takes about 35 seconds</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f job-fail.yaml
+kubectl wait --for=condition=Failed job/fail-job --timeout=180s
+kubectl get job fail-job
+kubectl get pods -l job-name=fail-job
+kubectl logs job/fail-job
+kubectl describe job fail-job | sed -n '/^Events:/,$p'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/fail-job created
+job.batch/fail-job condition met
+NAME       STATUS   COMPLETIONS   DURATION   AGE
+fail-job   Failed   0/1           34s        34s
+NAME             READY   STATUS   RESTARTS   AGE
+fail-job-bc99s   0/1     Error    0          23s
+fail-job-hpckq   0/1     Error    0          3s
+fail-job-rtg96   0/1     Error    0          34s
+Found 3 pods, using pod/fail-job-bc99s
+cannot reach the database
+Events:
+  Type     Reason                Age   From            Message
+  ----     ------                ----  ----            -------
+  Normal   SuccessfulCreate      34s   job-controller  Created pod: fail-job-rtg96
+  Normal   SuccessfulCreate      23s   job-controller  Created pod: fail-job-bc99s
+  Normal   SuccessfulCreate      3s    job-controller  Created pod: fail-job-hpckq
+  Warning  BackoffLimitExceeded  0s    job-controller  Job has reached the specified backoff limit</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>backoffLimit: 2</code> = up to 2 retries after the first try, so <b>3 Pods</b> in total.</li><li>Look at the ages: the retries waited about 10 s, then 20 s. The delay doubles each time (up to 6 minutes), so a broken Job doesn't hammer your database.</li><li>With <code>restartPolicy: Never</code> each retry is a new Pod — you can read the logs of every attempt. With <code>OnFailure</code> the same Pod restarts its container instead.</li><li>After the last failure the Job is <b>Failed</b> for good. Something has to change before you run it again.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">STATUS <b>Failed</b>, three Pods in <b>Error</b>, and the <b>BackoffLimitExceeded</b> event.</div></div></section><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>podFailurePolicy: stop retrying bugs</h2><div class="tags"><span>Slides 42, 44 · Quiz Q7</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Tell the Job which failures are worth retrying and which aren't.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: job-policy.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job-policy.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: policy-job
+spec:
+  backoffLimit: 6
+  podFailurePolicy:
+    rules:
+      - action: FailJob          # a bug in our code: retrying won't help
+        onExitCodes:
+          containerName: task
+          operator: In
+          values: [42]
+      - action: Ignore           # node drained / Pod evicted: retry for free
+        onPodConditions:
+          - type: DisruptionTarget
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: task
+          image: busybox:1.37
+          command: ["sh", "-c", "echo 'invalid input file'; exit 42"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f job-policy.yaml
+kubectl wait --for=condition=Failed job/policy-job --timeout=60s
+kubectl get pods -l job-name=policy-job
+kubectl get job policy-job -o jsonpath='{range .status.conditions[*]}{.type}: {.message}{"\n"}{end}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/policy-job created
+job.batch/policy-job condition met
+NAME               READY   STATUS   RESTARTS   AGE
+policy-job-q48sq   0/1     Error    0          3s
+FailureTarget: Container task for pod default/policy-job-q48sq failed with exit code 42 matching FailJob rule at index 0
+Failed: Container task for pod default/policy-job-q48sq failed with exit code 42 matching FailJob rule at index 0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>backoffLimit: 6</code> would normally mean up to 7 tries over several minutes. The policy stopped it after <b>one Pod in 3 seconds</b> (Quiz Q7).</li><li>Rule 1: exit code 42 is how <i>our</i> program says "bad input" — retrying can't fix that, so <b>FailJob</b>.</li><li>Rule 2: a <code>DisruptionTarget</code> condition means the Pod was evicted — for example by a node drain. That's not the task's fault, so <b>Ignore</b>: retry without counting it against the backoff limit.</li><li>Agree on exit codes with your developers. It turns a vague "it failed 7 times" into a precise, fast signal.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">One Pod, and the <b>FailJob rule</b> message in the conditions.</div></div></section><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Parallel and Indexed Jobs</h2><div class="tags"><span>Slides 30–31, 42</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Split work into 5 numbered pieces and run 2 at a time.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: job-indexed.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; job-indexed.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexed-job
+spec:
+  completions: 5
+  parallelism: 2
+  completionMode: Indexed
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: busybox:1.37
+          command: ["sh", "-c", "echo \"processing shard $JOB_COMPLETION_INDEX of 5\"; sleep 3"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f job-indexed.yaml
+sleep 2
+kubectl get pods -l job-name=indexed-job
+kubectl wait --for=condition=Complete job/indexed-job --timeout=120s
+kubectl get job indexed-job
+for i in 0 1 2 3 4; do kubectl logs -l job-name=indexed-job,batch.kubernetes.io/job-completion-index=$i; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/indexed-job created
+NAME                  READY   STATUS    RESTARTS   AGE
+indexed-job-0-w4ktr   1/1     Running   0          2s
+indexed-job-1-l5z72   1/1     Running   0          2s
+job.batch/indexed-job condition met
+NAME          STATUS     COMPLETIONS   DURATION   AGE
+indexed-job   Complete   5/5           19s        19s
+processing shard 0 of 5
+processing shard 1 of 5
+processing shard 2 of 5
+processing shard 3 of 5
+processing shard 4 of 5</pre></div><div class="code"><div class="code-bar"><span>Clean up the Jobs — their Pods go too</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete job hello-job fail-job policy-job indexed-job</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch "hello-job" deleted from default namespace
+job.batch "fail-job" deleted from default namespace
+job.batch "policy-job" deleted from default namespace
+job.batch "indexed-job" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>completions: 5</code> = 5 successful Pods needed. <code>parallelism: 2</code> = at most 2 at the same time.</li><li><code>completionMode: Indexed</code> gives each Pod a number in <code>JOB_COMPLETION_INDEX</code> (0–4) — and in its name. Each Pod knows which shard, file or date range is its own.</li><li>Indexed Jobs also support <code>backoffLimitPerIndex</code> (retry each piece separately) and <code>successPolicy</code> ("done when index 0 succeeds"). Both are stable in v1.37.</li><li>Deleting a Job deletes its Pods. Keep finished Jobs only as long as you need their logs — or let <code>ttlSecondsAfterFinished</code> do it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">COMPLETIONS <b>5/5</b> and five different shard numbers.</div></div></section><div class="part-head" id="part-E"><b>Part E — CronJobs</b><span>Step 16 · slides 32–36, 43 · ~10 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>A production-ready CronJob</h2><div class="tags"><span>Slides 32–36, 43 · Quiz Q8, Q9</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Schedule a report every minute with the settings real teams use, trigger it by hand, and pause it.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: cronjob.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; cronjob.yaml &lt;&lt;'EOF'
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: report
+spec:
+  schedule: "*/1 * * * *"          # every minute (training only)
+  timeZone: "Etc/UTC"
+  concurrencyPolicy: Forbid         # never run two reports at once
+  startingDeadlineSeconds: 30       # skip a run that is more than 30 s late
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 120    # kill a run that takes longer than 2 min
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: report
+              image: busybox:1.37
+              command: ["sh", "-c", "echo \"report generated at $(date -u +%H:%M:%S)\""]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply, then run it right now</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f cronjob.yaml
+kubectl get cronjob report
+kubectl create job report-manual --from=cronjob/report
+kubectl wait --for=condition=Complete job/report-manual --timeout=60s
+kubectl logs job/report-manual</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>cronjob.batch/report created
+NAME     SCHEDULE      TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+report   */1 * * * *   Etc/UTC    False     0        &lt;none&gt;          0s
+job.batch/report-manual created
+job.batch/report-manual condition met
+report generated at 05:50:55</pre></div><div class="code"><div class="code-bar"><span>Wait for the first scheduled run (up to 1 minute)</span><button class="copy" type="button">Copy</button></div><pre><code>until kubectl get jobs -o name | grep -q 'job.batch/report-[0-9]'; do sleep 5; done
+kubectl wait --for=condition=Complete $(kubectl get jobs -o name | grep 'report-[0-9]' | head -1) --timeout=60s
+kubectl get cronjob report
+kubectl get jobs</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>job.batch/report-29844351 condition met
+NAME     SCHEDULE      TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+report   */1 * * * *   Etc/UTC    False     0        8s              52s
+NAME              STATUS     COMPLETIONS   DURATION   AGE
+report-29844351   Complete   1/1           3s         8s
+report-manual     Complete   1/1           3s         50s</pre></div><div class="code"><div class="code-bar"><span>Pause it</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch cronjob report -p '{"spec":{"suspend":true}}'
+kubectl get cronjob report</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>cronjob.batch/report patched
+NAME     SCHEDULE      TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+report   */1 * * * *   Etc/UTC    True      0        30s             74s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A CronJob creates a <b>Job</b> at each scheduled time; the Job creates the Pod. The Job name ends with the scheduled minute (Unix time ÷ 60).</li><li><code>timeZone</code>: without it, the schedule uses the kube-controller-manager's zone — usually UTC. For "09:00 in Berlin" set <code>Europe/Berlin</code> (Quiz Q8).</li><li><code>concurrencyPolicy: Forbid</code>: if the last run is still going, skip this one. The default <code>Allow</code> can stack up overlapping runs of a slow backup (Quiz Q9).</li><li><code>startingDeadlineSeconds</code> skips a run that couldn't start on time. <code>activeDeadlineSeconds</code> kills a run that hangs. The history limits keep the job list short.</li><li><code>kubectl create job --from=cronjob/…</code> is how you test a CronJob — or re-run a failed night — without waiting for the schedule. <code>suspend: true</code> pauses it without deleting it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><b>report-manual</b> and one scheduled <b>report-2984…</b> Job completed, and SUSPEND is <b>True</b>.</div></div></section><div class="part-head" id="part-F"><b>Part F — Autoscaling and surge updates</b><span>Steps 17–18 · slides 45–48 · ~25 min</span></div><section class="step" id="step-17"><div class="step-top"><div class="step-num">17</div><div><h2>HorizontalPodAutoscaler: scale Pods on CPU</h2><div class="tags"><span>Slides 45–47</span><span>~15 min</span></div></div></div><p class="goal"><b>Goal:</b> Install metrics-server, let an HPA grow a Deployment from 1 to 5 Pods under load, watch it shrink again — and see the most common reason an HPA does nothing.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Install metrics-server (about 30 seconds)</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl patch deployment metrics-server -n kube-system --type=json \
+  -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+kubectl -n kube-system rollout status deployment/metrics-server --timeout=180s
+until kubectl top nodes &gt;/dev/null 2&gt;&amp;1; do sleep 5; done
+kubectl top nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>serviceaccount/metrics-server created
+...
+deployment.apps/metrics-server created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+deployment.apps/metrics-server patched
+Waiting for deployment "metrics-server" rollout to finish: 1 old replicas are pending termination...
+deployment "metrics-server" successfully rolled out
+NAME                CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+lab-control-plane   308m         7%       856Mi           5%
+lab-worker          114m         2%       299Mi           1%
+lab-worker2         226m         5%       304Mi           1%</pre></div><div class="callout"><b>Note:</b> <code>--kubelet-insecure-tls</code> is needed on kind only: the kubelets use self-signed certificates. Never use it on a real cluster — managed clusters (EKS, GKE, AKS) ship metrics-server already set up.</div><div class="code"><div class="code-bar"><span>Creates: hpa-web.yaml — Deployment + Service + HPA</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; hpa-web.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hpa-web
+  template:
+    metadata:
+      labels:
+        app: hpa-web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpa-web
+spec:
+  selector:
+    app: hpa-web
+  ports:
+    - port: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hpa-web
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 30
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply, then wait for the first CPU reading</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f hpa-web.yaml
+kubectl rollout status deployment/hpa-web --timeout=90s
+until kubectl get hpa hpa-web -o jsonpath='{.status.currentMetrics[0].resource.current.averageUtilization}' | grep -q .; do sleep 5; done
+kubectl get hpa hpa-web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/hpa-web created
+service/hpa-web created
+horizontalpodautoscaler.autoscaling/hpa-web created
+Waiting for deployment "hpa-web" rollout to finish: 0 of 1 updated replicas are available...
+deployment "hpa-web" successfully rolled out
+NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+hpa-web   Deployment/hpa-web   cpu: 0%/50%   1         5         1          33s</pre></div><div class="code"><div class="code-bar"><span>Send traffic — 8 loops of wget — and wait (about 1 minute)</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl run load --image=busybox:1.37 --restart=Never -- \
+  sh -c 'for i in 1 2 3 4 5 6 7 8; do (while true; do wget -q -O /dev/null http://hpa-web; done) &amp; done; wait'
+until [ "$(kubectl get hpa hpa-web -o jsonpath='{.status.currentReplicas}')" -ge 3 ]; do sleep 10; done
+kubectl get hpa hpa-web
+kubectl get pods -l app=hpa-web
+kubectl describe hpa hpa-web | grep 'New size'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/load created
+NAME      REFERENCE            TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+hpa-web   Deployment/hpa-web   cpu: 500%/50%   1         5         5          94s
+NAME                       READY   STATUS    RESTARTS   AGE
+hpa-web-67bbb6d448-942pw   1/1     Running   0          18s
+hpa-web-67bbb6d448-g9ktr   1/1     Running   0          94s
+hpa-web-67bbb6d448-l7vtb   1/1     Running   0          18s
+hpa-web-67bbb6d448-z4h44   1/1     Running   0          18s
+hpa-web-67bbb6d448-zs2g8   1/1     Running   0          18s
+  Normal   SuccessfulRescale   19s   horizontal-pod-autoscaler  New size: 5; reason: cpu resource utilization (percentage of request) above target</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The HPA compares <b>average CPU use</b> with the Pods' <b>CPU request</b> (20m). 500% means each Pod used about 100m — its limit.</li><li>The formula is <code>desired = ceil(current × actual / target)</code> = ceil(1 × 500 / 50) = 10, capped by <code>maxReplicas: 5</code>. Scale-up is fast by default.</li><li>The HPA only changes <code>spec.replicas</code> on the Deployment. The Deployment and ReplicaSet do the rest — the same controllers you met in Module 4.</li></ul></div><div class="code"><div class="code-bar"><span>Stop the traffic and wait (about 1–2 minutes)</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete pod load --now
+until [ "$(kubectl get hpa hpa-web -o jsonpath='{.status.currentReplicas}')" -eq 1 ]; do sleep 10; done
+kubectl get hpa hpa-web
+kubectl describe hpa hpa-web | grep 'New size'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "load" deleted from default namespace
+NAME      REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+hpa-web   Deployment/hpa-web   cpu: 0%/50%   1         5         1          3m4s
+  Normal   SuccessfulRescale   108s   horizontal-pod-autoscaler  New size: 5; reason: cpu resource utilization (percentage of request) above target
+  Normal   SuccessfulRescale   18s    horizontal-pod-autoscaler  New size: 1; reason: All metrics below target</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Scale-down waits for the <b>stabilization window</b>. The default is 5 minutes, so a short dip doesn't kill Pods you'll need again. We set it to 30 seconds in <code>behavior.scaleDown</code> so the lab doesn't wait.</li></ul></div><div class="code"><div class="code-bar"><span>The classic mistake: no CPU request</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create deployment noreq --image=nginx:1.28-alpine
+kubectl autoscale deployment noreq --cpu=50% --max=3
+sleep 30
+kubectl get hpa noreq
+kubectl describe hpa noreq | grep -m1 'missing request'
+kubectl delete hpa noreq
+kubectl delete deployment noreq</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/noreq created
+horizontalpodautoscaler.autoscaling/noreq autoscaled
+NAME    REFERENCE          TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+noreq   Deployment/noreq   cpu: &lt;unknown&gt;/50%   1         3         1          30s
+  ScalingActive  False   FailedGetResourceMetric  the HPA was unable to compute the replica count: failed to get cpu utilization: missing request for cpu in container nginx of Pod noreq-68c55786db-5pl8s
+horizontalpodautoscaler.autoscaling "noreq" deleted from default namespace
+deployment.apps "noreq" deleted from default namespace</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Utilization is a percentage <b>of the request</b>. No request → nothing to divide by → <code>&lt;unknown&gt;</code>, and the HPA never scales.</li><li><code>kubectl autoscale … --cpu=50%</code> is the quick imperative form. In Git, keep the <code>autoscaling/v2</code> YAML.</li><li>The HPA adds <b>Pods</b>, not nodes. When new Pods stay <code>Pending</code> because the nodes are full, a node autoscaler — Cluster Autoscaler or Karpenter — adds nodes (slide 47). kind can't create machines, so we only discuss it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>hpa-web</code> went to <b>5</b> replicas under load and back to <b>1</b>, and <code>noreq</code> showed <code>&lt;unknown&gt;</code>.</div></div></section><section class="step" id="step-18"><div class="step-top"><div class="step-num">18</div><div><h2>DaemonSet maxSurge: update without a gap</h2><div class="tags"><span>Slides 25, 48</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Switch the node agent to surge updates, so each node gets the new Pod before the old one stops.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Change the update strategy</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl patch daemonset node-agent -p '{"spec":{"minReadySeconds":5,"updateStrategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'
+kubectl get daemonset node-agent -o jsonpath='{.spec.updateStrategy}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>daemonset.apps/node-agent patched
+{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"}</pre></div><div class="code"><div class="code-bar"><span>Roll out a change and look after 3 seconds</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl set env daemonset/node-agent INTERVAL=15
+sleep 3
+kubectl get pods -l app=node-agent -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName --sort-by=.spec.nodeName
+kubectl rollout status daemonset/node-agent --timeout=120s</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>daemonset.apps/node-agent env updated
+POD                NODE
+node-agent-zlsb9   lab-control-plane
+node-agent-pcdq8   lab-worker
+node-agent-5d968   lab-worker2
+node-agent-d88wn   lab-worker2
+Waiting for daemon set "node-agent" rollout to finish: 0 out of 3 new pods have been updated...
+Waiting for daemon set "node-agent" rollout to finish: 1 out of 3 new pods have been updated...
+Waiting for daemon set "node-agent" rollout to finish: 2 out of 3 new pods have been updated...
+daemon set "node-agent" successfully rolled out</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Four Pods on three nodes: one node briefly runs the <b>old and the new</b> agent side by side. With <code>maxUnavailable: 0</code>, no node is ever without its agent.</li><li><code>minReadySeconds: 5</code> makes each new Pod prove itself for 5 seconds before the old one is stopped — and makes the overlap easy to see.</li><li>Compare Step 11: with <code>maxUnavailable: 1</code> each node had a short gap with <b>no</b> agent. For log shippers and security agents, surge avoids losing data.</li><li>Surge doesn't work if the Pod uses a <code>hostPort</code> — two Pods on one node can't take the same port. Those agents must stay with <code>maxUnavailable</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You saw <b>two</b> node-agent Pods on one node during the rollout, and the rollout finished.</div></div></section><div class="part-head" id="part-G"><b>Part G — Clean up</b><span>Step 19 · ~3 min</span></div><section class="step" id="step-19"><div class="step-top"><div class="step-num">19</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete everything this module created. Keep the 3-node cluster for Module 6.</p><div class="folder">Run from: <code>module5-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete cronjob report
+kubectl delete job report-manual --ignore-not-found
+kubectl delete -f hpa-web.yaml -f daemonset-all.yaml -f web-pdb.yaml -f web.yaml -f pinned-pod.yaml
+kubectl label node lab-control-plane lab-worker lab-worker2 monitoring-
+kubectl wait --for=delete pod -l 'app in (web,node-agent,hpa-web)' --timeout=90s &gt;/dev/null 2&gt;&amp;1
+kubectl get all
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>cronjob.batch "report" deleted from default namespace
+job.batch "report-manual" deleted from default namespace
+deployment.apps "hpa-web" deleted from default namespace
+service "hpa-web" deleted from default namespace
+horizontalpodautoscaler.autoscaling "hpa-web" deleted from default namespace
+daemonset.apps "node-agent" deleted from default namespace
+poddisruptionbudget.policy "web-pdb" deleted from default namespace
+deployment.apps "web" deleted from default namespace
+pod "pinned" deleted from default namespace
+node/lab-control-plane unlabeled
+node/lab-worker unlabeled
+node/lab-worker2 unlabeled
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   3h
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   3h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          3h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          3h    v1.37.0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Deleting the CronJob also deletes the Jobs it created. <code>report-manual</code> was made by hand, so we delete it separately.</li><li>metrics-server stays installed — later modules use <code>kubectl top</code>.</li><li>Module 6 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get all</code> shows only <code>service/kubernetes</code>, and all nodes are schedulable.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>kubeadm join</code> hangs with <code>could not find a JWS signature in the cluster-info ConfigMap for token ID</code></dt><dd>The token is wrong or expired. Print a fresh command: <code>docker exec lab-control-plane kubeadm token create --print-join-command</code> (Step 2).</dd><dt><code>lab-worker3</code> never becomes Ready, or join waits 4 minutes for a healthy kubelet</dt><dd>Check the kubelet on the new node: <code>docker exec lab-worker3 journalctl -u kubelet --no-pager | tail</code>. Make sure you used <code>--cgroupns=private</code> and the same image as the other nodes. Remove it with <code>docker rm -f -v lab-worker3</code> and <code>kubectl delete node lab-worker3</code>, then retry Step 3.</dd><dt>Pods on <code>lab-worker3</code> stay in <code>ImagePullBackOff</code></dt><dd>The new node pulls images itself. If your network blocks Docker Hub, copy them in with the pre-load commands at the top of this page.</dd><dt><code>docker run</code> fails with <code>network kind not found</code></dt><dd>Your cluster uses kind's default Docker network, called <code>kind</code>. Check with <code>docker network ls</code>. If it was created differently, use that network name.</dd><dt><code>kubectl drain</code> keeps printing <code>Cannot evict pod as it would violate the pod's disruption budget</code></dt><dd>A PodDisruptionBudget allows 0 disruptions. Check <code>kubectl get pdb -A</code>, then relax the budget or add replicas (Step 6). Press Ctrl+C to stop the drain.</dd><dt>A node stays <code>Ready,SchedulingDisabled</code></dt><dd>It was cordoned (or drained) and never uncordoned: <code>kubectl uncordon &lt;node&gt;</code>.</dd><dt>DaemonSet DESIRED is lower than the number of nodes</dt><dd>Some nodes have taints the Pod doesn't tolerate (the control plane), or don't match its <code>nodeSelector</code>. Compare <code>kubectl describe node</code> with the DaemonSet spec (Steps 9–10).</dd><dt>A Job never finishes and its Pod shows <code>CrashLoopBackOff</code></dt><dd>The Pod uses <code>restartPolicy: OnFailure</code>. Read <code>kubectl logs job/&lt;name&gt;</code>; the Job fails when <code>backoffLimit</code> is reached.</dd><dt>A CronJob runs at the wrong hour</dt><dd>Set <code>spec.timeZone</code> (for example <code>Europe/Berlin</code>). Without it, the controller's time zone — usually UTC — is used.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 5 — Cluster Scaling, Node Maintenance, DaemonSets, Jobs &amp; CronJobs · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
