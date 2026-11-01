@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 10 Lab — Ingress, NetworkPolicy, Helm & Gateway API</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 10 · Hands-on lab</div>
+  <h1>Ingress, NetworkPolicy, Helm &amp; Gateway API — Step-by-Step Lab</h1>
+  <p>Expose two apps through one Ingress with path, host and TLS routing; lock a namespace down with NetworkPolicy until only one path is open; package, upgrade and roll back an app with Helm 4 and build your own chart; then finish the course with Gateway API — traffic splitting, role separation and a Helm app on a shared Gateway. Sixteen steps, in order.</p>
+  <div class="meta"><span>16 steps · about 1 h 45 min</span><span>Kubernetes v1.37 · kind</span><span>cloud-provider-kind · Helm 4 · Gateway API v1.5</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Ingress</div><a href="#step-1"><span class="n">1</span>Start: the cluster, the lab folder and an Ingress controller</a><a href="#step-2"><span class="n">2</span>Two apps behind two Services</a><a href="#step-3"><span class="n">3</span>Ingress: one entry point, path-based routing</a><a href="#step-4"><span class="n">4</span>Host-based routing</a><a href="#step-5"><span class="n">5</span>TLS termination at the Ingress</a><div class="grp">Part B · NetworkPolicy</div><a href="#step-6"><span class="n">6</span>The Pod network is open by default</a><a href="#step-7"><span class="n">7</span>Allow only frontend → backend</a><a href="#step-8"><span class="n">8</span>Default deny, the DNS trap, and egress</a><div class="grp">Part C · Helm 4</div><a href="#step-9"><span class="n">9</span>Helm 4: install the CLI, add a repo, look before you install</a><a href="#step-10"><span class="n">10</span>Install a release</a><a href="#step-11"><span class="n">11</span>Values, upgrade — and the --set trap</a><a href="#step-12"><span class="n">12</span>History and rollback</a><a href="#step-13"><span class="n">13</span>Your own chart: helm create</a><div class="grp">Part D · 2026</div><a href="#step-14"><span class="n">14</span>Gateway API: Gateway + HTTPRoute</a><a href="#step-15"><span class="n">15</span>Capstone: who may attach, and a Helm app on the Gateway</a><div class="grp">Part E · Clean up</div><a href="#step-16"><span class="n">16</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Ingress: one front door for many Services</div><div class="psub">Steps 1–5 · slides 3–11, 33–34 · ~30 min</div><div class="chips"><a href="#step-1">1. Start: the cluster, the lab folder and an Ingress controller</a><a href="#step-2">2. Two apps behind two Services</a><a href="#step-3">3. Ingress: one entry point, path-based routing</a><a href="#step-4">4. Host-based routing</a><a href="#step-5">5. TLS termination at the Ingress</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">NetworkPolicy: from open to allow-list</div><div class="psub">Steps 6–8 · slides 12–17, 35–36 · ~25 min</div><div class="chips"><a href="#step-6">6. The Pod network is open by default</a><a href="#step-7">7. Allow only frontend → backend</a><a href="#step-8">8. Default deny, the DNS trap, and egress</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">Helm 4: package, upgrade, roll back</div><div class="psub">Steps 9–13 · slides 18–28, 37–38 · ~35 min</div><div class="chips"><a href="#step-9">9. Helm 4: install the CLI, add a repo, look before you install</a><a href="#step-10">10. Install a release</a><a href="#step-11">11. Values, upgrade — and the --set trap</a><a href="#step-12">12. History and rollback</a><a href="#step-13">13. Your own chart: helm create</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">2026: Gateway API and the capstone</div><div class="psub">Steps 14–15 · slides 29–32, 39 · ~20 min</div><div class="chips"><a href="#step-14">14. Gateway API: Gateway + HTTPRoute</a><a href="#step-15">15. Capstone: who may attach, and a Helm app on the Gateway</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">Clean up</div><div class="psub">Step 16 · ~5 min</div><div class="chips"><a href="#step-16">16. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 2–9 first.</b> This lab uses the 3-node kind cluster (<code>kind-lab</code>) and <b>cloud-provider-kind</b> from Module 4, Step 16.</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows — with <code>openssl</code>. You'll need <b>two</b> terminals: one keeps cloud-provider-kind running.</li><li><b>Helm 4</b> is installed in Step 9.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. IPs, Pod names, ages and dates will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code>PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+for img in nginx:1.29-alpine busybox:1.37 ghcr.io/stefanprodan/podinfo:6.15.0; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+rm -f image.tar
+docker pull envoyproxy/envoy:v1.33.2   # used by cloud-provider-kind for Ingress and Gateways</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Ingress: one front door for many Services</b><span>Steps 1–5 · slides 3–11, 33–34 · ~30 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start: the cluster, the lab folder and an Ingress controller</h2><div class="tags"><span>Slides 3–8, 32</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Check the cluster, start cloud-provider-kind, and confirm that an Ingress controller and a Gateway controller are ready.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code>mkdir module10-lab
+cd module10-lab
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   30h   v1.37.0
+lab-worker          Ready    &lt;none&gt;          30h   v1.37.0
+lab-worker2         Ready    &lt;none&gt;          30h   v1.37.0</pre></div><div class="code"><div class="code-bar"><span>In a SECOND terminal — leave it running (installed in Module 4, Step 16)</span><button class="copy" type="button">Copy</button></div><pre><code>cloud-provider-kind</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>I0930 10:50:12.702912    9371 controller.go:308] Waiting for gateway informer caches to sync
+...</pre></div><div class="code"><div class="code-bar"><span>Back in terminal 1 — who will handle Ingress and Gateway objects?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl get ingressclass
+kubectl get gatewayclass</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                  CONTROLLER                            PARAMETERS   AGE
+cloud-provider-kind   kind.sigs.k8s.io/ingress-controller   &lt;none&gt;       30h
+NAME                  CONTROLLER                            ACCEPTED   AGE
+cloud-provider-kind   kind.sigs.k8s.io/gateway-controller   True       30h</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>An <b>Ingress</b> object is only a set of routing rules. Something must read those rules and actually move traffic: the <b>Ingress controller</b>. Kubernetes doesn't ship one (slide 7).</li><li>Slide 8 enables the controller with <code>minikube addons enable ingress</code>. That's for minikube. On our kind cluster, <b>cloud-provider-kind</b> — the same tool that gave us LoadBalancer IPs in Module 4 — is also an Ingress <i>and</i> a Gateway API controller.</li><li>The <b>IngressClass</b> names a controller. Ours is <code>cloud-provider-kind</code>, marked as the cluster default. Every Ingress points at a class with <code>ingressClassName</code>.</li><li>Why not ingress-nginx, the one in most old tutorials? It was <b>retired on March 24, 2026</b>: no more releases, no more security fixes. New clusters pick a maintained controller — or Gateway API (Part D).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Both <code>ingressclass</code> and <code>gatewayclass</code> list <b>cloud-provider-kind</b>, and the GatewayClass says <b>ACCEPTED True</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Two apps behind two Services</h2><div class="tags"><span>Slides 3, 5, 33</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Deploy a web app and an api app. Each one answers with its own name, the Pod that served it, and the path it received.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: echo-config.yaml — a tiny nginx config that echoes the request</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; echo-config.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: echo-config
+data:
+  default.conf.template: |       # nginx fills ${APP_NAME} in at start-up
+    server {
+      listen 80;
+      location / {
+        default_type text/plain;
+        return 200 "${APP_NAME} | pod=$hostname | path=$request_uri\n";
+      }
+    }
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: web.yaml — Deployment + Service</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; web.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          env:
+            - name: APP_NAME            # the only line that differs between the two apps
+              value: web
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/templates
+      volumes:
+        - name: config
+          configMap:
+            name: echo-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: api.yaml — the same app, renamed</span><button class="copy" type="button">Copy</button></div><pre><code>sed 's/web/api/g' web.yaml &gt; api.yaml
+grep -E 'name:|value:' api.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>  name: api
+            - name: nginx
+            - name: APP_NAME            # the only line that differs between the two apps
+              value: api
+            - name: config
+        - name: config
+            name: echo-config
+  name: api-service</pre></div><div class="code"><div class="code-bar"><span>Deploy and test inside the cluster</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f echo-config.yaml -f web.yaml -f api.yaml
+kubectl rollout status deploy/web --timeout=90s
+kubectl rollout status deploy/api --timeout=90s
+sleep 2   # give kube-proxy a moment to program the new Services
+kubectl exec deploy/web -- curl -s api-service/hello
+kubectl exec deploy/api -- curl -s web-service/hello</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>configmap/echo-config created
+deployment.apps/web created
+service/web-service created
+deployment.apps/api created
+service/api-service created
+deployment "web" successfully rolled out
+deployment "api" successfully rolled out
+api | pod=api-6c7f8b9d4-2xkqp | path=/hello
+web | pod=web-5d8f7c6b9-7lmnq | path=/hello</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Two ClusterIP Services — <code>web-service</code> and <code>api-service</code>. They work <b>inside</b> the cluster only (slide 3). Users outside can't reach them yet.</li><li>The official nginx image fills environment variables into files from <code>/etc/nginx/templates</code> at start-up. One ConfigMap, two apps: only <code>APP_NAME</code> differs.</li><li>Each answer shows <b>which app</b>, <b>which Pod</b> and <b>which path</b> arrived. That makes every routing decision in this lab visible.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>api | pod=api-…</code> and <code>web | pod=web-…</code> — both apps answer.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Ingress: one entry point, path-based routing</h2><div class="tags"><span>Slides 4–7, 9–10, 33</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Send /api to the api app and everything else to the web app, through one IP.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: ingress.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; ingress.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-routing
+spec:
+  ingressClassName: cloud-provider-kind   # which controller should handle this
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply and wait for an address</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f ingress.yaml
+until kubectl get ingress web-routing -o jsonpath='{..ip}' | grep -q .; do sleep 2; done
+kubectl get ingress web-routing
+IP=$(kubectl get ingress web-routing -o jsonpath='{..ip}')
+echo "Ingress IP: $IP"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>ingress.networking.k8s.io/web-routing created
+NAME          CLASS                 HOSTS         ADDRESS      PORTS   AGE
+web-routing   cloud-provider-kind   example.com   172.19.0.5   80      12s
+Ingress IP: 172.19.0.5</pre></div><div class="code"><div class="code-bar"><span>Send requests through the Ingress</span><button class="copy" type="button">Copy</button></div><pre><code>kcurl() { docker exec lab-control-plane curl -s "$@"; }   # curl from inside kind's network
+for path in / /api /api/users /apix; do kcurl -H "Host: example.com" http://$IP$path; done
+kcurl -o /dev/null -w "other host -&gt; %{http_code}\n" -H "Host: other.com" http://$IP/</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>web | pod=web-5d8f7c6b9-7lmnq | path=/
+api | pod=api-6c7f8b9d4-2xkqp | path=/api
+api | pod=api-6c7f8b9d4-9zr4t | path=/api/users
+web | pod=web-5d8f7c6b9-v8w2c | path=/apix
+other host -&gt; 404</pre></div><div class="callout"><b>Note:</b> If you open a new terminal later, run the <code>kcurl() …</code> line and the <code>IP=…</code> line again.</div><div class="code"><div class="code-bar"><span>What did the controller build?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl describe ingress web-routing | sed -n '/Rules:/,/Annotations/p'
+kubectl get gateway,httproute</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Rules:
+  Host         Path  Backends
+  ----         ----  --------
+  example.com  
+               /api   api-service:80 (10.244.2.4:80,10.244.1.3:80)
+               /      web-service:80 (10.244.1.2:80,10.244.2.3:80)
+Annotations:   &lt;none&gt;
+NAME                                                     CLASS                 ADDRESS      PROGRAMMED   AGE
+gateway.gateway.networking.k8s.io/kind-ingress-gateway   cloud-provider-kind   172.19.0.5   True         2m
+NAME                                                        HOSTNAMES         AGE
+httproute.gateway.networking.k8s.io/web-routing-a379a6f6ee   ["example.com"]   12s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Ingress works at <b>Layer 7</b> (slide 6): it reads the HTTP <b>Host</b> header and the <b>path</b>, then picks a Service. The Service still picks the Pod (slide 5).</li><li><code>pathType: Prefix</code> matches whole path <b>segments</b>: <code>/api/users</code> → api, but <code>/apix</code> → web. It is not a plain string prefix.</li><li>The host is <code>example.com</code>. Any other Host gets <b>404</b> — no rule matched. That's why we send <code>-H "Host: …"</code>: we don't own example.com's DNS.</li><li>Slide 10 showed ADDRESS <code>192.0.2.20</code> and <code>CLASS nginx</code> — made-up values. Yours is a real IP from kind's Docker network.</li><li>Look at the last command: cloud-provider-kind turned your Ingress into a <b>Gateway</b> plus an <b>HTTPRoute</b>. Gateway API is where Ingress is heading — you'll write those yourself in Part D.</li><li>We call the IP from a kind node (<code>kcurl</code>) because Docker Desktop on macOS/Windows can't reach container IPs. On Linux, plain <code>curl</code> from your laptop works too.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>/api</code> and <code>/api/users</code> → <b>api</b>, <code>/</code> and <code>/apix</code> → <b>web</b>, other host → <b>404</b>.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Host-based routing</h2><div class="tags"><span>Slides 11, 33</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Route by hostname instead: web.local → web, api.local → api.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: ingress-hosts.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; ingress-hosts.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: host-routing
+spec:
+  ingressClassName: cloud-provider-kind
+  rules:
+    - host: web.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+    - host: api.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply and test</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f ingress-hosts.yaml
+sleep 5
+kubectl get ingress
+for h in web.local api.local; do kcurl -H "Host: $h" http://$IP/hello; done
+kcurl --resolve api.local:80:$IP http://api.local/orders</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>ingress.networking.k8s.io/host-routing created
+NAME           CLASS                 HOSTS                 ADDRESS      PORTS   AGE
+host-routing   cloud-provider-kind   web.local,api.local   172.19.0.5   80      5s
+web-routing    cloud-provider-kind   example.com           172.19.0.5   80      3m
+web | pod=web-5d8f7c6b9-7lmnq | path=/hello
+api | pod=api-6c7f8b9d4-2xkqp | path=/hello
+api | pod=api-6c7f8b9d4-9zr4t | path=/orders</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Same IP, same port 80 — the <b>Host</b> header decides. This is how one load balancer serves many websites.</li><li>Both Ingresses share one address: the controller merges them. In a real company, many teams each write their own Ingress for their own hostnames.</li><li><code>--resolve api.local:80:$IP</code> makes curl act as if DNS said <code>api.local = $IP</code>. In production, a DNS record points your hostnames at the Ingress IP.</li><li>Path or host? Use <b>path</b> when one site has parts (<code>/api</code>, <code>/shop</code>). Use <b>host</b> when each app has its own name (<code>api.company.com</code>).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>web.local</code> → <b>web</b>, <code>api.local</code> → <b>api</b>, on the same IP.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>TLS termination at the Ingress</h2><div class="tags"><span>Slides 4, 6, 34</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Serve https://example.com with a certificate, and let the Ingress decrypt traffic before it reaches the Pods.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>A self-signed certificate, stored as a TLS Secret, used by the Ingress</span><button class="copy" type="button">Copy</button></div><pre><code>openssl req -x509 -nodes -newkey rsa:2048 -days 30 \
+  -keyout tls.key -out tls.crt \
+  -subj "/CN=example.com" -addext "subjectAltName=DNS:example.com"
+kubectl create secret tls example-tls --cert=tls.crt --key=tls.key
+kubectl patch ingress web-routing --type=merge \
+  -p '{"spec":{"tls":[{"hosts":["example.com"],"secretName":"example-tls"}]}}'
+sleep 5
+kubectl get ingress web-routing</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret/example-tls created
+ingress.networking.k8s.io/web-routing patched
+NAME          CLASS                 HOSTS         ADDRESS      PORTS     AGE
+web-routing   cloud-provider-kind   example.com   172.19.0.5   80, 443   4m</pre></div><div class="code"><div class="code-bar"><span>HTTPS — first trusting our certificate, then without it</span><button class="copy" type="button">Copy</button></div><pre><code>docker exec -i lab-control-plane curl -s --cacert /dev/stdin \
+  --resolve example.com:443:$IP https://example.com/api &lt; tls.crt
+kcurl --resolve example.com:443:$IP https://example.com/api; echo "exit code: $?"</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>api | pod=api-6c7f8b9d4-2xkqp | path=/api
+exit code: 60</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>TLS termination</b>: the Ingress holds the certificate and decrypts HTTPS. Pods receive plain HTTP and never touch the private key.</li><li>The certificate and key live in a <b>Secret of type kubernetes.io/tls</b> (Module 6). The Ingress <code>tls:</code> block says which hosts use which Secret.</li><li>With <code>--cacert</code> we tell curl to trust our certificate → <b>200</b>. Without it, curl refuses (exit code <b>60</b>: certificate not trusted). That's exactly what browsers do with self-signed certificates.</li><li>In production, <b>cert-manager</b> gets free certificates from Let's Encrypt and renews them before they expire. The Ingress side stays the same: a <code>tls:</code> block and a Secret name.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">PORTS shows <b>80, 443</b>, the trusted HTTPS call returns <b>api</b>, and the untrusted one ends with <b>exit code 60</b>.</div></div></section><div class="part-head" id="part-B"><b>Part B — NetworkPolicy: from open to allow-list</b><span>Steps 6–8 · slides 12–17, 35–36 · ~25 min</span></div><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>The Pod network is open by default</h2><div class="tags"><span>Slides 12–13, 17, 35</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Build a backend, a frontend and a random test Pod — and see that anyone can talk to anyone.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Does our network plugin enforce NetworkPolicy?</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl -n kube-system logs ds/kindnet | grep -m1 kube-network-policies</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Found 3 pods, using pod/kindnet-2b649
+I0930 10:46:49.821040       1 controller.go:173] "Starting controller" name="kube-network-policies"</pre></div><div class="code"><div class="code-bar"><span>Creates: backend.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; backend.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: np-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.29-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: np-lab
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Three kinds of Pod</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create namespace np-lab
+kubectl apply -f backend.yaml
+kubectl run frontend -n np-lab --image=nginx:1.29-alpine -l app=frontend
+kubectl run test-pod -n np-lab --image=nginx:1.29-alpine -l app=test
+kubectl wait -n np-lab --for=condition=Ready pod --all --timeout=90s
+kubectl get pods -n np-lab -L app</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/np-lab created
+deployment.apps/backend created
+service/backend-service created
+pod/frontend created
+pod/test-pod created
+pod/backend-7cfcfd7d94-2d597 condition met
+pod/backend-7cfcfd7d94-qrgjs condition met
+pod/frontend condition met
+pod/test-pod condition met
+NAME                       READY   STATUS    RESTARTS   AGE   APP
+backend-7cfcfd7d94-2d597   1/1     Running   0          6s    backend
+backend-7cfcfd7d94-qrgjs   1/1     Running   0          6s    backend
+frontend                   1/1     Running   0          5s    frontend
+test-pod                   1/1     Running   0          5s    test</pre></div><div class="code"><div class="code-bar"><span>Who can reach the backend?</span><button class="copy" type="button">Copy</button></div><pre><code>for p in frontend test-pod; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>frontend -&gt; 200
+test-pod -&gt; 200</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>By default every Pod can connect to every other Pod, in every namespace. Easy to start with — and one hacked Pod can reach your database (slide 12).</li><li>A <b>NetworkPolicy</b> is an allow-list. But the API server only <b>stores</b> it. The <b>network plugin (CNI)</b> must enforce it (slide 17). If it doesn't, your policies silently do nothing.</li><li>kind's plugin, <b>kindnet</b>, has a built-in policy engine, <code>kube-network-policies</code> — the log line proves it's running. On EKS, GKE and AKS you turn on policy support (Calico, Cilium, or the cloud's own).</li><li>We use <code>nginx:1.29-alpine</code> for every Pod because it has <code>curl</code> inside.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The kindnet log mentions <b>kube-network-policies</b>, and both Pods get <b>200</b>.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Allow only frontend → backend</h2><div class="tags"><span>Slides 13–15, 35</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Protect the backend so that only Pods labelled app=frontend, in the same namespace, can reach it on port 80.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: allow-frontend-to-backend.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; allow-frontend-to-backend.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: np-lab
+spec:
+  podSelector:              # WHO is protected: the backend Pods
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:                 # WHO may connect: Pods labelled app=frontend (same namespace)
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:                # on WHICH port
+        - protocol: TCP
+          port: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply and test again</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f allow-frontend-to-backend.yaml
+sleep 3
+for p in frontend test-pod; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>networkpolicy.networking.k8s.io/allow-frontend-to-backend created
+frontend -&gt; 200
+test-pod -&gt; 000
+command terminated with exit code 28</pre></div><div class="callout"><b>Note:</b> Exit code <b>28</b> means curl gave up after 3 seconds: the packets were dropped. Some network plugins reject at once instead — then you see exit code <b>7</b>. Both mean <b>blocked</b>.</div><div class="code"><div class="code-bar"><span>Labels are identity: give test-pod the frontend label</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label pod test-pod -n np-lab app=frontend --overwrite
+sleep 3
+for p in test-pod; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done
+kubectl label pod test-pod -n np-lab app=test --overwrite</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/test-pod labeled
+test-pod -&gt; 200
+pod/test-pod labeled</pre></div><div class="code"><div class="code-bar"><span>Same label, different namespace</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create namespace other
+kubectl run frontend -n other --image=nginx:1.29-alpine -l app=frontend
+kubectl wait -n other --for=condition=Ready pod/frontend --timeout=60s
+kubectl exec -n other frontend -- curl -s -m 3 -o /dev/null -w "other/frontend -&gt; %{http_code}\n" backend-service.np-lab</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/other created
+pod/frontend created
+pod/frontend condition met
+other/frontend -&gt; 000
+command terminated with exit code 28</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Read the policy like a sentence (slide 15): <b>protect</b> Pods with <code>app=backend</code>, <b>allow</b> Pods with <code>app=frontend</code>, <b>on</b> TCP port 80. Anything else is dropped.</li><li>Once any policy selects a Pod for Ingress, that Pod is <b>isolated</b>: only traffic some policy allows gets in. Policies only add permissions — like RBAC, there's no "deny" rule.</li><li>Relabelling test-pod let it in. The network trusts <b>labels</b>, so who may set labels matters. That's one more reason to keep RBAC tight (Module 9).</li><li><code>podSelector</code> alone means "Pods in <b>this</b> namespace". The frontend in <code>other</code> has the right label but was blocked. To allow another namespace, add a <code>namespaceSelector</code> (Step 8 shows one).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">frontend <b>200</b>; test-pod <b>blocked</b> until relabelled; <code>other/frontend</code> <b>blocked</b>.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Default deny, the DNS trap, and egress</h2><div class="tags"><span>Slides 16–17, 36</span><span>~10 min</span></div></div></div><p class="goal"><b>Goal:</b> Lock the whole namespace down in both directions, see DNS break, and open only what the app needs.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: default-deny.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; default-deny.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: np-lab
+spec:
+  podSelector: {}           # empty = every Pod in the namespace
+  policyTypes:
+    - Ingress               # nothing may come in...
+    - Egress                # ...and nothing may go out, unless another policy allows it
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Deny everything — even the allowed frontend breaks</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f default-deny.yaml
+sleep 3
+for p in frontend; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done
+kubectl exec -n np-lab frontend -- nslookup -timeout=2 backend-service</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>networkpolicy.networking.k8s.io/default-deny-all created
+frontend -&gt; 000
+command terminated with exit code 28
+;; connection timed out; no servers could be reached
+
+command terminated with exit code 1</pre></div><div class="code"><div class="code-bar"><span>Creates: allow-dns.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; allow-dns.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: np-lab
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:          # in kube-system...
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:                # ...AND labelled k8s-app=kube-dns (one list item = AND)
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Allow DNS — names work again, but the call is still blocked</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f allow-dns.yaml
+sleep 3
+kubectl exec -n np-lab frontend -- getent hosts backend-service
+for p in frontend; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>networkpolicy.networking.k8s.io/allow-dns created
+10.96.44.47      backend-service.np-lab.svc.cluster.local  backend-service.np-lab.svc.cluster.local backend-service
+frontend -&gt; 000
+command terminated with exit code 28</pre></div><div class="code"><div class="code-bar"><span>Creates: frontend-egress.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; frontend-egress.yaml &lt;&lt;'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-egress
+  namespace: np-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Open the one path the app needs</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl apply -f frontend-egress.yaml
+sleep 3
+for p in frontend; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done
+for p in frontend; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" web-service.default; done
+for p in test-pod; do kubectl exec -n np-lab $p -- curl -s -m 3 -o /dev/null -w "$p -&gt; %{http_code}\n" backend-service; done
+kubectl get networkpolicy -n np-lab</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>networkpolicy.networking.k8s.io/frontend-egress created
+frontend -&gt; 200
+frontend -&gt; 000
+command terminated with exit code 28
+test-pod -&gt; 000
+command terminated with exit code 28
+NAME                        POD-SELECTOR   AGE
+allow-dns                   &lt;none&gt;         20s
+allow-frontend-to-backend   app=backend    2m
+default-deny-all            &lt;none&gt;         40s
+frontend-egress             app=frontend   3s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>podSelector: {}</code> with both policy types is the <b>default deny</b>: every Pod in the namespace is isolated both ways. Real security teams start here, then allow each path on purpose.</li><li>The DNS trap: after denying egress, the first thing to break is <b>name lookup</b>. The Pod can't ask CoreDNS where <code>backend-service</code> is. Always allow DNS (UDP and TCP 53) to <code>kube-dns</code> in <code>kube-system</code>.</li><li>In <code>allow-dns.yaml</code>, <code>namespaceSelector</code> and <code>podSelector</code> are in <b>one</b> list item, so both must match (AND). Put a <code>-</code> before <code>podSelector</code> and they become two items (OR) — then any Pod labelled <code>k8s-app=kube-dns</code> in any namespace would match. A classic mistake.</li><li>A connection needs <b>two yeses</b>: <b>egress</b> allowed at the source (frontend-egress) and <b>ingress</b> allowed at the destination (allow-frontend-to-backend).</li><li>The frontend still can't reach <code>web-service</code> in <code>default</code>: it isn't on the list. If an attacker takes over the frontend, they can't wander around the cluster.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">After the three allow policies: frontend → backend <b>200</b>; frontend → web-service <b>blocked</b>; test-pod <b>blocked</b>.</div></div></section><div class="part-head" id="part-C"><b>Part C — Helm 4: package, upgrade, roll back</b><span>Steps 9–13 · slides 18–28, 37–38 · ~35 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>Helm 4: install the CLI, add a repo, look before you install</h2><div class="tags"><span>Slides 18–20, 28, 32</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Install Helm 4, add the podinfo chart repository, and read the chart's settings before using it.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Install Helm 4 (once) — pick your system</span><button class="copy" type="button">Copy</button></div><pre><code># macOS
+brew install helm
+# Windows
+winget install Helm.Helm
+# Linux / WSL2 — the official script
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash</code></pre></div><div class="code"><div class="code-bar"><span>Add a repository and look inside the chart</span><button class="copy" type="button">Copy</button></div><pre><code>helm version --short
+helm repo add podinfo https://stefanprodan.github.io/podinfo
+helm repo update
+helm search repo podinfo
+helm show chart podinfo/podinfo | grep -E '^(name|version|appVersion)'
+helm show values podinfo/podinfo | grep -E -A3 '^(replicaCount|ui):'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>v4.3
+"podinfo" has been added to your repositories
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "podinfo" chart repository
+Update Complete. ⎈Happy Helming!⎈
+NAME           	CHART VERSION	APP VERSION	DESCRIPTION                      
+podinfo/podinfo	6.15.0       	6.15.0     	Podinfo Helm chart for Kubernetes
+appVersion: 6.15.0
+name: podinfo
+version: 6.15.0
+replicaCount: 1
+logLevel: info
+host: #0.0.0.0
+backend: #http://backend-podinfo:9898/echo
+--
+ui:
+  color: "#34577c"
+  message: ""
+  logo: ""</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Helm is a <b>package manager</b> for Kubernetes (slide 18). A <b>chart</b> is the package, <b>values</b> are its settings, a <b>release</b> is one installed copy (slide 20).</li><li><b>Helm 4</b> came out in November 2025 — the first major version in six years. Commands look the same as Helm 3; the changes are underneath (Step 10).</li><li>The old slides used <code>bitnami/nginx</code>. Bitnami moved most of its free catalogue behind a paid plan in 2025, so old tutorials break. We use <b>podinfo</b>, a small, well-maintained demo app that the Flux and Helm communities use for testing.</li><li>Always run <code>helm show values</code> before installing. It's the chart's full list of settings — the "user manual" for its knobs.</li><li>Many charts are now also published as <b>OCI images</b> in container registries. The same chart installs with <code>helm install my-app oci://ghcr.io/stefanprodan/charts/podinfo</code>, with no <code>repo add</code> at all.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>helm version</code> starts with <b>v4</b>, and <code>helm search repo</code> finds <b>podinfo/podinfo 6.15.0</b>.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Install a release</h2><div class="tags"><span>Slides 19–21, 37</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Install podinfo as a release called storefront, see what Helm created, and where Helm keeps its own records.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Install, list, look</span><button class="copy" type="button">Copy</button></div><pre><code>helm install storefront podinfo/podinfo --version 6.15.0 \
+  -n helm-lab --create-namespace --wait --timeout 3m
+helm list -n helm-lab
+kubectl get deploy,svc -n helm-lab
+kubectl exec -n helm-lab deploy/storefront-podinfo -- curl -s localhost:9898 | grep -E '"(hostname|message)"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME: storefront
+LAST DEPLOYED: Wed Sep 30 11:00:52 2026
+NAMESPACE: helm-lab
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+NOTES:
+1. Get the application URL by running these commands:
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl -n helm-lab port-forward deploy/storefront-podinfo 8080:9898
+NAME      	NAMESPACE	REVISION	UPDATED                                	STATUS  	CHART         	APP VERSION
+storefront	helm-lab 	1       	2026-09-30 11:00:52.782977965 +0000 UTC	deployed	podinfo-6.15.0	6.15.0     
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/storefront-podinfo   1/1     1            1           5s
+NAME                         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)             AGE
+service/storefront-podinfo   ClusterIP   10.96.189.93   &lt;none&gt;        9898/TCP,9999/TCP   5s
+  "hostname": "storefront-podinfo-74cfbcb5f9-wvkgl",
+  "message": "greetings from podinfo v6.15.0",</pre></div><div class="code"><div class="code-bar"><span>Helm's own records</span><button class="copy" type="button">Copy</button></div><pre><code>helm get metadata storefront -n helm-lab | grep -E 'REVISION|STATUS|APPLY_METHOD'
+kubectl get secrets -n helm-lab -l owner=helm</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>REVISION: 1
+STATUS: deployed
+APPLY_METHOD: server-side apply
+NAME                               TYPE                 DATA   AGE
+sh.helm.release.v1.storefront.v1   helm.sh/release.v1   1      8s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>--version 6.15.0</code> pins the chart. Without it you get whatever is newest today — and something different next month (slide 21's warning).</li><li><code>--wait</code> makes Helm wait until the Pods are ready before it says "deployed". In Helm 4, <code>--wait</code> uses a smarter <b>watcher</b> that follows each resource's status.</li><li>Helm 4 applies resources with <b>server-side apply</b> by default (<code>APPLY_METHOD</code>). The API server merges the changes and tracks who owns each field — the same way <code>kubectl apply --server-side</code> works.</li><li>Each revision is stored as a <b>Secret</b> in the release's namespace. That's Helm's memory: <code>helm history</code> and <code>helm rollback</code> read these Secrets.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>helm list</code> shows <b>storefront</b> with STATUS <b>deployed</b>, and the Pod answers <b>greetings from podinfo</b>.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>Values, upgrade — and the --set trap</h2><div class="tags"><span>Slides 22, 37</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Change the release with a values file, then see how a quick --set can quietly throw your settings away.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: my-values.yaml</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; my-values.yaml &lt;&lt;'EOF'
+replicaCount: 2
+ui:
+  message: "Hello from Helm values"
+  color: "#2e7d32"
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    memory: 64Mi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Upgrade with a values file</span><button class="copy" type="button">Copy</button></div><pre><code>helm upgrade storefront podinfo/podinfo --version 6.15.0 -n helm-lab \
+  -f my-values.yaml --wait --timeout 3m | grep -E 'STATUS|REVISION'
+kubectl get deploy -n helm-lab
+kubectl exec -n helm-lab deploy/storefront-podinfo -- curl -s localhost:9898 | grep '"message"'
+helm get values storefront -n helm-lab</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>STATUS: deployed
+REVISION: 2
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+storefront-podinfo   2/2     2            2           41s
+  "message": "Hello from Helm values",
+USER-SUPPLIED VALUES:
+replicaCount: 2
+resources:
+  limits:
+    memory: 64Mi
+  requests:
+    cpu: 50m
+    memory: 32Mi
+ui:
+  color: '#2e7d32'
+  message: Hello from Helm values</pre></div><div class="code"><div class="code-bar"><span>Someone scales it "quickly" with --set</span><button class="copy" type="button">Copy</button></div><pre><code>helm upgrade storefront podinfo/podinfo --version 6.15.0 -n helm-lab \
+  --set replicaCount=3 --wait --timeout 3m | grep -E 'STATUS|REVISION'
+helm get values storefront -n helm-lab
+kubectl exec -n helm-lab deploy/storefront-podinfo -- curl -s localhost:9898 | grep '"message"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>STATUS: deployed
+REVISION: 3
+USER-SUPPLIED VALUES:
+replicaCount: 3
+  "message": "greetings from podinfo v6.15.0",</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>values file</b> holds only what <b>you</b> change. The chart's defaults fill in the rest. Keep one values file per environment (dev, staging, prod) in Git.</li><li>The trap: <code>helm upgrade</code> starts again from the chart defaults plus <b>what you pass this time</b>. Revision 3 passed only <code>--set replicaCount=3</code> — so the message, colour and resource limits are <b>gone</b>.</li><li>Safe habits: always pass the same <code>-f</code> files on every upgrade (best — it's what CI/CD does), or add <code>--reset-then-reuse-values</code> for a one-off tweak.</li><li>Resource limits vanished too — in production that's a real incident, not just a wrong message.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Revision 2 says <b>Hello from Helm values</b> with 2 replicas; revision 3 lost it and says <b>greetings from podinfo</b>.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>History and rollback</h2><div class="tags"><span>Slides 23, 37</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Go back to the good revision, and see that a rollback is a new revision, not a time machine.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code>helm history storefront -n helm-lab
+helm rollback storefront 2 -n helm-lab --wait --timeout 3m
+helm history storefront -n helm-lab
+kubectl get deploy -n helm-lab
+kubectl exec -n helm-lab deploy/storefront-podinfo -- curl -s localhost:9898 | grep '"message"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>REVISION	UPDATED                 	STATUS    	CHART         	APP VERSION	DESCRIPTION     
+1       	Wed Sep 30 11:00:52 2026	superseded	podinfo-6.15.0	6.15.0     	Install complete
+2       	Wed Sep 30 11:01:33 2026	superseded	podinfo-6.15.0	6.15.0     	Upgrade complete
+3       	Wed Sep 30 11:01:46 2026	deployed  	podinfo-6.15.0	6.15.0     	Upgrade complete
+Rollback was a success! Happy Helming!
+REVISION	UPDATED                 	STATUS    	CHART         	APP VERSION	DESCRIPTION     
+1       	Wed Sep 30 11:00:52 2026	superseded	podinfo-6.15.0	6.15.0     	Install complete
+2       	Wed Sep 30 11:01:33 2026	superseded	podinfo-6.15.0	6.15.0     	Upgrade complete
+3       	Wed Sep 30 11:01:46 2026	superseded	podinfo-6.15.0	6.15.0     	Upgrade complete
+4       	Wed Sep 30 11:02:06 2026	deployed  	podinfo-6.15.0	6.15.0     	Rollback to 2   
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+storefront-podinfo   2/2     2            2           88s
+  "message": "Hello from Helm values",</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>helm rollback storefront 2</code> re-applies exactly what revision 2 had: the chart <b>and</b> its values. The message and limits are back.</li><li>The rollback became <b>revision 4</b>, "Rollback to 2". History only grows, so you can always see what happened and when.</li><li>Same idea as <code>kubectl rollout undo</code> (Module 4) — but for the whole release: Deployment, Service, config, everything the chart made.</li><li>Helm keeps 10 revisions by default (<code>--history-max</code>). Older ones are deleted automatically.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">History ends with <b>4 … deployed … Rollback to 2</b>, 2 replicas, and the message is <b>Hello from Helm values</b> again.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Your own chart: helm create</h2><div class="tags"><span>Slides 25–27, 38</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Scaffold a chart, fix its defaults, check it with lint and template, then install and test it.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Scaffold a chart</span><button class="copy" type="button">Copy</button></div><pre><code>helm create mychart
+find mychart -type f | sort
+grep -E '^(version|appVersion)' mychart/Chart.yaml
+grep -A5 '^image:' mychart/values.yaml</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Creating mychart
+mychart/.helmignore
+mychart/Chart.yaml
+mychart/templates/NOTES.txt
+mychart/templates/_helpers.tpl
+mychart/templates/deployment.yaml
+mychart/templates/hpa.yaml
+mychart/templates/httproute.yaml
+mychart/templates/ingress.yaml
+mychart/templates/service.yaml
+mychart/templates/serviceaccount.yaml
+mychart/templates/tests/test-connection.yaml
+mychart/values.yaml
+version: 0.1.0
+appVersion: "1.16.0"
+image:
+  repository: nginx
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""</pre></div><div class="code"><div class="code-bar"><span>Fix the defaults, then check the chart without installing</span><button class="copy" type="button">Copy</button></div><pre><code>sed -i.bak 's/^replicaCount: 1/replicaCount: 2/; s/^  tag: ""/  tag: "1.29-alpine"/' mychart/values.yaml
+sed -i.bak 's/image: busybox$/image: busybox:1.37/' mychart/templates/tests/test-connection.yaml
+rm -f mychart/values.yaml.bak mychart/templates/tests/test-connection.yaml.bak
+helm lint mychart
+helm template myapp mychart | grep -E '^kind:|image:|replicas:'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>==&gt; Linting mychart
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, 0 chart(s) failed
+kind: ServiceAccount
+kind: Service
+kind: Deployment
+  replicas: 2
+          image: "nginx:1.29-alpine"
+kind: Pod
+      image: busybox:1.37</pre></div><div class="code"><div class="code-bar"><span>Install and test</span><button class="copy" type="button">Copy</button></div><pre><code>helm install myapp ./mychart -n helm-lab --wait --timeout 3m | grep -E 'STATUS|REVISION'
+kubectl get deploy myapp-mychart -n helm-lab
+helm test myapp -n helm-lab | grep -E 'TEST SUITE|Phase'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>STATUS: deployed
+REVISION: 1
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+myapp-mychart   2/2     2            2           12s
+TEST SUITE:     myapp-mychart-test-connection
+Phase:          Succeeded</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>helm create</code> gives a production-shaped chart: Deployment, Service, ServiceAccount, HPA, Ingress — and in 2026 also an <b>HTTPRoute</b> for Gateway API. Features are off until you enable them in values.</li><li>Trap: with <code>tag: ""</code>, the image tag falls back to <code>appVersion</code> = <b>nginx:1.16.0</b>, a release from 2019. Always set the tag. The test Pod used an unpinned <code>busybox</code>; we pinned that too.</li><li><code>helm lint</code> catches mistakes. <code>helm template</code> prints the final YAML <b>without</b> touching the cluster — perfect for review and for CI.</li><li>The templates use <code>{{ .Values.replicaCount }}</code> and <code>{{ .Release.Name }}</code> (slide 26). Resource names come from a helper: release <code>myapp</code> + chart <code>mychart</code> = <code>myapp-mychart</code>.</li><li><code>helm test</code> runs the chart's test Pod — here a busybox <code>wget</code> to the Service. A quick smoke test after every install.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>helm lint</code>: <b>0 failed</b>, the Deployment uses <b>nginx:1.29-alpine</b> with <b>2/2</b> ready, and <code>helm test</code> ends in <b>Succeeded</b>.</div></div></section><div class="part-head" id="part-D"><b>Part D — 2026: Gateway API and the capstone</b><span>Steps 14–15 · slides 29–32, 39 · ~20 min</span></div><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Gateway API: Gateway + HTTPRoute</h2><div class="tags"><span>Slides 29, 31, 39</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Build your own Gateway, then route by path and header and split traffic 80/20.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: gateway.yaml — owned by the platform team</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; gateway.yaml &lt;&lt;'EOF'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: shop-gateway
+spec:
+  gatewayClassName: cloud-provider-kind     # the implementation (like ingressClassName)
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Selector                    # only namespaces the platform team labels
+          selector:
+            matchLabels:
+              shop-gateway-access: "true"
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: shop-route.yaml — owned by the app team</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; shop-route.yaml &lt;&lt;'EOF'
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: shop-route
+spec:
+  parentRefs:
+    - name: shop-gateway
+  hostnames:
+    - shop.local
+  rules:
+    - matches:                              # rule 1: /api... goes to api
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: api-service
+          port: 80
+    - matches:                              # rule 2: testers send a header to reach api
+        - headers:
+            - name: x-canary
+              value: "true"
+      backendRefs:
+        - name: api-service
+          port: 80
+    - backendRefs:                          # rule 3: everything else, split 80/20
+        - name: web-service
+          port: 80
+          weight: 80
+        - name: api-service
+          port: 80
+          weight: 20
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Apply and wait until the Gateway is programmed</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl label namespace default shop-gateway-access=true
+kubectl apply -f gateway.yaml -f shop-route.yaml
+kubectl wait --for=condition=Programmed gateway/shop-gateway --timeout=120s
+kubectl get gateway shop-gateway
+kubectl get httproute shop-route -o jsonpath='{range .status.parents[0].conditions[*]}{.type}={.status}  {end}'; echo
+GW=$(kubectl get gateway shop-gateway -o jsonpath='{.status.addresses[0].value}')</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/default labeled
+gateway.gateway.networking.k8s.io/shop-gateway created
+httproute.gateway.networking.k8s.io/shop-route created
+gateway.gateway.networking.k8s.io/shop-gateway condition met
+NAME           CLASS                 ADDRESS      PROGRAMMED   AGE
+shop-gateway   cloud-provider-kind   172.19.0.6   True         4s
+Accepted=True  ResolvedRefs=True</pre></div><div class="code"><div class="code-bar"><span>Path, header, and a weighted split</span><button class="copy" type="button">Copy</button></div><pre><code>kcurl -H "Host: shop.local" http://$GW/api/cart
+kcurl -H "Host: shop.local" -H "x-canary: true" http://$GW/
+for i in $(seq 1 100); do kcurl -H "Host: shop.local" http://$GW/; done | cut -d' ' -f1 | sort | uniq -c</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>api | pod=api-6c7f8b9d4-2xkqp | path=/api/cart
+api | pod=api-6c7f8b9d4-9zr4t | path=/
+     18 api
+     82 web</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Gateway API splits one Ingress into roles (slide 31): the <b>GatewayClass</b> (the implementation), the <b>Gateway</b> (a listener with an IP, run by the platform team) and <b>HTTPRoutes</b> (rules, written by app teams).</li><li>Things Ingress could only do with controller-specific annotations are <b>standard</b> here: header matching, and <b>weights</b> for canary releases. The same YAML works on any conformant implementation.</li><li>Your split won't be exactly 80/20 — each request is a weighted coin flip. Over many requests it gets close.</li><li>Gateway API <b>v1.5</b> (February 2026) is the current release. The Kubernetes project recommends it for new designs; the Ingress API is stable but <b>frozen</b> — no new features.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>/api/cart</code> → <b>api</b>, the <code>x-canary</code> header → <b>api</b>, and 100 requests split about <b>80 web / 20 api</b>.</div></div></section><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Capstone: who may attach, and a Helm app on the Gateway</h2><div class="tags"><span>Slides 30–31, 39</span><span>~10 min</span></div></div></div><p class="goal"><b>Goal:</b> See the Gateway refuse a route from an unapproved namespace, then publish the Helm-managed storefront through it.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: sneaky-route.yaml — another team tries to take over shop.local</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; sneaky-route.yaml &lt;&lt;'EOF'
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: sneaky-route
+  namespace: team-b
+spec:
+  parentRefs:
+    - name: shop-gateway
+      namespace: default
+  hostnames:
+    - shop.local
+  rules:
+    - backendRefs:
+        - name: web-service
+          port: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Try to attach from a namespace without the label</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl create namespace team-b
+kubectl apply -f sneaky-route.yaml
+sleep 3
+kubectl get httproute sneaky-route -n team-b -o jsonpath='{range .status.parents[0].conditions[*]}{.type}={.status} ({.reason}){"\n"}{end}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/team-b created
+httproute.gateway.networking.k8s.io/sneaky-route created
+Accepted=False (NotAllowedByListeners)
+ResolvedRefs=False (BackendNotFound)</pre></div><div class="code"><div class="code-bar"><span>Creates: gateway-values.yaml — turn on the chart's HTTPRoute</span><button class="copy" type="button">Copy</button></div><pre><code>cat &gt; gateway-values.yaml &lt;&lt;'EOF'
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: shop-gateway
+      namespace: default
+      sectionName: http
+  hostnames:
+    - podinfo.local
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Layer two values files, approve the namespace, publish</span><button class="copy" type="button">Copy</button></div><pre><code>helm upgrade storefront podinfo/podinfo --version 6.15.0 -n helm-lab \
+  -f my-values.yaml -f gateway-values.yaml --wait --timeout 3m | grep REVISION
+kubectl label namespace helm-lab shop-gateway-access=true
+until kubectl get httproute storefront-podinfo -n helm-lab \
+  -o jsonpath='{.status.parents[0].conditions[?(@.type=="Accepted")].status}' | grep -q True; do sleep 3; done
+kubectl get httproute -A
+kcurl -H "Host: podinfo.local" http://$GW/ | grep -E '"(hostname|message)"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>REVISION: 5
+namespace/helm-lab labeled
+NAMESPACE   NAME                      HOSTNAMES           AGE
+default     host-routing-58ae403651   ["web.local"]       18m
+default     host-routing-910228379f   ["api.local"]       18m
+default     shop-route                ["shop.local"]      3m
+default     web-routing-a379a6f6ee    ["example.com"]     20m
+helm-lab    storefront-podinfo        ["podinfo.local"]   20s
+team-b      sneaky-route              ["shop.local"]      1m
+  "hostname": "storefront-podinfo-86f64b7595-vq4zr",
+  "message": "Hello from Helm values",</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>allowedRoutes</code> puts the platform team in charge: only namespaces labelled <code>shop-gateway-access=true</code> may attach. team-b's route was <b>refused</b> — nobody can hijack <code>shop.local</code> just by writing YAML.</li><li>Ingress has no such control: any Ingress for the same host could change your routing. This <b>role separation</b> is a main reason teams move to Gateway API.</li><li><code>-f my-values.yaml -f gateway-values.yaml</code> <b>layers</b> values: later files win, earlier ones are kept. That's how you keep settings through upgrades — the fix for Step 11's trap.</li><li>The whole capstone in one request: a <b>Helm</b>-packaged app, published by an <b>HTTPRoute</b> the chart generated, through a shared <b>Gateway</b> that a label controls (slide 30).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>sneaky-route</code> shows <b>NotAllowedByListeners</b>, and <code>podinfo.local</code> answers <b>Hello from Helm values</b>.</div></div></section><div class="part-head" id="part-E"><b>Part E — Clean up</b><span>Step 16 · ~5 min</span></div><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Uninstall the Helm releases, delete the lab namespaces and objects, and stop cloud-provider-kind. Keep the cluster.</p><div class="folder">Run from: <code>module10-lab/</code></div><div class="code"><div class="code-bar"><span>Helm first — keep one release's history, to see what that means</span><button class="copy" type="button">Copy</button></div><pre><code>helm uninstall myapp -n helm-lab
+helm uninstall storefront -n helm-lab --keep-history
+helm list -n helm-lab --uninstalled
+helm history storefront -n helm-lab | tail -1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>release "myapp" uninstalled
+release "storefront" uninstalled
+NAME      	NAMESPACE	REVISION	UPDATED                                	STATUS     	CHART         	APP VERSION
+storefront	helm-lab 	5       	2026-09-30 11:03:18.516902111 +0000 UTC	uninstalled	podinfo-6.15.0	6.15.0     
+5       	Wed Sep 30 11:03:18 2026	uninstalled	podinfo-6.15.0	6.15.0     	Uninstallation complete</pre></div><div class="code"><div class="code-bar"><span>Everything else</span><button class="copy" type="button">Copy</button></div><pre><code>kubectl delete namespace helm-lab np-lab other team-b
+kubectl delete -f shop-route.yaml -f gateway.yaml
+kubectl delete -f ingress-hosts.yaml -f ingress.yaml
+kubectl delete secret example-tls
+kubectl delete -f web.yaml -f api.yaml -f echo-config.yaml
+kubectl label namespace default shop-gateway-access-
+helm repo remove podinfo
+kubectl wait --for=delete pod -l 'app in (web,api)' --timeout=90s
+kubectl get all,ingress,httproute</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace "helm-lab" deleted
+namespace "np-lab" deleted
+namespace "other" deleted
+namespace "team-b" deleted
+httproute.gateway.networking.k8s.io "shop-route" deleted from default namespace
+gateway.gateway.networking.k8s.io "shop-gateway" deleted from default namespace
+ingress.networking.k8s.io "host-routing" deleted from default namespace
+ingress.networking.k8s.io "web-routing" deleted from default namespace
+secret "example-tls" deleted from default namespace
+deployment.apps "web" deleted from default namespace
+service "web-service" deleted from default namespace
+deployment.apps "api" deleted from default namespace
+service "api-service" deleted from default namespace
+configmap "echo-config" deleted from default namespace
+namespace/default unlabeled
+"podinfo" has been removed from your repositories
+pod/api-5565f8b48-dhgvn condition met
+pod/api-5565f8b48-js24r condition met
+pod/web-5f6b677b-2xbjf condition met
+pod/web-5f6b677b-wfs94 condition met
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   31h</pre></div><p>In terminal 2, press <b>Ctrl+C</b> to stop cloud-provider-kind.</p><div class="why"><div class="why-label">What just happened</div><ul><li><code>--keep-history</code> removed the app but kept the release records: <code>helm rollback storefront 4</code> would bring it back. Without the flag, Helm deletes its history too.</li><li>Deleting the namespace removed everything left inside it — including Helm's release Secrets and the test Pod that <code>helm uninstall</code> leaves behind.</li><li>Deleting the Gateway releases its IP and its Envoy container, just like deleting a LoadBalancer Service did in Module 4.</li><li><b>That's the whole course.</b> To remove the cluster completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get all,ingress,httproute</code> shows only <b>service/kubernetes</b>.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt>Ingress ADDRESS stays empty</dt><dd>No controller is handling it. Check <code>kubectl get ingressclass</code>, that <code>ingressClassName</code> matches, and that cloud-provider-kind is running in terminal 2 (Step 1).</dd><dt>Ingress or Gateway answers <b>404</b></dt><dd>No rule matched. Check the <b>Host</b> header (<code>-H "Host: example.com"</code>) and the path. <code>pathType: Prefix</code> matches whole segments: <code>/apix</code> doesn't match <code>/api</code> (Step 3).</dd><dt><code>curl: (60) SSL certificate problem</code></dt><dd>curl doesn't trust the self-signed certificate. Pass it with <code>--cacert</code> (Step 5), or use a real certificate from cert-manager + Let's Encrypt.</dd><dt>A NetworkPolicy is applied but traffic still flows</dt><dd>The network plugin isn't enforcing it. Check <code>kubectl -n kube-system logs ds/kindnet | grep -i -E 'network-policies|nftables'</code>. Old kind versions had no policy support — use kind v0.33 or newer (Module 2). kindnet also needs the <code>nfnetlink_queue</code> kernel module; if the logs show nftables errors, run <code>sudo modprobe nfnetlink_queue</code> on the Docker host, or install Calico.</dd><dt>Everything broke after a default-deny policy</dt><dd>Egress is denied, so DNS is too. Apply <code>allow-dns.yaml</code> (Step 8). Remember that a connection needs egress allowed at the source <b>and</b> ingress allowed at the destination.</dd><dt><code>helm: command not found</code>, or <code>helm version</code> shows v3</dt><dd>Install Helm 4 (Step 9). Helm 3 runs most of this lab, but server-side apply by default (the <code>APPLY_METHOD</code> line in Step 10) is new in Helm 4.</dd><dt><code>Error: INSTALLATION FAILED: cannot re-use a name that is still in use</code></dt><dd>A release with that name already exists in the namespace. Use <code>helm upgrade</code>, or <code>helm uninstall</code> it first. <code>helm list -A</code> shows every release.</dd><dt>An upgrade lost your settings</dt><dd>You ran <code>helm upgrade</code> without your <code>-f</code> files (Step 11). Roll back with <code>helm rollback &lt;release&gt; &lt;good-revision&gt;</code>, and always pass the same values files.</dd><dt><code>helm upgrade</code> or <code>install</code> times out with <code>context deadline exceeded</code></dt><dd>The Pods never became ready. Run <code>kubectl get pods -n helm-lab</code> and describe the failing Pod — usually an image pull or a bad value.</dd><dt>An HTTPRoute shows <code>Accepted=False (NotAllowedByListeners)</code></dt><dd>The Gateway's <code>allowedRoutes</code> doesn't include that namespace. Label it: <code>kubectl label namespace &lt;ns&gt; shop-gateway-access=true</code> (Step 15). The status can take a few seconds to update.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 10 — Ingress, NetworkPolicy, Helm &amp; Gateway API · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
