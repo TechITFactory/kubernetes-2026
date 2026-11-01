@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 9 Lab — RBAC & Access Control</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 9 · Hands-on lab</div>
+  <h1>RBAC &amp; Access Control — Step-by-Step Lab</h1>
+  <p>Create a real user with a certificate the cluster signs, give that user exactly the access they need with Roles, ClusterRoles and group bindings, watch RBAC block every attempt to grant more, run a Pod with its own ServiceAccount and call the API with its token, and finish with Pod Security Admission. Thirteen steps, in order.</p>
+  <div class="meta"><span>13 steps · about 1 h 09 min</span><span>Kubernetes v1.37 · kind</span><span>openssl, nginx and busybox</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Who are you?</div><a href="#step-1"><span class="n">1</span>Who am I? The admin you've been all along</a><a href="#step-2"><span class="n">2</span>A real user: jai, signed by the cluster</a><div class="grp">Part B · Roles and RoleBindings</div><a href="#step-3"><span class="n">3</span>Role + RoleBinding: read Pods in one namespace</a><a href="#step-4"><span class="n">4</span>Ask before you act: kubectl auth can-i</a><div class="grp">Part C · Cluster scope, teams and escalation</div><a href="#step-5"><span class="n">5</span>ClusterRole + ClusterRoleBinding: every namespace</a><a href="#step-6"><span class="n">6</span>Cluster-scoped things need a ClusterRole</a><a href="#step-7"><span class="n">7</span>Teams: a built-in ClusterRole, bound to a group, in one namespace</a><a href="#step-8"><span class="n">8</span>RBAC stops privilege escalation</a><div class="grp">Part D · ServiceAccounts</div><a href="#step-9"><span class="n">9</span>A ServiceAccount for a Pod</a><a href="#step-10"><span class="n">10</span>Call the API from inside the Pod</a><a href="#step-11"><span class="n">11</span>No API calls? No token</a><div class="grp">Part E · 2026</div><a href="#step-12"><span class="n">12</span>Pod Security Admission: RBAC says who, PSA says what</a><div class="grp">Part F · Clean up</div><a href="#step-13"><span class="n">13</span>Clean up</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Who are you?</div><div class="psub">Steps 1–2 · slides 3–5, 12, 26 · ~15 min</div><div class="chips"><a href="#step-1">1. Who am I? The admin you've been all along</a><a href="#step-2">2. A real user: jai, signed by the cluster</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">Roles and RoleBindings</div><div class="psub">Steps 3–4 · slides 6–11, 27 · ~15 min</div><div class="chips"><a href="#step-3">3. Role + RoleBinding: read Pods in one namespace</a><a href="#step-4">4. Ask before you act: kubectl auth can-i</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">Cluster scope, teams and escalation</div><div class="psub">Steps 5–8 · slides 13–18, 24, 28–29 · ~25 min</div><div class="chips"><a href="#step-5">5. ClusterRole + ClusterRoleBinding: every namespace</a><a href="#step-6">6. Cluster-scoped things need a ClusterRole</a><a href="#step-7">7. Teams: a built-in ClusterRole, bound to a group, in one namespace</a><a href="#step-8">8. RBAC stops privilege escalation</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">ServiceAccounts</div><div class="psub">Steps 9–11 · slides 19–23, 30 · ~20 min</div><div class="chips"><a href="#step-9">9. A ServiceAccount for a Pod</a><a href="#step-10">10. Call the API from inside the Pod</a><a href="#step-11">11. No API calls? No token</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">2026: Pod Security Admission</div><div class="psub">Step 12 · slides 31–32 · ~8 min</div><div class="chips"><a href="#step-12">12. Pod Security Admission: RBAC says who, PSA says what</a></div></div></div><div class="part"><div class="letter">F</div><div><div class="ptitle">Clean up</div><div class="psub">Step 13 · ~3 min</div><div class="chips"><a href="#step-13">13. Clean up</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 2–8 first.</b> This lab uses the 3-node kind cluster (<code>kind-lab</code>) and its admin context.</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows — with <code>openssl</code> (preinstalled on macOS and most Linux).</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Pod counts, ages, IDs and dates will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class</span><button class="copy" type="button">Copy</button></div><pre><code># Detect the Docker platform (OS/arch) of the local machine
+PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+# Pre-load each lab image into the kind cluster so class doesn't wait on pulls
+for img in nginx:1.28-alpine busybox:1.37; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+# Remove the temporary image archive
+rm -f image.tar</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Who are you?</b><span>Steps 1–2 · slides 3–5, 12, 26 · ~15 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Who am I? The admin you've been all along</h2><div class="tags"><span>Slides 3–5</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Check the cluster, create the lab folder, and find out which identity kubectl has been using.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code># Create the lab working folder
+mkdir module9-lab
+# Move into the lab folder
+cd module9-lab</code></pre></div><div class="code"><div class="code-bar"><span>Who is kubectl talking as?</span><button class="copy" type="button">Copy</button></div><pre><code># List the cluster nodes and confirm all are Ready
+kubectl get nodes
+# List kubectl contexts to see which cluster and user you are using
+kubectl config get-contexts
+# Show who the API server thinks you are
+kubectl auth whoami
+# Check that your current admin user can do everything
+kubectl auth can-i '*' '*'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   11h   v1.37.0
+lab-worker          Ready    &lt;none&gt;          11h   v1.37.0
+lab-worker2         Ready    &lt;none&gt;          11h   v1.37.0
+CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
+*         kind-lab   kind-lab   kind-lab   default
+ATTRIBUTE                                           VALUE
+Username                                            kubernetes-admin
+Groups                                              [kubeadm:cluster-admins system:authenticated]
+Extra: authentication.kubernetes.io/credential-id   [X509SHA256=4bc2b81f…]
+yes</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Every request to the API server goes through three gates: <b>authentication</b> (who are you?), <b>authorization</b> (may you do this?) and <b>admission</b> (is this object allowed?). RBAC is the authorization gate.</li><li>Since Module 2 you've been <code>kubernetes-admin</code>, in the group <code>kubeadm:cluster-admins</code>. <code>can-i '*' '*'</code> → <b>yes</b>: you may do everything, everywhere.</li><li>That's fine for learning, and dangerous for anything else. A leaked admin credential is a leaked cluster. Today we build identities that can do only their job.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You are <b>kubernetes-admin</b>, and <code>can-i '*' '*'</code> says <b>yes</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>A real user: jai, signed by the cluster</h2><div class="tags"><span>Slides 12, 26</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a user with a client certificate that Kubernetes itself signs, add it to kubeconfig, and see authentication work while authorization says no.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>jai's private key and certificate request (CN = user, O = group)</span><button class="copy" type="button">Copy</button></div><pre><code># Generate a private key for the new user jai
+openssl genrsa -out jai.key 2048
+# Create a certificate signing request with CN=jai and group developers
+openssl req -new -key jai.key -out jai.csr -subj "/CN=jai/O=developers"</code></pre></div><div class="code"><div class="code-bar"><span>Ask the cluster to sign it — then approve as admin</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Kubernetes CertificateSigningRequest holding that request
+cat &gt; jai-csr.yaml &lt;&lt;EOF
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: jai
+spec:
+  request: $(base64 &lt; jai.csr | tr -d '\n')
+  signerName: kubernetes.io/kube-apiserver-client   # a client certificate for the API server
+  expirationSeconds: 86400                          # valid for one day
+  usages:
+    - client auth
+EOF
+# Submit the signing request to the cluster
+kubectl apply -f jai-csr.yaml
+# Show the request is Pending approval
+kubectl get csr jai
+# Approve the request as cluster admin
+kubectl certificate approve jai
+# Extract the signed certificate into jai.crt
+kubectl get csr jai -o jsonpath='{.status.certificate}' | base64 -d &gt; jai.crt
+# Inspect the certificate's subject, issuer and expiry
+openssl x509 -in jai.crt -noout -subject -issuer -enddate</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>certificatesigningrequest.certificates.k8s.io/jai created
+NAME   AGE   SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
+jai    0s    kubernetes.io/kube-apiserver-client   kubernetes-admin   24h                 Pending
+certificatesigningrequest.certificates.k8s.io/jai approved
+subject=O = developers, CN = jai
+issuer=CN = kubernetes
+notAfter=Sep 30 16:26:39 2026 GMT</pre></div><div class="code"><div class="code-bar"><span>Use it</span><button class="copy" type="button">Copy</button></div><pre><code># Add jai's key and certificate to your kubeconfig as a user
+kubectl config set-credentials jai --client-certificate=jai.crt --client-key=jai.key --embed-certs=true
+# Create a kubectl context that uses jai on the kind-lab cluster
+kubectl config set-context jai --cluster=kind-lab --user=jai --namespace=default
+# Confirm the API server now identifies you as jai
+kubectl --context jai auth whoami
+# Try to list Pods as jai — Forbidden, since jai has no permissions yet
+kubectl --context jai get pods</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>User "jai" set.
+Context "jai" created.
+ATTRIBUTE                                           VALUE
+Username                                            jai
+Groups                                              [developers system:authenticated]
+Extra: authentication.kubernetes.io/credential-id   [X509SHA256=a3926d53…]
+Error from server (Forbidden): pods is forbidden: User "jai" cannot list resource "pods" in API group "" in the namespace "default"</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Kubernetes has <b>no user objects</b>. A user is whatever a trusted credential says: here the certificate's <b>CN</b> is the username and each <b>O</b> is a group.</li><li>The <b>CertificateSigningRequest</b> API lets the cluster sign the certificate. Nobody had to copy the cluster's CA private key — the old way on slide 12, which is how whole clusters get compromised.</li><li>Authentication worked: the API knows it's jai, in group developers. Authorization said <b>Forbidden</b>: RBAC denies everything until something is granted. That's the safe default.</li><li><code>--context jai</code> switches identity for one command. We keep using the admin context for setup.</li><li>On EKS, GKE and AKS, people usually log in through the cloud's identity system (OIDC/IAM) instead of certificates. The RBAC part you learn next is exactly the same.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>auth whoami</code> as jai shows group <b>developers</b>, and <code>get pods</code> is <b>Forbidden</b>.</div></div></section><div class="part-head" id="part-B"><b>Part B — Roles and RoleBindings</b><span>Steps 3–4 · slides 6–11, 27 · ~15 min</span></div><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Role + RoleBinding: read Pods in one namespace</h2><div class="tags"><span>Slides 6–10, 27</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Give jai read access to Pods in default — and nothing else.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: role.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Role that only allows reading Pods in default
+cat &gt; role.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+  - apiGroups: [""]            # "" = the core API group, where Pods live
+    resources: ["pods"]
+    verbs: ["get", "list"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: rolebinding.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a RoleBinding that gives jai that Role
+cat &gt; rolebinding.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-reader-binding
+  namespace: default
+subjects:
+  - kind: User
+    name: jai
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>The Role alone, then the binding</span><button class="copy" type="button">Copy</button></div><pre><code># Start a test Pod for jai to look at
+kubectl run web --image=nginx:1.28-alpine
+# Wait until the test Pod is Ready
+kubectl wait --for=condition=Ready pod/web --timeout=60s
+# Create the Role (still not bound to anyone)
+kubectl apply -f role.yaml
+# Try again as jai — still Forbidden, a Role alone grants nothing
+kubectl --context jai get pods
+# Bind the Role to jai
+kubectl apply -f rolebinding.yaml
+# List Pods as jai — now it works
+kubectl --context jai get pods</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/web created
+pod/web condition met
+role.rbac.authorization.k8s.io/pod-reader created
+Error from server (Forbidden): pods is forbidden: User "jai" cannot list resource "pods" in API group "" in the namespace "default"
+rolebinding.rbac.authorization.k8s.io/pod-reader-binding created
+NAME   READY   STATUS    RESTARTS   AGE
+web    1/1     Running   0          2s</pre></div><div class="code"><div class="code-bar"><span>What jai still can't do</span><button class="copy" type="button">Copy</button></div><pre><code># Try to delete a Pod as jai — Forbidden, the Role only allows reading
+kubectl --context jai delete pod web
+# Try to list Pods in kube-system as jai — Forbidden, the Role is namespaced
+kubectl --context jai get pods -n kube-system
+# Try to read Pod logs as jai — Forbidden, logs are a separate subresource
+kubectl --context jai logs web</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Error from server (Forbidden): pods "web" is forbidden: User "jai" cannot delete resource "pods" in API group "" in the namespace "default"
+Error from server (Forbidden): pods is forbidden: User "jai" cannot list resource "pods" in API group "" in the namespace "kube-system"
+Error from server (Forbidden): pods "web" is forbidden: User "jai" cannot get resource "pods/log" in API group "" in the namespace "default"</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>Role</b> is a list of rules: which <b>verbs</b> on which <b>resources</b> in which <b>apiGroup</b>. <code>""</code> is the core group, where Pods live.</li><li>The Role alone changed nothing. A <b>RoleBinding</b> attaches it to a subject — here the user jai. Both live in <code>default</code>, so that's the only place it counts.</li><li>RBAC only <b>adds</b> permissions. There are no "deny" rules: whatever isn't granted is refused.</li><li>Logs are a separate <b>sub-resource</b>, <code>pods/log</code>. "Read Pods" doesn't include "read their logs" — you'd add <code>pods/log</code> to the rule.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">jai can list Pods in <b>default</b>, but can't delete them, list <b>kube-system</b>, or read logs.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Ask before you act: kubectl auth can-i</h2><div class="tags"><span>Slides 11, 27, 33</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Check permissions without trying the real action — and learn the two ways can-i can fool you.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>As admin, impersonate jai</span><button class="copy" type="button">Copy</button></div><pre><code># Check several actions at once with can-i, impersonating jai
+for q in "list pods" "delete pods" "list pods -n kube-system" "list secrets"; do echo "$q: $(kubectl auth can-i $q --as=jai)"; done
+# List everything jai may do (first lines)
+kubectl auth can-i --list --as=jai | head -5</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>list pods: yes
+delete pods: no
+list pods -n kube-system: no
+list secrets: no
+Resources                                       Non-Resource URLs   Resource Names   Verbs
+selfsubjectreviews.authentication.k8s.io        []                  []               [create]
+selfsubjectaccessreviews.authorization.k8s.io   []                  []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                  []               [create]
+pods                                            []                  []               [get list]</pre></div><div class="code"><div class="code-bar"><span>Gotcha: the slash means a name, not a sub-resource</span><button class="copy" type="button">Copy</button></div><pre><code># Check Pod logs by resource name — misleadingly says yes
+kubectl auth can-i get pods/log --as=jai
+# Check Pod logs with --subresource=log — the accurate answer is no
+kubectl auth can-i get pods --subresource=log --as=jai</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>yes
+no</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>--as=jai</code> is <b>impersonation</b>: the admin asks "what would happen if jai did this?". The answer comes from the same authorizer the real request would hit.</li><li><code>--list</code> shows everything a subject may do in the namespace — the fastest way to review an account.</li><li><code>pods/log</code> after <code>can-i get</code> means "the Pod <b>named</b> log". jai may get any Pod, so: yes. The real question needs <code>--subresource=log</code> — and the answer is no, just like the real <code>kubectl logs</code> in Step 3.</li><li>When in doubt, run the real command with <code>--context</code>. can-i answers exactly the question you typed, not the one you meant.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>list pods</code> <b>yes</b>, everything else <b>no</b>, and <code>--subresource=log</code> says <b>no</b>.</div></div></section><div class="part-head" id="part-C"><b>Part C — Cluster scope, teams and escalation</b><span>Steps 5–8 · slides 13–18, 24, 28–29 · ~25 min</span></div><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>ClusterRole + ClusterRoleBinding: every namespace</h2><div class="tags"><span>Slides 13–17, 28</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Widen jai's Pod reading to the whole cluster, and prove the difference with a namespace that was denied.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: clusterrole.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a ClusterRole that can read Pods everywhere
+cat &gt; clusterrole.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-pod-reader          # no namespace: ClusterRoles are cluster-scoped
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: clusterrolebinding.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a ClusterRoleBinding that grants it to jai
+cat &gt; clusterrolebinding.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-pod-reader-binding
+subjects:
+  - kind: User
+    name: jai
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-pod-reader
+  apiGroup: rbac.authorization.k8s.io
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Check jai's access to kube-system Pods before the binding
+echo "before: $(kubectl auth can-i list pods -n kube-system --as=jai)"
+# Create the ClusterRole and ClusterRoleBinding
+kubectl apply -f clusterrole.yaml -f clusterrolebinding.yaml
+# Check the same access after the binding — now allowed
+echo "after:  $(kubectl auth can-i list pods -n kube-system --as=jai)"
+# List Pods across all namespaces as jai and count them
+kubectl --context jai get pods -A --no-headers | wc -l
+# Check whether jai can list nodes (cluster-scoped resource)
+kubectl auth can-i list nodes --as=jai</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>before: no
+clusterrole.rbac.authorization.k8s.io/cluster-pod-reader created
+clusterrolebinding.rbac.authorization.k8s.io/cluster-pod-reader-binding created
+after:  yes
+15
+Warning: resource 'nodes' is not namespace scoped
+
+no</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>ClusterRole</b> has no namespace. Bound with a <b>ClusterRoleBinding</b>, its rules apply in every namespace — now jai can list all 15 Pods, including kube-system.</li><li>The old slide checked <code>list pods</code> in <code>default</code> after the change — but jai could already do that. Always test a place that was denied <b>before</b>, or you've proven nothing.</li><li>Nodes are still <b>no</b>: the ClusterRole only mentions Pods. Cluster-wide doesn't mean everything.</li><li>Cluster-wide bindings are powerful. For "the same rules in a few namespaces", use a ClusterRole with <b>RoleBindings</b> instead (Step 7).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kube-system</code> went from <b>no</b> to <b>yes</b>, and nodes are still <b>no</b>.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Cluster-scoped things need a ClusterRole</h2><div class="tags"><span>Slides 13, 18, 28</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Try to grant access to Nodes with a namespaced Role, watch can-i mislead you, then do it right.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>The wrong way: a Role</span><button class="copy" type="button">Copy</button></div><pre><code># Create a namespaced Role for nodes (the wrong tool for the job)
+kubectl create role node-reader --verb=get,list --resource=nodes -n default
+# Bind that Role to jai
+kubectl create rolebinding node-reader --role=node-reader --user=jai -n default
+# Re-check node access — can-i misleadingly says yes (it checks the default namespace)
+kubectl auth can-i list nodes --as=jai
+# Try to list nodes as jai — Forbidden
+kubectl --context jai get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Warning: resource 'nodes' is not namespace scoped
+
+role.rbac.authorization.k8s.io/node-reader created
+rolebinding.rbac.authorization.k8s.io/node-reader created
+Warning: resource 'nodes' is not namespace scoped
+
+yes
+Error from server (Forbidden): nodes is forbidden: User "jai" cannot list resource "nodes" in API group "" at the cluster scope</pre></div><div class="code"><div class="code-bar"><span>The right way: a ClusterRole</span><button class="copy" type="button">Copy</button></div><pre><code># Remove the mistaken Role and RoleBinding
+kubectl delete role,rolebinding node-reader -n default
+# Create a ClusterRole that can read nodes
+kubectl create clusterrole node-reader --verb=get,list --resource=nodes
+# Bind it to jai with a ClusterRoleBinding
+kubectl create clusterrolebinding node-reader --clusterrole=node-reader --user=jai
+# List nodes as jai — now it works
+kubectl --context jai get nodes</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>role.rbac.authorization.k8s.io "node-reader" deleted from default namespace
+rolebinding.rbac.authorization.k8s.io "node-reader" deleted from default namespace
+clusterrole.rbac.authorization.k8s.io/node-reader created
+clusterrolebinding.rbac.authorization.k8s.io/node-reader created
+NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   11h   v1.37.0
+lab-worker          Ready    &lt;none&gt;          11h   v1.37.0
+lab-worker2         Ready    &lt;none&gt;          11h   v1.37.0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Nodes, PersistentVolumes, Namespaces and StorageClasses don't live in any namespace. A Role — always inside one namespace — can't reach them.</li><li>Kubernetes accepted the useless Role with only a <b>warning</b>. Then <code>can-i</code> said <b>yes</b>, because it checked the namespace <code>default</code>, where the Role matched. The real request is cluster-scoped, and was <b>Forbidden</b>.</li><li>Lesson: read warnings, and confirm with a real command. The fix is a ClusterRole with a ClusterRoleBinding.</li><li>The <code>kubectl create role/clusterrole/…binding</code> shortcuts are handy for quick tests. For anything you keep, write YAML and put it in Git.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The Role gave a <b>warning</b>, a misleading <b>yes</b> and a real <b>Forbidden</b>; the ClusterRole let jai list the three nodes.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Teams: a built-in ClusterRole, bound to a group, in one namespace</h2><div class="tags"><span>Slides 8, 24, 29</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Give everyone in group developers read-only access to namespace dev, using the ready-made view role.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: dev-team.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML that grants the built-in view ClusterRole to a group inside one namespace
+cat &gt; dev-team.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developers-view
+  namespace: dev                   # the grant only counts in namespace dev
+subjects:
+  - kind: Group
+    name: developers               # everyone whose certificate says O=developers
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole                # reuse a built-in ClusterRole …
+  name: view                       # … read-only access to most namespaced objects
+  apiGroup: rbac.authorization.k8s.io
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the dev namespace
+kubectl create namespace dev
+# Apply the RoleBinding in dev
+kubectl apply -f dev-team.yaml
+# Check several actions in dev and default to see what the group may do
+for q in "list deployments -n dev" "list configmaps -n dev" "list secrets -n dev" "create deployments -n dev" "list deployments -n default"; do echo "$q: $(kubectl auth can-i $q --as=jai --as-group=developers)"; done
+# Check as jai without the group — no access, because groups come from the certificate
+echo "without --as-group: $(kubectl auth can-i list deployments -n dev --as=jai)"
+# Read ConfigMaps in dev as jai, using the developers group from the certificate
+kubectl --context jai get configmaps -n dev</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/dev created
+rolebinding.rbac.authorization.k8s.io/developers-view created
+list deployments -n dev: yes
+list configmaps -n dev: yes
+list secrets -n dev: no
+create deployments -n dev: no
+list deployments -n default: no
+without --as-group: no
+NAME               DATA   AGE
+kube-root-ca.crt   1      1s</pre></div><div class="code"><div class="code-bar"><span>The built-in roles</span><button class="copy" type="button">Copy</button></div><pre><code># Compare the built-in ClusterRoles view, edit, admin and cluster-admin
+kubectl get clusterroles view edit admin cluster-admin
+# Show how the view role is built by aggregating other roles
+kubectl get clusterrole view -o jsonpath='{.aggregationRule}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME            CREATED AT
+view            2026-09-29T04:43:11Z
+edit            2026-09-29T04:43:11Z
+admin           2026-09-29T04:43:11Z
+cluster-admin   2026-09-29T04:43:11Z
+{"clusterRoleSelectors":[{"matchLabels":{"rbac.authorization.k8s.io/aggregate-to-view":"true"}}]}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>RoleBinding</b> can point at a <b>ClusterRole</b>. The rules come from the ClusterRole, the reach stays inside the binding's namespace. Write the rules once, reuse them in many namespaces — the most common pattern in real clusters.</li><li>Binding to a <b>Group</b> means you manage people in your identity system (the certificate's O, or an OIDC group), not in Kubernetes. Someone joins the team → they get access. They leave → it's gone.</li><li><code>view</code> reads most things but <b>not Secrets</b> — on purpose. <code>edit</code> can change workloads, <code>admin</code> can also manage RBAC in the namespace, <code>cluster-admin</code> is everything.</li><li>Gotcha: <code>--as=jai</code> alone doesn't include jai's groups — it answered <b>no</b>. Add <code>--as-group=developers</code>, or test with the real <code>--context jai</code>.</li><li><code>aggregationRule</code>: view is assembled from every ClusterRole with a certain label. Installing an add-on can extend view automatically.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">With the group, <b>deployments and configmaps yes</b>, <b>secrets and create no</b>, and nothing in <b>default</b>.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>RBAC stops privilege escalation</h2><div class="tags"><span>Slides 20, 29, 33</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Let jai manage Roles in dev, then watch jai fail to grant more access than jai already has.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: role-manager.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Role that lets someone manage Roles in dev
+cat &gt; role-manager.yaml &lt;&lt;'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: role-manager
+  namespace: dev
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jai-role-manager
+  namespace: dev
+subjects:
+  - kind: User
+    name: jai
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: role-manager
+  apiGroup: rbac.authorization.k8s.io
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the role-manager Role
+kubectl apply -f role-manager.yaml
+# Print a label for the first escalation test
+echo '--- a Role jai could already use:'
+# Create a Role jai already has the rights for — allowed
+kubectl --context jai -n dev create role cm-reader --verb=get,list --resource=configmaps
+# Print a label for the second escalation test
+echo '--- a Role for Secrets (jai has no Secret access):'
+# Try to create a Role for Secrets — denied, you can't grant what you don't have
+kubectl --context jai -n dev create role secret-reader --verb=get,list --resource=secrets 2&gt;&amp;1 | head -2
+# Print a label for the third escalation test
+echo '--- bind jai to admin:'
+# Try to bind jai to the admin ClusterRole — denied, same escalation rule
+kubectl --context jai -n dev create rolebinding jai-admin --clusterrole=admin --user=jai 2&gt;&amp;1 | head -2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>role.rbac.authorization.k8s.io/role-manager created
+rolebinding.rbac.authorization.k8s.io/jai-role-manager created
+--- a Role jai could already use:
+role.rbac.authorization.k8s.io/cm-reader created
+--- a Role for Secrets (jai has no Secret access):
+Error from server (Forbidden): roles.rbac.authorization.k8s.io "secret-reader" is forbidden: user "jai" (groups=["developers" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+{APIGroups:[""], Resources:["secrets"], Verbs:["get" "list"]}
+--- bind jai to admin:
+error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io "jai-admin" is forbidden: user "jai" (groups=["developers" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+{APIGroups:[""], Resources:["configmaps"], Verbs:["create" "delete" "deletecollection" "patch" "update"]}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Being allowed to <b>create Roles</b> doesn't let you create <b>any</b> Role. You can only grant permissions you already hold. That's RBAC's built-in escalation check.</li><li>jai could create a configmap reader (jai can read configmaps through <code>view</code>), but not a Secret reader, and not bind jai's own account to <code>admin</code> — the error lists every permission jai would be sneaking in.</li><li>Two verbs deliberately skip this check: <code>escalate</code> (on roles) and <code>bind</code> (on a role reference). Treat them like cluster-admin — give them to almost nobody.</li><li>Also dangerous: <code>create pods</code> (a Pod can run as any ServiceAccount in its namespace), <code>impersonate</code>, and reading Secrets.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>cm-reader</code> was created; <code>secret-reader</code> and <code>jai-admin</code> were refused with <b>attempting to grant RBAC permissions not currently held</b>.</div></div></section><div class="part-head" id="part-D"><b>Part D — ServiceAccounts</b><span>Steps 9–11 · slides 19–23, 30 · ~20 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>A ServiceAccount for a Pod</h2><div class="tags"><span>Slides 19–22, 30</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Give a Pod its own identity and look at the short-lived token Kubernetes mounts for it.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: serviceaccount.yaml — the account and its RoleBinding to pod-reader</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a ServiceAccount, with a Role and RoleBinding for it
+cat &gt; serviceaccount.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-reader
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-reader-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: app-reader
+    namespace: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: app-reader-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod that runs as that ServiceAccount
+cat &gt; app-reader-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-client
+  namespace: default
+spec:
+  serviceAccountName: app-reader     # the Pod's identity when it calls the API
+  containers:
+    - name: app
+      image: nginx:1.28-alpine       # has curl, which we use to call the API
+      ports:
+        - containerPort: 80
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the ServiceAccount and the Pod
+kubectl apply -f serviceaccount.yaml -f app-reader-pod.yaml
+# List the ServiceAccounts in default
+kubectl get serviceaccounts
+# Wait until the Pod is Ready
+kubectl wait --for=condition=Ready pod/api-client --timeout=60s
+# Show the Pod's ServiceAccount and the token mount path
+kubectl describe pod api-client | grep -E 'Service Account|/var/run/secrets'
+# Show the projected, auto-rotating token settings in the Pod spec
+kubectl get pod api-client -o jsonpath='{.spec.volumes[?(@.projected)].projected.sources[0].serviceAccountToken}'; echo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>serviceaccount/app-reader created
+rolebinding.rbac.authorization.k8s.io/app-reader-binding created
+pod/api-client created
+NAME         AGE
+app-reader   0s
+default      11h
+pod/api-client condition met
+Service Account:  app-reader
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-fgb4r (ro)
+{"expirationSeconds":3607,"path":"token"}</pre></div><div class="code"><div class="code-bar"><span>What does the token say?</span><button class="copy" type="button">Copy</button></div><pre><code># Decode the token's payload inside the Pod and show its subject and audience
+kubectl exec api-client -- sh -c '
+P=$(cut -d. -f2 /var/run/secrets/kubernetes.io/serviceaccount/token | tr "_-" "/+")
+while [ $((${#P} % 4)) -ne 0 ]; do P="$P="; done   # JWTs drop base64 padding
+echo "$P" | base64 -d' | tr ',' '\n' | grep -E '"(sub|aud)"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>{"aud":["https://kubernetes.default.svc.cluster.local"]
+"sub":"system:serviceaccount:default:app-reader"}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>ServiceAccount</b> is an identity for programs, not people. Every namespace has one called <code>default</code>; Pods use it unless you name another.</li><li>No SECRETS column any more: tokens aren't stored as Secret objects. The kubelet asks for a fresh token (<code>expirationSeconds: 3607</code> ≈ 1 hour) through the TokenRequest API, mounts it, and renews it before it expires.</li><li>The token is a signed JWT. Its subject is <code>system:serviceaccount:default:app-reader</code> — that's the name RBAC sees.</li><li>Give each app its own ServiceAccount with only the rules it needs. Never add rights to <code>default</code>: every Pod that forgets to set an account would get them.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The Pod runs as <b>app-reader</b>, has a projected token mounted, and the token's <code>sub</code> is <b>system:serviceaccount:default:app-reader</b>.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Call the API from inside the Pod</h2><div class="tags"><span>Slides 23, 30</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Use the mounted token the way an app or controller would: list Pods, then try what isn't allowed.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Check what the ServiceAccount may do, impersonating it
+echo "can-i: $(kubectl auth can-i list pods --as=system:serviceaccount:default:app-reader) / $(kubectl auth can-i delete pods --as=system:serviceaccount:default:app-reader)"
+# Call the API server from inside the Pod using its token to list, delete and read Secrets
+kubectl exec api-client -- sh -c '
+SA=/var/run/secrets/kubernetes.io/serviceaccount
+AUTH="Authorization: Bearer $(cat $SA/token)"
+API=https://kubernetes.default.svc/api/v1/namespaces/default
+echo "--- list pods:";   curl -s --cacert $SA/ca.crt -H "$AUTH" $API/pods | grep -c "\"phase\""
+echo "--- delete web:";  curl -s --cacert $SA/ca.crt -H "$AUTH" -X DELETE $API/pods/web | grep -E "\"(message|code)\""
+echo "--- list secrets:"; curl -s --cacert $SA/ca.crt -H "$AUTH" $API/secrets | grep -E "\"(message|code)\""'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>can-i: yes / no
+--- list pods:
+2
+--- delete web:
+  "message": "pods \"web\" is forbidden: User \"system:serviceaccount:default:app-reader\" cannot delete resource \"pods\" in API group \"\" in the namespace \"default\"",
+  "code": 403
+--- list secrets:
+  "message": "secrets is forbidden: User \"system:serviceaccount:default:app-reader\" cannot list resource \"secrets\" in API group \"\" in the namespace \"default\"",
+  "code": 403</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>This is what every controller, operator and CI tool in a cluster does: read the mounted token, call <code>https://kubernetes.default.svc</code>, and trust the cluster's CA from <code>ca.crt</code>.</li><li>Listing Pods worked (2 Pods). Deleting a Pod and listing Secrets returned <b>403 Forbidden</b> — the same decision <code>can-i</code> predicted with the impersonation name <code>system:serviceaccount:&lt;namespace&gt;:&lt;name&gt;</code>.</li><li>If someone breaks into this Pod, the stolen token can only read Pods in one namespace. That's least privilege paying off.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>list pods</code> returned a count, and both other calls returned <b>403</b>.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>No API calls? No token</h2><div class="tags"><span>Slides 20, 30</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Switch the token off for a Pod that never talks to the API.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: no-token-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod that opts out of the API token
+cat &gt; no-token-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-api-needed
+spec:
+  automountServiceAccountToken: false   # this app never calls the API: no token at all
+  containers:
+    - name: web
+      image: nginx:1.28-alpine
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the no-token Pod
+kubectl apply -f no-token-pod.yaml
+# Wait until the no-token Pod is Ready
+kubectl wait --for=condition=Ready pod/no-api-needed --timeout=60s
+# Show the token folder does not exist in the no-token Pod
+echo '--- no-api-needed:'; kubectl exec no-api-needed -- ls /var/run/secrets/kubernetes.io/serviceaccount
+# Show the token folder does exist in a default Pod
+echo '--- web (default settings):'; kubectl exec web -- ls /var/run/secrets/kubernetes.io/serviceaccount</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/no-api-needed created
+pod/no-api-needed condition met
+--- no-api-needed:
+ls: /var/run/secrets/kubernetes.io/serviceaccount: No such file or directory
+command terminated with exit code 1
+--- web (default settings):
+ca.crt
+namespace
+token</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>By default every Pod gets a token — even a web server that never calls the API. That's a free credential for an attacker.</li><li><code>automountServiceAccountToken: false</code> on the Pod (or on the ServiceAccount) removes it. Nothing to steal.</li><li>A good default for app teams: turn it off everywhere, and turn it on only for Pods that really use the API.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>no-api-needed</code> has <b>no token folder</b>; <code>web</code> has <b>ca.crt, namespace, token</b>.</div></div></section><div class="part-head" id="part-E"><b>Part E — 2026: Pod Security Admission</b><span>Step 12 · slides 31–32 · ~8 min</span></div><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Pod Security Admission: RBAC says who, PSA says what</h2><div class="tags"><span>Slides 31–32</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Label a namespace restricted, watch unsafe Pods get rejected — including Module 8's hostPath Pod — and admit a hardened one.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: secure-namespace.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a namespace that enforces the restricted Pod Security level
+cat &gt; secure-namespace.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure
+  labels:
+    pod-security.kubernetes.io/enforce: restricted      # reject Pods that break the rules
+    pod-security.kubernetes.io/enforce-version: latest
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: hostpath-in-secure.yaml — a Pod that mounts the whole node</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod that mounts the node's filesystem
+cat &gt; hostpath-in-secure.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-snooper
+  namespace: secure
+spec:
+  volumes:
+    - name: host
+      hostPath:
+        path: /                       # the whole node's disk
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: host
+          mountPath: /host
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Try two unsafe Pods</span><button class="copy" type="button">Copy</button></div><pre><code># Create the secure namespace
+kubectl apply -f secure-namespace.yaml
+# Try to run the hostPath Pod in secure — rejected by Pod Security
+kubectl apply -f hostpath-in-secure.yaml
+# Try to run a plain nginx Pod in secure — rejected, it isn't hardened
+kubectl -n secure run plain-nginx --image=nginx:1.28-alpine</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace/secure created
+Error from server (Forbidden): error when creating "hostpath-in-secure.yaml": pods "node-snooper" is forbidden: violates PodSecurity "restricted:latest": allowPrivilegeEscalation != false (container "app" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container "app" must set securityContext.capabilities.drop=["ALL"]), restricted volume types (volume "host" uses restricted volume type "hostPath"), runAsNonRoot != true (pod or container "app" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container "app" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")
+Error from server (Forbidden): pods "plain-nginx" is forbidden: violates PodSecurity "restricted:latest": allowPrivilegeEscalation != false (…), unrestricted capabilities (…), runAsNonRoot != true (…), seccompProfile (…)</pre></div><div class="code"><div class="code-bar"><span>Creates: restricted-pod.yaml — a Pod that follows every rule</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a hardened Pod that meets the restricted level
+cat &gt; restricted-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: good-citizen
+  namespace: secure
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+EOF
+# Create the hardened Pod
+kubectl apply -f restricted-pod.yaml
+# Wait until the hardened Pod is Ready
+kubectl -n secure wait --for=condition=Ready pod/good-citizen --timeout=60s
+# Show the Pod runs as a non-root user
+kubectl -n secure exec good-citizen -- id</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/good-citizen created
+pod/good-citizen condition met
+uid=1000 gid=0(root) groups=0(root)</pre></div><div class="code"><div class="code-bar"><span>Would my existing namespace pass? Ask before enforcing</span><button class="copy" type="button">Copy</button></div><pre><code># Preview what enforcing restricted on default would warn about, without changing anything
+kubectl label --dry-run=server --overwrite namespace default pod-security.kubernetes.io/enforce=restricted</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>Warning: existing pods in namespace "default" violate the new PodSecurity enforce level "restricted:latest"
+Warning: api-client (and 2 other pods): allowPrivilegeEscalation != false, unrestricted capabilities, runAsNonRoot != true, seccompProfile
+namespace/default labeled (server dry run)</pre></div><div class="table-wrap"><table><thead><tr><th>Level</th><th>In one sentence</th><th>Typical use</th></tr></thead><tbody><tr><td>privileged</td><td>no rules at all</td><td>system namespaces: CNI, storage and monitoring agents</td></tr><tr><td>baseline</td><td>blocks the known-dangerous things: hostPath, host network, privileged containers</td><td>a safe default for most app namespaces</td></tr><tr><td>restricted</td><td>baseline + non-root, no privilege escalation, drop all capabilities, seccomp</td><td>anything that faces the internet or handles sensitive data</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li>RBAC decides <b>who</b> may create a Pod. <b>Pod Security Admission</b> decides <b>what</b> a Pod may do. You need both: jai with <code>edit</code> in dev could otherwise create a hostPath Pod and read the node's disk.</li><li>It's built into the API server (stable since v1.25) and configured with namespace <b>labels</b>. The error lists every rule the Pod breaks — a to-do list for your YAML.</li><li>Plain <code>nginx</code> fails <code>restricted</code> because it starts as root. Production teams use images built to run as a normal user.</li><li>Roll it out safely: labels <code>warn</code> and <code>audit</code> report without blocking, and <code>--dry-run=server</code> shows which running Pods would fail before you switch to <code>enforce</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>node-snooper</code> and <code>plain-nginx</code> were <b>rejected</b>, <code>good-citizen</code> runs as <b>uid=1000</b>, and the dry run warned about the Pods in default.</div></div></section><div class="part-head" id="part-F"><b>Part F — Clean up</b><span>Step 13 · ~3 min</span></div><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Clean up</h2><div class="tags"><span>—</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Remove the namespaces, Pods, RBAC objects, the CSR and jai's kubeconfig entries. Keep the cluster for Module 10.</p><div class="folder">Run from: <code>module9-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Delete the dev and secure namespaces
+kubectl delete namespace dev secure
+# Delete the lab Pods
+kubectl delete pod web api-client no-api-needed --now
+# Delete the ServiceAccount, RoleBinding and Role
+kubectl delete -f serviceaccount.yaml -f rolebinding.yaml -f role.yaml
+# Delete the ClusterRoleBinding and ClusterRole
+kubectl delete -f clusterrolebinding.yaml -f clusterrole.yaml
+# Delete the node-reader ClusterRoleBinding
+kubectl delete clusterrolebinding node-reader
+# Delete the node-reader ClusterRole
+kubectl delete clusterrole node-reader
+# Delete jai's certificate signing request
+kubectl delete csr jai
+# Remove the jai context from your kubeconfig
+kubectl config delete-context jai
+# Remove the jai user from your kubeconfig
+kubectl config delete-user jai
+# Delete jai's local key and certificate files
+rm -f jai.key jai.csr jai.crt
+# Confirm no lab resources remain
+kubectl get all
+# Confirm your kubeconfig is back to the original contexts
+kubectl config get-contexts</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>namespace "dev" deleted
+namespace "secure" deleted
+pod "web" deleted from default namespace
+…
+certificatesigningrequest.certificates.k8s.io "jai" deleted
+deleted context jai from /home/you/.kube/config
+deleted user jai from /home/you/.kube/config
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    &lt;none&gt;        443/TCP   11h
+CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
+*         kind-lab   kind-lab   kind-lab   default</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Deleting a namespace deletes its Roles and RoleBindings. ClusterRoles, ClusterRoleBindings and CSRs are cluster-scoped, so they go one by one.</li><li>Deleting the kubeconfig entry doesn't revoke the certificate — it stays valid until it expires (we set one day). That's why short certificates, or OIDC logins, are the norm; to cut someone off now, remove their RBAC bindings.</li><li><code>jai.key</code> is a private key. Delete it; never commit keys to Git.</li><li>Module 10 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get all</code> shows only <code>service/kubernetes</code>, and only the <b>kind-lab</b> context is left.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt><code>Error from server (Forbidden): … cannot list resource …</code></dt><dd>Authorization said no. Ask the exact question as admin: <code>kubectl auth can-i &lt;verb&gt; &lt;resource&gt; -n &lt;ns&gt; --as=&lt;user&gt;</code>, then check the RoleBinding's subject spelling and namespace (Steps 3–4).</dd><dt>A Role exists but access is still denied</dt><dd>No RoleBinding, a binding in another namespace, or a typo in <code>subjects</code>. <code>kubectl get rolebindings -n &lt;ns&gt; -o wide</code> shows who is bound to what.</dd><dt><code>can-i</code> says yes, the real command says Forbidden</dt><dd>Cluster-scoped resource checked in a namespace (Step 6), <code>pods/log</code> instead of <code>--subresource=log</code> (Step 4), or groups missing from <code>--as</code> (add <code>--as-group</code>, Step 7).</dd><dt><code>error: You must be logged in to the server (Unauthorized)</code> as jai</dt><dd>Authentication failed: the certificate expired (one day) or doesn't match the key. Create a new CSR (Step 2).</dd><dt>The CSR stays <code>Pending</code></dt><dd>Someone with rights must run <code>kubectl certificate approve jai</code>. <code>Denied</code> or <code>Failed</code>: delete it and create a new one.</dd><dt><code>attempting to grant RBAC permissions not currently held</code></dt><dd>Escalation prevention (Step 8): you can only grant what you have. An admin must create that Role or binding.</dd><dt>A Pod is rejected with <code>violates PodSecurity</code></dt><dd>The namespace enforces baseline or restricted. Fix each item in the message (runAsNonRoot, drop ALL, seccomp, no hostPath), or use a namespace with a lower level (Step 12).</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 9 — RBAC &amp; Access Control · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
