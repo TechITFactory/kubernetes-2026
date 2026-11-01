@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 8 Lab — Storage: Volumes, PV, PVC, StorageClass & StatefulSets</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <div class="eyebrow">Kubernetes Training · Module 8 · Hands-on lab</div>
+  <h1>Storage: Volumes, PV, PVC, StorageClass &amp; StatefulSets — Step-by-Step Lab</h1>
+  <p>Share scratch space inside a Pod, see why node folders are a trap, watch a claim wait for its first user, compare RWO with RWOP, lose data with the Delete policy and save it with Retain, then run a three-replica MySQL StatefulSet that keeps its names and disks through deletes and scaling. Finish by shipping data as an image. Sixteen steps, in order.</p>
+  <div class="meta"><span>16 steps · about 1 h 25 min</span><span>Kubernetes v1.37 · kind</span><span>nginx, busybox and MySQL 8.4</span><span>Every step verified on a live cluster</span></div>
+</div></header>
+
+<div class="wrap">
+<nav class="side"><div class="grp">Start here</div><a href="#flow"><span class="n">›</span>Lab flow at a glance</a><a href="#before"><span class="n">›</span>Before you start</a><div class="grp">Part A · Volumes inside a Pod</div><a href="#step-1"><span class="n">1</span>Start from the Module 7 cluster — and meet kind's storage</a><a href="#step-2"><span class="n">2</span>emptyDir: scratch space shared inside one Pod</a><a href="#step-3"><span class="n">3</span>hostPath: a folder on the node</a><div class="grp">Part B · PV, PVC and StorageClass</div><a href="#step-4"><span class="n">4</span>A claim that waits for its first user</a><a href="#step-5"><span class="n">5</span>A Pod uses the claim — the volume appears</a><a href="#step-6"><span class="n">6</span>Access modes: ReadWriteOnce vs ReadWriteOncePod</a><a href="#step-7"><span class="n">7</span>Reclaim policy Delete: the claim takes the data with it</a><a href="#step-8"><span class="n">8</span>Reclaim policy Retain — and getting the data back</a><div class="grp">Part C · StatefulSets</div><a href="#step-9"><span class="n">9</span>A MySQL StatefulSet</a><a href="#step-10"><span class="n">10</span>Stable names and a disk per replica</a><a href="#step-11"><span class="n">11</span>Delete mysql-0 — keep its name and its data</a><a href="#step-12"><span class="n">12</span>Scale down and up: the claim waits for its Pod</a><a href="#step-13"><span class="n">13</span>Retention policy: delete claims on scale-down</a><div class="grp">Part D · 2026</div><a href="#step-14"><span class="n">14</span>Image volumes: ship data as an image</a><div class="grp">Part E · Leftovers and clean up</div><a href="#step-15"><span class="n">15</span>Why the claims are still there</a><a href="#step-16"><span class="n">16</span>Clean up — on purpose</a><div class="grp">Help</div><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+
+<section class="card" id="flow">
+  <h2>Lab flow at a glance</h2>
+  <div class="flow"><div class="part"><div class="letter">A</div><div><div class="ptitle">Volumes inside a Pod</div><div class="psub">Steps 1–3 · slides 3–8, 30 · ~20 min</div><div class="chips"><a href="#step-1">1. Start from the Module 7 cluster — and meet kind's storage</a><a href="#step-2">2. emptyDir: scratch space shared inside one Pod</a><a href="#step-3">3. hostPath: a folder on the node</a></div></div></div><div class="part"><div class="letter">B</div><div><div class="ptitle">PV, PVC and StorageClass</div><div class="psub">Steps 4–8 · slides 9–18, 31–32 · ~35 min</div><div class="chips"><a href="#step-4">4. A claim that waits for its first user</a><a href="#step-5">5. A Pod uses the claim — the volume appears</a><a href="#step-6">6. Access modes: ReadWriteOnce vs ReadWriteOncePod</a><a href="#step-7">7. Reclaim policy Delete: the claim takes the data with it</a><a href="#step-8">8. Reclaim policy Retain — and getting the data back</a></div></div></div><div class="part"><div class="letter">C</div><div><div class="ptitle">StatefulSets</div><div class="psub">Steps 9–13 · slides 19–28, 33–34 · ~30 min</div><div class="chips"><a href="#step-9">9. A MySQL StatefulSet</a><a href="#step-10">10. Stable names and a disk per replica</a><a href="#step-11">11. Delete mysql-0 — keep its name and its data</a><a href="#step-12">12. Scale down and up: the claim waits for its Pod</a><a href="#step-13">13. Retention policy: delete claims on scale-down</a></div></div></div><div class="part"><div class="letter">D</div><div><div class="ptitle">2026: ship data as an image</div><div class="psub">Step 14 · slides 35–37 · ~6 min</div><div class="chips"><a href="#step-14">14. Image volumes: ship data as an image</a></div></div></div><div class="part"><div class="letter">E</div><div><div class="ptitle">Leftovers and clean up</div><div class="psub">Steps 15–16 · ~6 min</div><div class="chips"><a href="#step-15">15. Why the claims are still there</a><a href="#step-16">16. Clean up — on purpose</a></div></div></div></div>
+</section>
+
+<section class="card" id="before">
+  <h2>Before you start</h2>
+  <ul class="rules"><li><b>Finish Modules 2–7 first.</b> This lab uses the 3-node kind cluster (<code>kind-lab</code>) and its built-in <code>standard</code> StorageClass.</li><li><b>Terminal:</b> bash or zsh — macOS Terminal, Linux, or <b>WSL2</b> on Windows. Docker must be running: we look inside the kind nodes with <code>docker exec</code>.</li><li><b>Go in order,</b> and check every <i>Checkpoint</i>. Volume names, IPs, node choices and ages will differ from yours — that's normal.</li><li><b>Something failed?</b> See <a href="#trouble">Troubleshooting</a> at the bottom.</li></ul>
+  <div class="code"><div class="code-bar"><span>Trainers: pre-load the lab images into the kind cluster before class (MySQL is about 250 MB)</span><button class="copy" type="button">Copy</button></div><pre><code># Detect the Docker platform (OS/arch) of the local machine
+PLATFORM=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')   # e.g. linux/amd64 or linux/arm64
+# Pre-load each lab image into the kind cluster so class doesn't wait on pulls
+for img in nginx:1.28-alpine busybox:1.37 mysql:8.4.11; do
+  docker pull --platform "$PLATFORM" "$img"
+  docker save --platform "$PLATFORM" -o image.tar "$img"
+  kind load image-archive image.tar --name lab
+done
+# Remove the temporary image archive
+rm -f image.tar</code></pre></div>
+</section>
+
+<div class="part-head" id="part-A"><b>Part A — Volumes inside a Pod</b><span>Steps 1–3 · slides 3–8, 30 · ~20 min</span></div><section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Start from the Module 7 cluster — and meet kind's storage</h2><div class="tags"><span>Slides 11, 14</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Check the cluster, create the lab folder, and see which storage your kind cluster already has.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Create the lab folder — every step runs from here</span><button class="copy" type="button">Copy</button></div><pre><code># Create the lab working folder
+mkdir module8-lab
+# Move into the lab folder
+cd module8-lab</code></pre></div><div class="code"><div class="code-bar"><span>What storage does kind give us?</span><button class="copy" type="button">Copy</button></div><pre><code># List the cluster nodes and confirm all are Ready
+kubectl get nodes
+# List the StorageClasses and find the default one
+kubectl get storageclass
+# Check that kind's local-path provisioner Pod is running
+kubectl -n local-path-storage get pods</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                STATUS   ROLES           AGE   VERSION
+lab-control-plane   Ready    control-plane   7h    v1.37.0
+lab-worker          Ready    &lt;none&gt;          7h    v1.37.0
+lab-worker2         Ready    &lt;none&gt;          7h    v1.37.0
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  7h
+NAME                                      READY   STATUS    RESTARTS   AGE
+local-path-provisioner-75f7fc7dc5-dct4p   1/1     Running   0          7h</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>kind ships one <b>StorageClass</b> called <code>standard</code>, marked <b>(default)</b>. Any claim that doesn't name a class gets this one.</li><li>Its <b>provisioner</b>, <code>rancher.io/local-path</code>, is a small controller (the Pod you just saw). When a claim needs a volume, it creates a folder on a node's disk.</li><li>On EKS, GKE or AKS you'd see a CSI driver here instead — for example <code>ebs.csi.aws.com</code>. The Kubernetes objects you use are exactly the same; only the backend changes (slide 35).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">One StorageClass, <code>standard (default)</code>, and the provisioner Pod <b>Running</b>.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>emptyDir: scratch space shared inside one Pod</h2><div class="tags"><span>Slides 3–6, 30</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Share a folder between two containers, crash one container, then delete the Pod — and see what survives.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: shared-volume-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod whose two containers share an emptyDir volume
+cat &gt; shared-volume-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shared-volume-pod
+spec:
+  volumes:
+    - name: shared-data
+      emptyDir:
+        sizeLimit: 64Mi            # scratch space has a budget too
+  containers:
+    - name: writer
+      image: busybox:1.37
+      command: ["sh", "-c", "echo 'Hello from Writer!' &gt; /data/message &amp;&amp; sleep 3600"]
+      volumeMounts:
+        - name: shared-data
+          mountPath: /data
+    - name: reader
+      image: busybox:1.37
+      # wait for the file instead of hoping the writer was first
+      command: ["sh", "-c", "until [ -f /data/message ]; do sleep 1; done; cat /data/message; sleep 3600"]
+      volumeMounts:
+        - name: shared-data
+          mountPath: /data
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the shared-volume Pod
+kubectl apply -f shared-volume-pod.yaml
+# Wait until the Pod is Ready
+kubectl wait --for=condition=Ready pod/shared-volume-pod --timeout=60s
+# Show the reader container's log to confirm it sees the writer's file
+kubectl logs shared-volume-pod -c reader
+# Write a new file into the shared volume and list the volume contents
+kubectl exec shared-volume-pod -c reader -- sh -c 'echo "saved at $(date +%T)" &gt; /data/note; ls /data'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/shared-volume-pod created
+pod/shared-volume-pod condition met
+Hello from Writer!
+message
+note</pre></div><div class="code"><div class="code-bar"><span>Crash the writer container (stop it from the node)</span><button class="copy" type="button">Copy</button></div><pre><code># Find which node the Pod is running on
+NODE=$(kubectl get pod shared-volume-pod -o jsonpath='{.spec.nodeName}')
+# Get the writer container's ID from the Pod status
+CID=$(kubectl get pod shared-volume-pod -o jsonpath='{.status.containerStatuses[?(@.name=="writer")].containerID}' | sed 's#containerd://##')
+# Stop the writer container directly on the node to simulate a crash
+docker exec $NODE crictl stop $CID &gt;/dev/null
+# Wait until Kubernetes has restarted the writer container once
+until [ "$(kubectl get pod shared-volume-pod -o jsonpath='{.status.containerStatuses[?(@.name=="writer")].restartCount}')" = 1 ]; do sleep 1; done
+# Show the Pod with RESTARTS 1 (the Pod itself survived)
+kubectl get pod shared-volume-pod
+# Read the note file again to prove it survived the container crash
+kubectl exec shared-volume-pod -c writer -- cat /data/note</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>NAME                READY   STATUS    RESTARTS      AGE
+shared-volume-pod   2/2     Running   1 (2s ago)    40s
+saved at 12:19:15</pre></div><div class="code"><div class="code-bar"><span>Now delete the whole Pod and start it again</span><button class="copy" type="button">Copy</button></div><pre><code># Delete the whole Pod immediately
+kubectl delete pod shared-volume-pod --now
+# Create the same Pod again from the same YAML
+kubectl apply -f shared-volume-pod.yaml
+# Wait until the new Pod is Ready
+kubectl wait --for=condition=Ready pod/shared-volume-pod --timeout=60s
+# List the volume to show the note file is gone (emptyDir dies with the Pod)
+kubectl exec shared-volume-pod -c writer -- ls /data</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "shared-volume-pod" deleted from default namespace
+pod/shared-volume-pod created
+pod/shared-volume-pod condition met
+message</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Both containers mount the same <code>emptyDir</code>, so the reader sees what the writer wrote. The reader waits for the file instead of hoping the writer started first.</li><li>A <b>container</b> crash doesn't touch the volume: after the restart, <code>note</code> is still there. The emptyDir belongs to the <b>Pod</b>.</li><li>Deleting the <b>Pod</b> deletes its emptyDir. The new Pod has only the freshly written <code>message</code> — <code>note</code> is gone.</li><li>Use emptyDir for caches, temporary files and sharing between containers (Module 6's sidecars). <code>sizeLimit</code> stops one Pod from filling the node's disk. Never keep data you need tomorrow in it.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>note</code> survived the container crash (<b>RESTARTS 1</b>) but not the Pod deletion.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>hostPath: a folder on the node</h2><div class="tags"><span>Slides 7–8, 30</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Write nginx logs to a folder on one node and see why that's a trap for application data.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: hostpath-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod that writes nginx logs to a hostPath folder on one node
+cat &gt; hostpath-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-volume-pod
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: lab-worker     # pinned, so we know which node to look at
+  volumes:
+    - name: host-logs
+      hostPath:
+        path: /var/log/nginx-demo          # a folder on the NODE
+        type: DirectoryOrCreate
+  containers:
+    - name: nginx
+      image: nginx:1.28-alpine
+      volumeMounts:
+        - name: host-logs
+          mountPath: /var/log/nginx
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the hostPath Pod
+kubectl apply -f hostpath-pod.yaml
+# Wait until the hostPath Pod is Ready
+kubectl wait --for=condition=Ready pod/hostpath-volume-pod --timeout=60s
+# Send one request to nginx so it writes an access-log line
+kubectl exec hostpath-volume-pod -- wget -qO- http://localhost &gt;/dev/null
+# Read the log line on lab-worker, where the Pod ran
+echo '--- on lab-worker:'; docker exec lab-worker tail -1 /var/log/nginx-demo/access.log
+# Check lab-worker2 to show the folder does not exist there
+echo '--- on lab-worker2:'; docker exec lab-worker2 ls /var/log/nginx-demo
+# Delete the hostPath Pod
+kubectl delete pod hostpath-volume-pod --now
+# Show the log files are still on the node after the Pod is gone
+echo '--- after the Pod is gone:'; docker exec lab-worker ls /var/log/nginx-demo</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/hostpath-volume-pod created
+pod/hostpath-volume-pod condition met
+--- on lab-worker:
+127.0.0.1 - - [29/Sep/2026:12:19:31 +0000] "GET / HTTP/1.1" 200 615 "-" "Wget" "-"
+--- on lab-worker2:
+ls: cannot access '/var/log/nginx-demo': No such file or directory
+pod "hostpath-volume-pod" deleted from default namespace
+--- after the Pod is gone:
+access.log
+error.log</pre></div><div class="code"><div class="code-bar"><span>Tidy the node</span><button class="copy" type="button">Copy</button></div><pre><code># Clean up the leftover log folder on the node
+docker exec lab-worker rm -rf /var/log/nginx-demo</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The files live on <b>lab-worker</b>'s disk. lab-worker2 has nothing — if the Pod had been scheduled there, it would start with an empty folder.</li><li>They also outlive the Pod. Nobody cleans them up automatically.</li><li>hostPath is also a security risk: a Pod that mounts <code>/</code> or the container runtime's socket can take over the node. Most clusters forbid it with Pod Security Admission (Module 9).</li><li>Good uses: node agents from a DaemonSet (log collectors, monitoring) that <b>must</b> read the node. For app data, use a PersistentVolumeClaim — next.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The log line is on <b>lab-worker</b> only, and the files stayed after the Pod was deleted.</div></div></section><div class="part-head" id="part-B"><b>Part B — PV, PVC and StorageClass</b><span>Steps 4–8 · slides 9–18, 31–32 · ~35 min</span></div><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>A claim that waits for its first user</h2><div class="tags"><span>Slides 9–15, 31</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Ask for 1Gi of storage and see why the claim stays Pending on purpose.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: pvc.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a 1Gi PersistentVolumeClaim using the default class
+cat &gt; pvc.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamic-pvc
+spec:
+  storageClassName: standard      # kind's default StorageClass
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the claim
+kubectl apply -f pvc.yaml
+# Give the provisioner a moment to react
+sleep 5
+# Show the claim is Pending (it waits for its first Pod)
+kubectl get pvc dynamic-pvc
+# Show the WaitForFirstConsumer event that explains why
+kubectl describe pvc dynamic-pvc | tail -2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>persistentvolumeclaim/dynamic-pvc created
+NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+dynamic-pvc   Pending                                      standard       &lt;unset&gt;                 5s
+  ----    ------                ----  ----                         -------
+  Normal  WaitForFirstConsumer  5s    persistentvolume-controller  waiting for first consumer to be created before binding</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A <b>PersistentVolumeClaim</b> (PVC) is a request: "I need 1Gi, mounted read-write by one node, from class <code>standard</code>".</li><li><b>Pending</b> is correct here. The class says <code>volumeBindingMode: WaitForFirstConsumer</code>: don't create the disk until a Pod needs it, so the disk is made on the <b>same node or zone</b> as that Pod.</li><li>With <code>Immediate</code> binding, the disk could be created in zone A while the Pod is later scheduled to zone B — and the Pod could never start. That's why most cloud classes wait too.</li><li>Only if a claim stays Pending <b>with a Pod waiting for it</b> is something wrong: read <code>kubectl describe pvc</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>dynamic-pvc</code> is <b>Pending</b> with the event <b>WaitForFirstConsumer</b>.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>A Pod uses the claim — the volume appears</h2><div class="tags"><span>Slides 12, 15–17, 31</span><span>~7 min</span></div></div></div><p class="goal"><b>Goal:</b> Mount the claim in a Deployment, watch the PersistentVolume get created, and prove the data survives a new Pod.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: deployment-with-pvc.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Deployment that mounts the claim
+cat &gt; deployment-with-pvc.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-storage
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate                  # RWO volume: never run old and new Pod at once
+  selector:
+    matchLabels:
+      app: web-storage
+  template:
+    metadata:
+      labels:
+        app: web-storage
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.28-alpine
+          volumeMounts:
+            - name: storage-volume
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: dynamic-pvc
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the Deployment
+kubectl apply -f deployment-with-pvc.yaml
+# Wait until the rollout finishes
+kubectl rollout status deployment/web-storage --timeout=90s
+# Show the claim is now Bound
+kubectl get pvc dynamic-pvc
+# Show the PersistentVolume that was created automatically
+kubectl get pv</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web-storage created
+Waiting for deployment "web-storage" rollout to finish: 0 of 1 updated replicas are available...
+deployment "web-storage" successfully rolled out
+NAME          STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+dynamic-pvc   Bound    pvc-7080f8cc-c960-4333-9f8c-a81bc1523bcc   1Gi        RWO            standard       &lt;unset&gt;                 10s
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-7080f8cc-c960-4333-9f8c-a81bc1523bcc   1Gi        RWO            Delete           Bound    default/dynamic-pvc   standard       &lt;unset&gt;                          2s</pre></div><div class="code"><div class="code-bar"><span>Write a page, kill the Pod, read it from the new Pod</span><button class="copy" type="button">Copy</button></div><pre><code># Write a web page onto the persistent volume
+kubectl exec deploy/web-storage -- sh -c 'echo "&lt;h1&gt;Saved on a PersistentVolume&lt;/h1&gt;" &gt; /usr/share/nginx/html/index.html'
+# Delete the Pod so the Deployment starts a new one
+kubectl delete pod -l app=web-storage --now
+# Wait until the replacement Pod is running
+kubectl rollout status deployment/web-storage --timeout=90s
+# Read the page from the new Pod to prove the data survived
+kubectl exec deploy/web-storage -- cat /usr/share/nginx/html/index.html</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "web-storage-7f995ff8f6-4p9zf" deleted from default namespace
+deployment "web-storage" successfully rolled out
+&lt;h1&gt;Saved on a PersistentVolume&lt;/h1&gt;</pre></div><div class="code"><div class="code-bar"><span>Where does the data really live?</span><button class="copy" type="button">Copy</button></div><pre><code># Look up the PV name that the claim is bound to
+PV=$(kubectl get pvc dynamic-pvc -o jsonpath='{.spec.volumeName}')
+# Show the PV's folder path and the node it lives on
+kubectl get pv $PV -o jsonpath='path: {.spec.local.path}{.spec.hostPath.path}{"\n"}node: {.spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0]}{"\n"}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>path: /var/local-path-provisioner/pvc-7080f8cc-c960-4333-9f8c-a81bc1523bcc_default_dynamic-pvc
+node: lab-worker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The Pod asked for the claim; the provisioner created a <b>PersistentVolume</b> (PV) named <code>pvc-…</code> and bound it. Nobody wrote a PV by hand — that's <b>dynamic provisioning</b>.</li><li>The PVC names its PV, and the PV names its claim (<code>default/dynamic-pvc</code>). <code>describe</code> on either side shows the link (slide 17).</li><li>The Pod is replaced, the volume is not. The new Pod mounted the same claim and served the saved page.</li><li>On kind, a volume is a folder on <b>one</b> node, and the PV carries <code>nodeAffinity</code> for that node. Every Pod using it will be scheduled there. On a cloud disk, the same idea applies to a <b>zone</b>.</li><li><code>strategy: Recreate</code>: with a single-node volume, the old Pod stops before the new one starts. Safer for data than two Pods writing at once.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The PVC is <b>Bound</b>, a <code>pvc-…</code> PV exists with policy <b>Delete</b>, and the new Pod shows <b>Saved on a PersistentVolume</b>.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Access modes: ReadWriteOnce vs ReadWriteOncePod</h2><div class="tags"><span>Slides 10, 32</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Find out what "once" really means — per node or per Pod.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Three replicas on one RWO volume</span><button class="copy" type="button">Copy</button></div><pre><code># Scale to 3 replicas to see how ReadWriteOnce behaves
+kubectl scale deployment web-storage --replicas=3
+# Wait until all replicas are up
+kubectl rollout status deployment/web-storage --timeout=90s
+# Show that all 3 Pods run on the same node
+kubectl get pods -l app=web-storage -o wide | awk '{print $1, $3, $7}'
+# Scale back down to 1 replica
+kubectl scale deployment web-storage --replicas=1</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps/web-storage scaled
+deployment "web-storage" successfully rolled out
+NAME STATUS NODE
+web-storage-7f995ff8f6-bx4ft Running lab-worker2
+web-storage-7f995ff8f6-hmmjv Running lab-worker2
+web-storage-7f995ff8f6-w9h5w Running lab-worker2
+deployment.apps/web-storage scaled</pre></div><div class="code"><div class="code-bar"><span>Creates: rwop.yaml — one claim, two Pods</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a ReadWriteOncePod claim and two Pods that both want it
+cat &gt; rwop.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: single-writer
+spec:
+  accessModes:
+    - ReadWriteOncePod            # exactly one Pod in the whole cluster may use it
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: writer-1
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: single-writer
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: writer-2
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: single-writer
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the claim and both Pods
+kubectl apply -f rwop.yaml
+# Give the scheduler time to place the Pods
+sleep 15
+# Show writer-1 is Running and writer-2 is Pending
+kubectl get pods writer-1 writer-2 -o wide | awk '{print $1, $3, $7}'
+# Show the scheduling event that explains why writer-2 waits
+kubectl get events --field-selector involvedObject.name=writer-2,reason=FailedScheduling -o jsonpath='{.items[-1:].message}{"\n"}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>persistentvolumeclaim/single-writer created
+pod/writer-1 created
+pod/writer-2 created
+NAME STATUS NODE
+writer-1 Running lab-worker
+writer-2 Pending &lt;none&gt;
+0/3 nodes are available: 1 node(s) had untolerated taint(s), 2 node(s) unavailable due to PersistentVolumeClaim with ReadWriteOncePod access mode already in-use by another pod. preemption: 0/3 nodes are available: 1 Preemption is not helpful for scheduling, 2 No preemption victims found for incoming pod.</pre></div><div class="code"><div class="code-bar"><span>Tidy up</span><button class="copy" type="button">Copy</button></div><pre><code># Delete both Pods
+kubectl delete pod writer-1 writer-2 --now
+# Delete the ReadWriteOncePod claim
+kubectl delete pvc single-writer</code></pre></div><div class="table-wrap"><table><thead><tr><th>Mode</th><th>Short</th><th>Who may mount it read-write</th></tr></thead><tbody><tr><td>ReadWriteOnce</td><td>RWO</td><td>Pods on <b>one node</b> — any number of them</td></tr><tr><td>ReadWriteOncePod</td><td>RWOP</td><td>exactly <b>one Pod</b> in the cluster (stable since v1.29)</td></tr><tr><td>ReadOnlyMany</td><td>ROX</td><td>many nodes, read-only</td></tr><tr><td>ReadWriteMany</td><td>RWX</td><td>many nodes read-write — needs shared storage like NFS, EFS, Azure Files, CephFS</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li>Surprise for most people: <b>RWO</b> means one <b>node</b>, not one Pod. All three replicas landed on lab-worker2 and shared the volume. Two processes writing the same files is how data gets corrupted.</li><li><b>RWOP</b> is the real "one writer" guarantee. The second Pod waits with a clear message instead of corrupting data.</li><li><code>rwop.yaml</code> has no <code>storageClassName</code>, so it got the default class <code>standard</code>.</li><li>The backend decides which modes are possible. A cloud block disk can't do RWX; ask for it and the claim stays Pending (slide 38).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three RWO replicas on <b>one node</b>; with RWOP, <code>writer-2</code> is <b>Pending</b>.</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Reclaim policy Delete: the claim takes the data with it</h2><div class="tags"><span>Slides 18, 32</span><span>~3 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete the app and its claim, and watch the volume and its data disappear.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Save the PV name behind the claim
+PV=$(kubectl get pvc dynamic-pvc -o jsonpath='{.spec.volumeName}')
+# Save the node that holds the PV's folder
+NODE=$(kubectl get pv $PV -o jsonpath='{.spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0]}')
+# Delete the Deployment (the Pod must go before the claim)
+kubectl delete deployment web-storage
+# Wait until the Pod is fully gone
+kubectl wait --for=delete pod -l app=web-storage --timeout=60s
+# Delete the claim (reclaim policy Delete will remove the volume)
+kubectl delete pvc dynamic-pvc
+# Give the controller a moment to clean up
+sleep 5
+# Show the PV is NotFound — it was deleted with the claim
+kubectl get pv $PV
+# List the node's provisioner folder to show the data is gone
+docker exec $NODE ls /var/local-path-provisioner/</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>deployment.apps "web-storage" deleted from default namespace
+persistentvolumeclaim "dynamic-pvc" deleted from default namespace
+Error from server (NotFound): persistentvolumes "pvc-7080f8cc-c960-4333-9f8c-a81bc1523bcc" not found</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The class <code>standard</code> has <code>reclaimPolicy: Delete</code>. Deleting the claim deleted the PV <b>and</b> the folder on the node — the last <code>ls</code> printed nothing.</li><li>Delete is the usual default for dynamic classes. It's tidy, and it's exactly how people lose data by running <code>kubectl delete pvc</code> or deleting a namespace.</li><li>The Pod had to go first. A claim that's still in use is protected: <code>kubectl delete pvc</code> would wait until the Pod is gone (<code>kubernetes.io/pvc-protection</code>).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The PV is <b>NotFound</b> and the node's folder is empty.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>Reclaim policy Retain — and getting the data back</h2><div class="tags"><span>Slides 13, 18, 21, 32</span><span>~9 min</span></div></div></div><p class="goal"><b>Goal:</b> Create a class that keeps volumes, delete a claim by mistake, and recover the data with a new claim.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Creates: retain-sc.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a StorageClass with reclaimPolicy Retain
+cat &gt; retain-sc.yaml &lt;&lt;'EOF'
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: keep-data
+provisioner: rancher.io/local-path        # same driver as "standard"
+reclaimPolicy: Retain                      # keep the volume when the claim is deleted
+volumeBindingMode: WaitForFirstConsumer
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: important-data.yaml — a claim and a Pod that writes an invoice</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a claim and a Pod that writes an invoice file
+cat &gt; important-data.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: invoices
+spec:
+  storageClassName: keep-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: invoice-writer
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "echo 'invoice 1001: 250 EUR' &gt; /data/invoices.txt &amp;&amp; sleep 3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: invoices
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the StorageClass, the claim and the Pod
+kubectl apply -f retain-sc.yaml -f important-data.yaml
+# Wait until the Pod is Ready
+kubectl wait --for=condition=Ready pod/invoice-writer --timeout=60s
+# List the StorageClasses and compare the reclaim policies
+kubectl get storageclass</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>storageclass.storage.k8s.io/keep-data created
+persistentvolumeclaim/invoices created
+pod/invoice-writer created
+pod/invoice-writer condition met
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+keep-data            rancher.io/local-path   Retain          WaitForFirstConsumer   false                  5s
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  7h</pre></div><div class="code"><div class="code-bar"><span>"Oops" — the claim is deleted</span><button class="copy" type="button">Copy</button></div><pre><code># Save the PV name behind the invoices claim
+PV=$(kubectl get pvc invoices -o jsonpath='{.spec.volumeName}')
+# Print the PV name
+echo "$PV"
+# Delete the Pod
+kubectl delete pod invoice-writer --now
+# Delete the claim by "mistake"
+kubectl delete pvc invoices
+# Show the PV is kept and now marked Released
+kubectl get pv $PV
+# Find the node that holds the PV's folder
+NODE=$(kubectl get pv $PV -o jsonpath='{.spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0]}')
+# Read the invoice file straight from the node to prove the data is intact
+docker exec $NODE cat /var/local-path-provisioner/${PV}_default_invoices/invoices.txt</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pvc-b7133e5a-aca4-4356-ad78-4375b47704ea
+pod "invoice-writer" deleted from default namespace
+persistentvolumeclaim "invoices" deleted from default namespace
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM              STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-b7133e5a-aca4-4356-ad78-4375b47704ea   1Gi        RWO            Retain           Released   default/invoices   keep-data      &lt;unset&gt;                          8s
+invoice 1001: 250 EUR</pre></div><div class="code"><div class="code-bar"><span>Recover: free the volume, then claim it by name</span><button class="copy" type="button">Copy</button></div><pre><code># Remove the old claimRef so the Released PV becomes Available again
+kubectl patch pv $PV --type=json -p '[{"op":"remove","path":"/spec/claimRef"}]'
+# Show the PV status is now Available
+kubectl get pv $PV --no-headers | awk '{print $1, $5}'
+# Create the YAML for a new claim and a Pod bound to the old PV by name
+cat &gt; recover-claim.yaml &lt;&lt;EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: invoices-restored
+spec:
+  storageClassName: keep-data
+  volumeName: $PV                  # bind to this exact volume (static binding)
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: invoice-reader
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "cat /data/invoices.txt &amp;&amp; sleep 3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: invoices-restored
+EOF
+# Create the new claim and reader Pod
+kubectl apply -f recover-claim.yaml
+# Wait until the reader Pod is Ready
+kubectl wait --for=condition=Ready pod/invoice-reader --timeout=60s
+# Print the Pod's log to show the old invoice was recovered
+kubectl logs invoice-reader</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>persistentvolume/pvc-b7133e5a-aca4-4356-ad78-4375b47704ea patched
+pvc-b7133e5a-aca4-4356-ad78-4375b47704ea Available
+persistentvolumeclaim/invoices-restored created
+pod/invoice-reader created
+pod/invoice-reader condition met
+invoice 1001: 250 EUR</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>With <code>reclaimPolicy: Retain</code>, deleting the claim only <b>releases</b> the PV. The data stays — the invoice is still on the node.</li><li>A <b>Released</b> PV still remembers its old claim (<code>claimRef</code>), so Kubernetes won't hand it to anyone else by accident. Removing <code>claimRef</code> makes it <b>Available</b> again. That's a deliberate, human step.</li><li><code>volumeName</code> in the new claim is <b>static binding</b>: "give me exactly this volume". It's also how you use PVs an admin created by hand (slide 13).</li><li>This heredoc has no quotes around <code>EOF</code>, so the shell fills in <code>$PV</code> for you.</li><li>Use Retain for anything you can't rebuild: databases, uploads, invoices. The price: someone must clean up old volumes on purpose (Step 16).</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The PV went <b>Released → Available</b>, and <code>invoice-reader</code> printed <b>invoice 1001: 250 EUR</b>.</div></div></section><div class="part-head" id="part-C"><b>Part C — StatefulSets</b><span>Steps 9–13 · slides 19–28, 33–34 · ~30 min</span></div><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>A MySQL StatefulSet</h2><div class="tags"><span>Slides 19–24, 33</span><span>~8 min</span></div></div></div><p class="goal"><b>Goal:</b> Run three MySQL replicas with a headless Service, a Secret for the password, and one PVC per replica.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Free the invoice claim first</span><button class="copy" type="button">Copy</button></div><pre><code># Delete the reader Pod
+kubectl delete pod invoice-reader --now</code></pre></div><div class="code"><div class="code-bar"><span>Creates: mysql.yaml — Secret + headless Service + StatefulSet</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a headless Service, Secret and 3-replica MySQL StatefulSet
+cat &gt; mysql.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-root
+type: Opaque
+stringData:
+  password: "Lab-Only-Pa55"            # made up for the lab — never commit real ones (Module 6)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  clusterIP: None                      # headless: DNS names per Pod, no load balancing
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql-service           # gives mysql-0.mysql-service, mysql-1.mysql-service, …
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4.11
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root
+                  key: password
+          ports:
+            - name: mysql
+              containerPort: 3306
+          readinessProbe:              # ready only when the real server answers over TCP
+            exec:
+              command: ["sh", "-c", "MYSQL_PWD=\"$MYSQL_ROOT_PASSWORD\" mysql -h 127.0.0.1 -uroot -e 'SELECT 1'"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:                # one PVC per replica: data-mysql-0, data-mysql-1, …
+    - metadata:
+        name: data
+      spec:
+        storageClassName: keep-data
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>About one minute — each replica waits for the one before</span><button class="copy" type="button">Copy</button></div><pre><code># Create the MySQL resources
+kubectl apply -f mysql.yaml
+# Wait until all three MySQL Pods are ready (one at a time, in order)
+kubectl rollout status statefulset/mysql --timeout=300s
+# Show the Pods and their nodes
+kubectl get pods -l app=mysql -o wide | awk '{print $1, $2, $3, $5, $7}'
+# Show that each Pod got its own PVC
+kubectl get pvc -l app=mysql</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>secret/mysql-root created
+service/mysql-service created
+statefulset.apps/mysql created
+Waiting for 3 pods to be ready...
+Waiting for 2 pods to be ready...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 3 new pods have been updated...
+NAME READY STATUS AGE NODE
+mysql-0 1/1 Running 59s lab-worker2
+mysql-1 1/1 Running 44s lab-worker
+mysql-2 1/1 Running 25s lab-worker2
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-mysql-0   Bound    pvc-ffa9bf83-a1c5-441f-a167-fd4c3637dc69   1Gi        RWO            keep-data      &lt;unset&gt;                 60s
+data-mysql-1   Bound    pvc-72ae7863-cdde-4648-aa5b-5dac101e45ee   1Gi        RWO            keep-data      &lt;unset&gt;                 45s
+data-mysql-2   Bound    pvc-45280e93-266a-43d4-9964-278a93b8b104   1Gi        RWO            keep-data      &lt;unset&gt;                 26s</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Names are <b>ordinals</b>: <code>mysql-0</code>, <code>-1</code>, <code>-2</code> — not random suffixes. Look at the ages: each started only after the one before was <b>Ready</b>.</li><li><code>volumeClaimTemplates</code> created one claim per replica: <code>data-mysql-0</code>, <code>-1</code>, <code>-2</code> — template name + Pod name.</li><li>The readiness probe connects over TCP (<code>-h 127.0.0.1</code>). While MySQL initializes, it runs a temporary server without networking; this probe only passes once the real server answers.</li><li>The password comes from a Secret, not a plain <code>value:</code> in the YAML like the old slide had (Module 6).</li><li>Honest note: these are <b>three separate databases</b>, not a replicated cluster. Real MySQL replication needs extra setup — usually done by an operator (MySQL Operator, Percona, Vitess). The StatefulSet gives the stable names and disks such tools build on.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Three Pods <b>mysql-0, -1, -2</b> Ready, created in order, and three <b>Bound</b> claims <code>data-mysql-*</code>.</div></div></section><section class="step" id="step-10"><div class="step-top"><div class="step-num">10</div><div><h2>Stable names and a disk per replica</h2><div class="tags"><span>Slides 22, 25, 33</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Write data on mysql-0 only, reach each replica by its DNS name, and see that every replica has its own data.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Data on mysql-0 — and on mysql-1?</span><button class="copy" type="button">Copy</button></div><pre><code># Create a database and table with two rows on mysql-0
+echo "CREATE DATABASE shop; CREATE TABLE shop.orders (id INT PRIMARY KEY, item VARCHAR(40)); INSERT INTO shop.orders VALUES (1,'blue mug'),(2,'green tea');" | kubectl exec -i mysql-0 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'
+# Read the rows back from mysql-0
+echo "SELECT * FROM shop.orders" | kubectl exec -i mysql-0 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'
+# Print a label for the next output
+echo '--- mysql-1:'
+# Check that mysql-1 does not have the database (each replica has its own disk)
+echo "SHOW DATABASES LIKE 'shop'" | kubectl exec -i mysql-1 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>1	blue mug
+2	green tea
+--- mysql-1:</pre></div><div class="code"><div class="code-bar"><span>Every replica has its own DNS name</span><button class="copy" type="button">Copy</button></div><pre><code># Start a small helper Pod to test DNS
+kubectl run client --image=busybox:1.37 --restart=Never -- sleep 3600
+# Wait until the helper Pod is Ready
+kubectl wait --for=condition=Ready pod/client --timeout=60s
+# Look up the stable DNS name of each MySQL Pod
+for i in 0 1 2; do kubectl exec client -- nslookup mysql-$i.mysql-service.default.svc.cluster.local | grep -E '^Name|^Address: '; done
+# Reach mysql-0 by its stable DNS name from another Pod
+kubectl exec mysql-1 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -h mysql-0.mysql-service -uroot -N -e "SELECT @@hostname, COUNT(*) FROM shop.orders"'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/client created
+pod/client condition met
+Name:	mysql-0.mysql-service.default.svc.cluster.local
+Address: 10.244.1.2
+Name:	mysql-1.mysql-service.default.svc.cluster.local
+Address: 10.244.2.236
+Name:	mysql-2.mysql-service.default.svc.cluster.local
+Address: 10.244.1.4
+mysql-0	2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>shop</code> exists only on mysql-0. Each replica writes to its <b>own</b> PVC.</li><li>The headless Service (<code>clusterIP: None</code>) gives each Pod a DNS name: <code>mysql-0.mysql-service</code>. An app that must write to the primary can always find it by name.</li><li>The last command ran on mysql-1 and connected to mysql-0 <b>by name</b> — 2 orders, served by host mysql-0.</li><li>We read the password from the container's environment (<code>MYSQL_PWD</code>), so it never appears on the command line or in your shell history.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">mysql-0 returns <b>2 orders</b>, mysql-1 has <b>no shop database</b>, and the three DNS names resolve.</div></div></section><section class="step" id="step-11"><div class="step-top"><div class="step-num">11</div><div><h2>Delete mysql-0 — keep its name and its data</h2><div class="tags"><span>Slides 27, 34</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete the Pod that holds the orders and see what comes back.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Record mysql-0's identity (UID, IP, node, claim) before deleting it
+kubectl get pod mysql-0 -o jsonpath='before: uid={.metadata.uid} ip={.status.podIP} node={.spec.nodeName} claim={.spec.volumes[0].persistentVolumeClaim.claimName}{"\n"}'
+# Delete mysql-0 to simulate a failure
+kubectl delete pod mysql-0
+# Wait until the StatefulSet recreates mysql-0
+kubectl wait --for=condition=Ready pod/mysql-0 --timeout=180s
+# Record mysql-0's identity after: new UID and IP, same name and claim
+kubectl get pod mysql-0 -o jsonpath='after:  uid={.metadata.uid} ip={.status.podIP} node={.spec.nodeName} claim={.spec.volumes[0].persistentVolumeClaim.claimName}{"\n"}'
+# Read the rows again to prove the data survived
+echo "SELECT * FROM shop.orders" | kubectl exec -i mysql-0 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>before: uid=092f17ae-0d4c-44e0-b18e-6a51e9e70cbf ip=10.244.1.2 node=lab-worker2 claim=data-mysql-0
+pod "mysql-0" deleted from default namespace
+pod/mysql-0 condition met
+after:  uid=dcff1be8-e5dc-4b45-bef1-76e41ac79d0f ip=10.244.1.5 node=lab-worker2 claim=data-mysql-0
+1	blue mug
+2	green tea</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>A brand-new Pod (new uid, new IP) — with the <b>same name</b> and the <b>same claim</b>. The orders are still there.</li><li>The IP changed, the DNS name didn't. That's why apps must use <code>mysql-0.mysql-service</code>, never an IP.</li><li>It came back on the <b>same node</b>, because its local volume lives there. If that node died, mysql-0 would wait for it — real clusters use network disks (EBS, Persistent Disk, Ceph) that can move to another node or zone.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">New <b>uid</b> and <b>IP</b>, same <b>name</b> and <b>claim</b>, and both orders are back.</div></div></section><section class="step" id="step-12"><div class="step-top"><div class="step-num">12</div><div><h2>Scale down and up: the claim waits for its Pod</h2><div class="tags"><span>Slides 26, 28, 34</span><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Scale to 2 and back to 3, and see that mysql-2 gets its old disk back.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Mark mysql-2, then scale down</span><button class="copy" type="button">Copy</button></div><pre><code># Create a marker database on mysql-2 for the scale test
+echo "CREATE DATABASE marker2" | kubectl exec -i mysql-2 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'
+# Scale the StatefulSet down to 2 replicas
+kubectl scale statefulset mysql --replicas=2
+# Wait until mysql-2 is removed (highest ordinal goes first)
+kubectl wait --for=delete pod/mysql-2 --timeout=120s
+# Show only mysql-0 and mysql-1 remain
+kubectl get pods -l app=mysql
+# Show the data-mysql-2 PVC is still there
+kubectl get pvc data-mysql-2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>statefulset.apps/mysql scaled
+pod/mysql-2 condition met
+NAME      READY   STATUS    RESTARTS   AGE
+mysql-0   1/1     Running   0          2m
+mysql-1   1/1     Running   0          4m
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-mysql-2   Bound    pvc-45280e93-266a-43d4-9964-278a93b8b104   1Gi        RWO            keep-data      &lt;unset&gt;                 4m</pre></div><div class="code"><div class="code-bar"><span>Scale up again</span><button class="copy" type="button">Copy</button></div><pre><code># Scale back up to 3 replicas
+kubectl scale statefulset mysql --replicas=3
+# Wait until mysql-2 is ready again
+kubectl rollout status statefulset/mysql --timeout=180s
+# Check that the marker database came back with the old PVC
+echo "SHOW DATABASES LIKE 'marker2'" | kubectl exec -i mysql-2 -c mysql -- sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>statefulset.apps/mysql scaled
+partitioned roll out complete: 3 new pods have been updated...
+marker2</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Scale-down removes the <b>highest</b> ordinal first: mysql-2. Scale-up adds them back in order.</li><li>The claim <code>data-mysql-2</code> stayed <b>Bound</b> while its Pod was gone, and the new mysql-2 got it back — <code>marker2</code> is still there.</li><li>That's the safe default: scaling down never deletes data. The price: disks of scaled-down replicas keep costing money until someone deletes them.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>data-mysql-2</code> stayed <b>Bound</b>, and after scaling up mysql-2 still has <b>marker2</b>.</div></div></section><section class="step" id="step-13"><div class="step-top"><div class="step-num">13</div><div><h2>Retention policy: delete claims on scale-down</h2><div class="tags"><span>Slides 28, 34</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Tell the StatefulSet to delete the claims of removed replicas — and see what the StorageClass still decides.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Set the retention policy so scaling down deletes PVCs but deleting the set keeps them
+kubectl patch statefulset mysql --type=merge \
+  -p '{"spec":{"persistentVolumeClaimRetentionPolicy":{"whenScaled":"Delete","whenDeleted":"Retain"}}}'
+# Save the PV name behind data-mysql-2
+PV2=$(kubectl get pvc data-mysql-2 -o jsonpath='{.spec.volumeName}')
+# Scale down to 2 replicas again
+kubectl scale statefulset mysql --replicas=2
+# Wait until the data-mysql-2 PVC is deleted
+kubectl wait --for=delete pvc/data-mysql-2 --timeout=120s
+# Show the remaining PVCs
+kubectl get pvc -l app=mysql
+# Show the PV for mysql-2 is gone as well
+kubectl get pv $PV2</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>statefulset.apps/mysql patched
+statefulset.apps/mysql scaled
+persistentvolumeclaim/data-mysql-2 condition met
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-mysql-0   Bound    pvc-ffa9bf83-a1c5-441f-a167-fd4c3637dc69   1Gi        RWO            keep-data      &lt;unset&gt;                 5m
+data-mysql-1   Bound    pvc-72ae7863-cdde-4648-aa5b-5dac101e45ee   1Gi        RWO            keep-data      &lt;unset&gt;                 5m
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                 STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-45280e93-266a-43d4-9964-278a93b8b104   1Gi        RWO            Retain           Released   default/data-mysql-2   keep-data      &lt;unset&gt;                          5m</pre></div><div class="table-wrap"><table><thead><tr><th>Setting</th><th>Lives on</th><th>Decides</th></tr></thead><tbody><tr><td><code>persistentVolumeClaimRetentionPolicy</code></td><td>StatefulSet</td><td>is the <b>claim</b> deleted when a replica is scaled away (<code>whenScaled</code>) or the StatefulSet is deleted (<code>whenDeleted</code>)? Default: Retain for both</td></tr><tr><td><code>reclaimPolicy</code></td><td>StorageClass / PV</td><td>is the <b>volume and its data</b> deleted when the claim is deleted? Retain or Delete</td></tr></tbody></table></div><div class="why"><div class="why-label">What just happened</div><ul><li>The claim <code>data-mysql-2</code> was deleted with its Pod — that's <code>whenScaled: Delete</code> (stable since v1.32).</li><li>But the <b>volume</b> survived as <b>Released</b>: its class <code>keep-data</code> says Retain. Two separate switches, two separate decisions.</li><li>A common production pair: <code>whenScaled: Delete</code> for caches or replicas that re-sync from a primary, <code>whenDeleted: Retain</code> so deleting the StatefulSet never wipes the data.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>data-mysql-2</code> is gone, and its PV is <b>Released</b>, not deleted.</div></div></section><div class="part-head" id="part-D"><b>Part D — 2026: ship data as an image</b><span>Step 14 · slides 35–37 · ~6 min</span></div><section class="step" id="step-14"><div class="step-top"><div class="step-num">14</div><div><h2>Image volumes: ship data as an image</h2><div class="tags"><span>Slides 36–37</span><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Package website content as an OCI image and mount it read-only into nginx — no init container, no copying.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Build a content-only image and copy it into kind</span><button class="copy" type="button">Copy</button></div><pre><code># Create a folder for the content image
+mkdir -p site
+# Create the web page to ship inside the image
+cat &gt; site/index.html &lt;&lt;'EOF'
+&lt;h1&gt;Shop catalogue v1&lt;/h1&gt;&lt;p&gt;Content shipped as an OCI image, mounted read-only.&lt;/p&gt;
+EOF
+# Create a Dockerfile that packages only the page
+cat &gt; site/Dockerfile &lt;&lt;'EOF'
+FROM scratch
+COPY index.html /
+EOF
+# Build the content image
+docker build -q -t site-content:v1 site
+# Load the image into the kind cluster
+kind load docker-image site-content:v1 --name lab</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>sha256:62fb946cca8eb2c9f788c5100e34b1685d5781d054ad076cf6267c1843857c75
+Image: "site-content:v1" with ID "sha256:62fb946cca8e…" not yet present on node "lab-worker2", loading...
+...</pre></div><div class="code"><div class="code-bar"><span>Creates: image-volume-pod.yaml</span><button class="copy" type="button">Copy</button></div><pre><code># Create the YAML for a Pod that mounts the image as a read-only volume
+cat &gt; image-volume-pod.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: catalogue
+spec:
+  containers:
+    - name: web
+      image: nginx:1.28-alpine
+      volumeMounts:
+        - name: content
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+  volumes:
+    - name: content
+      image:                            # mount an OCI image as a read-only volume (stable in v1.37)
+        reference: site-content:v1
+        pullPolicy: IfNotPresent
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create the image-volume Pod
+kubectl apply -f image-volume-pod.yaml
+# Wait until the Pod is Ready
+kubectl wait --for=condition=Ready pod/catalogue --timeout=60s
+# Fetch the page from the mounted image
+kubectl exec catalogue -- wget -qO- http://localhost
+# Try to write into the image volume and see it is read-only
+kubectl exec catalogue -- touch /usr/share/nginx/html/x</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod/catalogue created
+pod/catalogue condition met
+&lt;h1&gt;Shop catalogue v1&lt;/h1&gt;&lt;p&gt;Content shipped as an OCI image, mounted read-only.&lt;/p&gt;
+touch: /usr/share/nginx/html/x: Read-only file system
+command terminated with exit code 1</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The image <code>site-content:v1</code> contains just one file and no program — <code>FROM scratch</code>. It's a package of data.</li><li>An <code>image</code> volume mounts that package straight into the container, read-only. Image volumes are stable in v1.37.</li><li>Why it matters: ML models, website content, config bundles and tools can be versioned, signed and cached like any image, and updated separately from the app image.</li><li>It's read-only on purpose — the write failed. For data the app changes, you still need a PVC.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">nginx serves <b>Shop catalogue v1</b>, and writing to the folder fails with <b>Read-only file system</b>.</div></div></section><div class="part-head" id="part-E"><b>Part E — Leftovers and clean up</b><span>Steps 15–16 · ~6 min</span></div><section class="step" id="step-15"><div class="step-top"><div class="step-num">15</div><div><h2>Why the claims are still there</h2><div class="tags"><span>Slides 28, 38</span><span>~2 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete the StatefulSet and see which claims and volumes stay behind.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Delete the MySQL StatefulSet (the PVCs stay by default)
+kubectl delete statefulset mysql
+# Wait until the MySQL Pods are gone
+kubectl wait --for=delete pod -l app=mysql --timeout=120s
+# List the PVCs that were left behind
+kubectl get pvc
+# Show the leftover PVs with status and reclaim policy
+kubectl get pv --no-headers | awk '{print $1, $5, $6}'</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>statefulset.apps "mysql" deleted from default namespace
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-mysql-0        Bound    pvc-ffa9bf83-a1c5-441f-a167-fd4c3637dc69   1Gi        RWO            keep-data      &lt;unset&gt;                 7m
+data-mysql-1        Bound    pvc-72ae7863-cdde-4648-aa5b-5dac101e45ee   1Gi        RWO            keep-data      &lt;unset&gt;                 7m
+invoices-restored   Bound    pvc-b7133e5a-aca4-4356-ad78-4375b47704ea   1Gi        RWO            keep-data      &lt;unset&gt;                 9m
+pvc-45280e93-266a-43d4-9964-278a93b8b104 Released default/data-mysql-2
+pvc-72ae7863-cdde-4648-aa5b-5dac101e45ee Bound default/data-mysql-1
+pvc-b7133e5a-aca4-4356-ad78-4375b47704ea Bound default/invoices-restored
+pvc-ffa9bf83-a1c5-441f-a167-fd4c3637dc69 Bound default/data-mysql-0</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>whenDeleted: Retain</code>: deleting the StatefulSet left <code>data-mysql-0</code> and <code>-1</code> in place. Recreate the same StatefulSet and each replica gets its disk back.</li><li>This is the storage cleanup trap from slide 38: nothing here costs you on kind, but on a cloud every one of these is a paid disk.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Two <code>data-mysql-*</code> claims are still <b>Bound</b>, and the old <code>data-mysql-2</code> volume is <b>Released</b>.</div></div></section><section class="step" id="step-16"><div class="step-top"><div class="step-num">16</div><div><h2>Clean up — on purpose</h2><div class="tags"><span>—</span><span>~4 min</span></div></div></div><p class="goal"><b>Goal:</b> Delete claims, volumes, the extra StorageClass and the leftover folders. Keep the cluster for Module 9.</p><div class="folder">Run from: <code>module8-lab/</code></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Delete the remaining lab Pods
+kubectl delete pod catalogue client shared-volume-pod --now --ignore-not-found
+# Delete the MySQL headless Service
+kubectl delete service mysql-service
+# Delete the MySQL Secret
+kubectl delete secret mysql-root
+# Delete the leftover PVCs
+kubectl delete pvc data-mysql-0 data-mysql-1 invoices-restored
+# Delete the retained PVs that used the keep-data class
+kubectl delete pv $(kubectl get pv -o jsonpath='{range .items[?(@.spec.storageClassName=="keep-data")]}{.metadata.name} {end}')
+# Delete the keep-data StorageClass
+kubectl delete storageclass keep-data
+# Remove the leftover provisioner folders from each node
+for n in lab-worker lab-worker2; do docker exec $n sh -c 'rm -rf /var/local-path-provisioner/*_default_*'; done
+# Confirm no PVs or PVCs remain
+kubectl get pv,pvc
+# Confirm only the default StorageClass remains
+kubectl get storageclass</code></pre></div><div class="output"><div class="output-label">Expected output</div><pre>pod "catalogue" deleted from default namespace
+pod "client" deleted from default namespace
+pod "shared-volume-pod" deleted from default namespace
+service "mysql-service" deleted from default namespace
+secret "mysql-root" deleted from default namespace
+persistentvolumeclaim "data-mysql-0" deleted from default namespace
+persistentvolumeclaim "data-mysql-1" deleted from default namespace
+persistentvolumeclaim "invoices-restored" deleted from default namespace
+persistentvolume "pvc-45280e93-266a-43d4-9964-278a93b8b104" deleted
+...
+storageclass.storage.k8s.io "keep-data" deleted
+No resources found
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  7h</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Retain means <b>you</b> clean up: delete the claims, then the PVs, then the data on the backend — here, folders on the nodes. On a cloud, it's deleting the disks (and their snapshots).</li><li>Order matters: a PV that's still Bound to a claim can't really go away until the claim is gone.</li><li>Module 9 starts from this same cluster. To remove it completely: <code>kind delete cluster --name lab</code>.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>kubectl get pv,pvc</code> says <b>No resources found</b>, and only <code>standard (default)</code> is left.</div></div></section>
+
+<section class="card" id="trouble">
+  <h2>Troubleshooting</h2>
+  <dl class="trouble"><dt>A PVC stays <code>Pending</code></dt><dd>No Pod uses it yet and the class is <code>WaitForFirstConsumer</code> — that's normal (Step 4). With a Pod waiting: <code>kubectl describe pvc &lt;name&gt;</code> — wrong <code>storageClassName</code>, a provisioner that isn't running, or an access mode the backend can't do.</dd><dt>A Pod stays <code>Pending</code> with <code>volume node affinity conflict</code></dt><dd>Its local volume lives on another node, and that node is full or tainted. Free the node, or delete the claim if the data isn't needed.</dd><dt><code>kubectl delete pvc</code> hangs</dt><dd>A Pod still uses the claim (<code>pvc-protection</code>). Delete or scale down the Pod first (Step 7).</dd><dt>A new claim with <code>volumeName</code> stays Pending</dt><dd>The PV is still <b>Released</b> — remove its <code>claimRef</code> first — or the class, size or access mode don't match the PV (Step 8).</dd><dt>mysql Pods stay <code>0/1</code> for a long time</dt><dd>First start initializes the database (20–40 s per replica). Check <code>kubectl logs mysql-0</code>. <code>OOMKilled</code> → raise the memory limit.</dd><dt><code>ERROR 1045 (28000): Access denied for user 'root'</code></dt><dd>The claim already holds a database created with another password. MySQL only reads <code>MYSQL_ROOT_PASSWORD</code> on first start. Delete the old claims (Step 16) or use the old password.</dd><dt><code>ErrImagePull</code> for <code>site-content:v1</code></dt><dd>The image only exists on your machine. Load it into kind (Step 14) and keep <code>pullPolicy: IfNotPresent</code>.</dd><dt><code>kind load</code> fails with <code>ctr: content digest sha256:… not found</code></dt><dd>Docker 29 keeps images in its containerd image store: it downloads only your platform, but <code>docker save</code> still lists all of them, and kind's import looks for every one. Save just your platform and load the archive — that's what the pre-load commands at the top of this page do: <code>docker save --platform "$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')" -o image.tar IMAGE</code> then <code>kind load image-archive image.tar --name lab</code>. Images you built yourself (like <code>module1-demo-api</code>) load fine with <code>kind load docker-image</code>.</dd><dt><code>ERROR: unknown containerd config version: 4</code> from <code>kind</code></dt><dd>Your <code>kind</code> binary is older than the node image. Install kind v0.33 or newer (Module 2, Step 1) and run <code>kind version</code> to check.</dd></dl>
+</section>
+
+</main>
+</div>
+<footer>Module 8 — Storage: Volumes, PV, PVC, StorageClass &amp; StatefulSets · Hands-on lab · Kubernetes Training</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); });
+    } else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
