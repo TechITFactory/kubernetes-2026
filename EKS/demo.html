@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EKS with Terraform — Launch, Scale and Onboard</title>
+<style>
+:root{--bg:#f5f7f9;--panel:#fff;--ink:#17212b;--soft:#586776;--line:#dfe6ec;--accent:#1c7293;--deep:#21295c;
+--code:#1d232b;--code-ink:#e8f1f5;--out:#f1f5f8;--good:#2f8f57;--good-bg:#eaf6ee;--warn:#b36b1d;--warn-bg:#fcf3e6;--r:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
+a{color:var(--accent)}
+p,li,td,dd,.ct,.goal{overflow-wrap:anywhere}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:.9em;background:#eaf1f5;padding:1px 5px;border-radius:4px}
+header.top{background:linear-gradient(135deg,var(--deep),var(--accent));color:#fff;padding:34px 24px 30px}
+header.top .in{max-width:1200px;margin:0 auto}
+header.top .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85}
+header.top h1{margin:6px 0 8px;font-size:clamp(24px,4vw,34px);line-height:1.2}
+header.top p{margin:0;max-width:780px;opacity:.93}
+header.top .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+header.top .meta span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 12px;font-size:12.5px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1200px;margin:0 auto}
+nav.side{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}
+nav.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);font-weight:700;margin:16px 6px 6px}
+nav.side a{display:flex;gap:8px;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+nav.side a:hover{background:var(--panel)}
+nav.side a .n{flex:0 0 22px;color:var(--accent);font-weight:700;text-align:right}
+main{padding:26px 30px 90px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.card h2{margin:0 0 10px;font-size:20px;color:var(--deep)}
+.flow{display:grid;gap:12px}
+.flow .part{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start}
+.flow .letter{width:44px;height:44px;border-radius:10px;background:var(--deep);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.flow .ptitle{font-weight:700}
+.flow .psub{font-size:12.5px;color:var(--soft)}
+.flow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.flow .chips a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);background:var(--bg)}
+.flow .chips a:hover{border-color:var(--accent);color:var(--accent)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:4px 0}
+.part-head{margin:34px 0 14px;padding:12px 18px;background:var(--deep);color:#fff;border-radius:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.part-head b{font-size:15px}
+.part-head span{font-size:12.5px;opacity:.85}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;scroll-margin-top:12px}
+.step-top{display:flex;gap:14px;align-items:flex-start}
+.step-num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.step-top h2{margin:2px 0 4px;font-size:19px;color:var(--deep);line-height:1.3}
+.tags{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.tags span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--soft)}
+.goal{margin:14px 0 6px}
+.folder{font-size:12.5px;color:var(--soft);margin-bottom:6px}
+.step h3{font-size:15px;margin:18px 0 4px;color:var(--ink)}
+.code{margin:12px 0;border-radius:8px;overflow:hidden;background:var(--code)}
+.code-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px 6px 14px;background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:600}
+.code-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code pre{margin:0;background:var(--code);color:var(--code-ink);padding:14px 16px;overflow-x:auto;font-size:13.2px;line-height:1.55}
+.code pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.copy{flex:0 0 auto;background:rgba(255,255,255,.1);color:var(--code-ink);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.2)}
+.copy.done{background:var(--good);border-color:var(--good);color:#fff}
+.output{margin:-4px 0 14px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;background:var(--out)}
+.output-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);padding:8px 14px 0}
+.output pre{margin:0;padding:6px 14px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;font-size:12.8px;overflow-x:auto;color:#2a3843}
+.why{margin:14px 0;background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 16px}
+.why-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--deep)}
+.why ul{margin:6px 0 2px;padding-left:20px}
+.why li{margin:4px 0}
+.callout{margin:12px 0;padding:10px 14px;border-radius:8px;background:#eaf4f8;font-size:14px}
+.callout.warn{background:var(--warn-bg);border:1px solid #efd6b4}
+.callout.warn b{color:var(--warn)}
+.check{margin-top:14px;display:flex;gap:10px;align-items:baseline;background:var(--good-bg);border:1px solid #cfe9d8;border-radius:8px;padding:9px 14px;font-size:14px}
+.check .ct{min-width:0}
+.check > span{flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--good)}
+.table-wrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+.trouble dt{font-weight:600;margin-top:12px}
+.trouble dd{margin:4px 0 0 0;color:var(--soft)}
+footer{text-align:center;color:var(--soft);font-size:12.5px;padding:30px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.side{position:relative;max-height:none;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 16px 60px}.step,.card{padding:18px 16px}}
+@media print{nav.side,.copy{display:none}.wrap{display:block}.step,.card{break-inside:avoid}}
+.lede{font-size:16px;color:var(--soft);max-width:760px}
+.idea{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.idea div{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.idea b{display:block;color:var(--deep);margin-bottom:3px}
+.explore{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+.diagram-box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px}
+.diagram-box svg{width:100%;height:auto;display:block}
+.hot{cursor:pointer;outline:none}
+.hot .shape{transition:fill .15s,stroke .15s,stroke-width .15s}
+.hot:hover .shape,.hot:focus .shape{stroke:var(--accent);stroke-width:3}
+.hot.on .shape{stroke:var(--warn);stroke-width:3.5}
+.hint{font-size:12.5px;color:var(--soft);margin:6px 4px 2px}
+.info{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;background:var(--panel);padding:14px 16px}
+.info h3{margin:0 0 6px;font-size:17px;color:var(--deep)}
+.info dl{margin:8px 0 0}
+.info dt{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-top:10px}
+.info dd{margin:2px 0 0;font-size:14px}
+.info code{font-size:12.5px}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12px;color:var(--soft);background:var(--bg)}
+/* scaling playground */
+.play{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.play-top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--bg)}
+.play-top label{font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center}
+.play-top input[type=range]{width:200px}
+.sw{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+.sw input{width:16px;height:16px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px}
+.btn{border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--accent);color:#fff}
+.btn.sec{border-color:var(--line);color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.nodes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:6px 16px 12px}
+.node{border:2px solid #9fb3c0;border-radius:8px;padding:8px;min-height:104px;background:#f7fafc;transition:all .25s}
+.node.joining{border-style:dashed;opacity:.7;background:#fff8e8;border-color:var(--warn)}
+.node.empty{border:2px dashed var(--line);background:transparent;opacity:.6}
+.node.leaving{opacity:.4}
+.node .nl{font-size:11.5px;font-weight:800;color:var(--deep);display:flex;justify-content:space-between}
+.node .nl i{font-style:normal;font-weight:600;color:var(--soft)}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px}
+.slot{height:22px;border-radius:4px;background:#e6edf2}
+.slot.pod{background:var(--accent)}
+.slot.sys{background:#8aa0b0}
+.pend{margin:0 16px 10px;padding:8px 12px;border:1px dashed var(--warn);border-radius:8px;background:var(--warn-bg);min-height:42px;font-size:13px}
+.pend .pods{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.pend .pods b{width:20px;height:20px;border-radius:4px;background:var(--warn);display:block}
+.meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding:0 16px 10px}
+.meter{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff}
+.meter b{display:block;font-size:20px;color:var(--deep)}
+.meter span{font-size:11.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+.log{margin:0 16px 14px;max-height:150px;overflow:auto;background:var(--code);color:var(--code-ink);border-radius:8px;padding:8px 12px;font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace}
+.log .hpa{color:#9bd3ff}.log .ca{color:#ffd37a}.log .k8s{color:#a7e8b5}.log .warn{color:#ff9d9d}
+.layers{width:100%}
+.layers td b{color:var(--deep)}
+/* new employee */
+.hire{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
+.path{display:flex;flex-direction:column;gap:0}
+.pstep{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;margin-bottom:8px;text-align:left;font:inherit;color:inherit;width:100%}
+.pstep .n{width:30px;height:30px;border-radius:50%;background:var(--bg);border:2px solid var(--line);display:grid;place-items:center;font-weight:800;color:var(--soft)}
+.pstep b{display:block;font-size:14px}
+.pstep span.w{font-size:12px;color:var(--soft)}
+.pstep.done .n{background:var(--good);border-color:var(--good);color:#fff}
+.pstep.cur{border-color:var(--accent);box-shadow:0 0 0 2px #1c729322}
+.pstep.cur .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.who{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:0 8px;margin-left:6px;color:#fff}
+.who.hr{background:#8a5fb5}.who.plat{background:var(--accent)}.who.new{background:var(--good)}
+.term{background:var(--code);color:var(--code-ink);border-radius:8px;overflow:hidden}
+.term .bar{background:#2a323c;color:#b9c7d1;font-size:12px;font-weight:700;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.term pre{margin:0;padding:12px 14px;font:12.8px/1.55 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;min-height:120px;max-height:330px;overflow:auto}
+.term .ok{color:#8be0a4}.term .no{color:#ff9d9d}.term .cm{color:#8fa3b3}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}
+.chain .c{padding:4px 10px;border:2px solid var(--line);border-radius:6px;font-size:12.5px;font-weight:700;background:#fff;color:var(--soft)}
+.chain .c.lit{border-color:var(--good);background:var(--good-bg);color:#1d6b3f}
+.chain .a{color:var(--soft)}
+.try{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.try .btn{font-size:12.5px;padding:5px 9px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 10px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--soft)}
+.seg button.on{background:var(--deep);color:#fff}
+.cost{width:100%}
+@media (max-width:900px){.explore,.hire{grid-template-columns:1fr}.nodes{grid-template-columns:repeat(2,1fr)}.info{position:relative;top:0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+<div class="eyebrow">Kubernetes Training · Cloud · Hands-on demo</div>
+<h1>Amazon EKS with Terraform — launch it, scale it, onboard a new employee, delete it</h1>
+<p>Click through the pictures first, then build the real thing: a production-style EKS cluster created from code, how its nodes grow and shrink, and how a new hire gets access on day one.</p>
+<div class="meta"><span>9 steps · about 1 h 30 min</span><span>Terraform · EKS 1.35 · us-east-1</span><span>Every command run on a real AWS account</span><span>Costs about $0.25 per hour while running</span></div>
+</div></header>
+<div class="wrap">
+<nav class="side"><div class="grp">Try it first</div><a href="#idea"><span class="n">›</span>The idea in plain words</a><a href="#explore"><span class="n">›</span>1 · What we deploy (click it)</a><a href="#scaling"><span class="n">›</span>2 · Nodes and scaling (play)</a><a href="#newhire"><span class="n">›</span>3 · A new employee, day one</a><a href="#gloss"><span class="n">›</span>Definitions</a><a href="#before"><span class="n">›</span>Cost and before you start</a><div class="grp">Hands-on</div><a href="#step-1"><span class="n">1</span>Prepare your laptop</a><a href="#step-2"><span class="n">2</span>Write the Terraform files</a><a href="#step-3"><span class="n">3</span>Build it with Terraform</a><a href="#step-4"><span class="n">4</span>Connect and look around</a><a href="#step-5"><span class="n">5</span>Deploy an app and open it to the internet</a><a href="#step-6"><span class="n">6</span>Turn on node autoscaling</a><a href="#step-7"><span class="n">7</span>Watch Pods and nodes scale together</a><a href="#step-8"><span class="n">8</span>A new employee gets access</a><a href="#step-9"><span class="n">9</span>Delete everything</a><div class="grp">Reference</div><a href="#recap"><span class="n">›</span>Recap</a><a href="#trouble"><span class="n">›</span>Troubleshooting</a></nav>
+<main>
+<section class="card" id="idea"><h2>The idea in plain words</h2>
+<p class="lede">EKS is Kubernetes where AWS runs the hard part. We describe the whole setup in Terraform files, run one command, and about twelve minutes later a cluster exists. Run another command and it is gone.</p>
+<div class="idea"><div><b>The control plane</b>The Kubernetes brain. AWS runs it. You pay about 10 cents an hour.</div><div><b>The worker nodes</b>Normal EC2 servers that run your apps. You choose the size and how many (1 to 4 here).</div><div><b>The people</b>IAM decides who may enter. A new employee is added to one group and gets the right access, with nothing installed in the cluster.</div></div></section>
+
+<section class="card" id="explore"><h2>1 · What we deploy — click the boxes</h2>
+<p>This is everything Terraform builds. Click any box to see what it is, why we need it, and which Terraform file creates it.</p>
+<div class="explore">
+<div>
+<div class="diagram-box">
+<svg viewBox="0 0 960 540" role="img" aria-label="EKS architecture: control plane run by AWS, a VPC with public and private subnets in two availability zones, and worker nodes in a managed node group">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#586776"/></marker></defs>
+<style>
+svg text{font-family:-apple-system,Segoe UI,Arial,sans-serif;fill:#17212b}
+.t1{font-size:13px;font-weight:700}.t2{font-size:11px;fill:#586776}.t3{font-size:10.5px;fill:#fff;font-weight:700}
+.ln{stroke:#586776;stroke-width:1.6;fill:none;marker-end:url(#ah)}
+</style>
+<!-- You -->
+<g class="hot" data-k="you" tabindex="0" role="button" aria-label="You and kubectl"><rect class="shape" x="14" y="222" width="130" height="76" rx="10" fill="#eaf4f8" stroke="#1c7293" stroke-width="2"/><text class="t1" x="79" y="253" text-anchor="middle">You</text><text class="t2" x="79" y="271" text-anchor="middle">kubectl · aws cli</text></g>
+<!-- control plane -->
+<g class="hot" data-k="cp" tabindex="0" role="button" aria-label="EKS control plane"><rect class="shape" x="214" y="10" width="560" height="108" rx="12" fill="#f1ecfa" stroke="#8a5fb5" stroke-width="2" stroke-dasharray="7 4"/><text class="t1" x="494" y="30" text-anchor="middle">EKS control plane — run and patched by AWS</text>
+<rect x="238" y="44" width="150" height="54" rx="8" fill="#fff" stroke="#8a5fb5"/><text class="t1" x="313" y="66" text-anchor="middle">API server</text><text class="t2" x="313" y="83" text-anchor="middle">what kubectl talks to</text>
+<rect x="404" y="44" width="150" height="54" rx="8" fill="#fff" stroke="#8a5fb5"/><text class="t1" x="479" y="66" text-anchor="middle">etcd</text><text class="t2" x="479" y="83" text-anchor="middle">the cluster's memory</text>
+<rect x="570" y="44" width="186" height="54" rx="8" fill="#fff" stroke="#8a5fb5"/><text class="t1" x="663" y="66" text-anchor="middle">Scheduler + controllers</text><text class="t2" x="663" y="83" text-anchor="middle">decide where Pods run</text></g>
+<!-- IAM -->
+<g class="hot" data-k="iam" tabindex="0" role="button" aria-label="IAM and access entries"><rect class="shape" x="808" y="10" width="140" height="108" rx="10" fill="#fdf1e3" stroke="#b36b1d" stroke-width="2"/><text class="t1" x="878" y="38" text-anchor="middle">IAM</text><text class="t2" x="878" y="58" text-anchor="middle">users · groups · roles</text><text class="t2" x="878" y="76" text-anchor="middle">+ EKS access entries</text><text class="t2" x="878" y="94" text-anchor="middle">= who gets in</text></g>
+<!-- VPC -->
+<g class="hot" data-k="vpc" tabindex="0" role="button" aria-label="VPC"><rect class="shape" x="180" y="150" width="640" height="380" rx="12" fill="#fbfcfd" stroke="#2f8f57" stroke-width="2.4"/><text class="t1" x="196" y="172">VPC · 10.0.0.0/16</text><text class="t2" x="196" y="188">your private network in AWS</text></g>
+<!-- IGW -->
+<g class="hot" data-k="igw" tabindex="0" role="button" aria-label="Internet gateway"><rect class="shape" x="436" y="140" width="108" height="26" rx="13" fill="#2f8f57" stroke="#2f8f57" stroke-width="2"/><text class="t3" x="490" y="157" text-anchor="middle">Internet gateway</text></g>
+<!-- AZ labels -->
+<text class="t2" x="200" y="216">Availability zone A</text><text class="t2" x="520" y="216">Availability zone B</text>
+<!-- public subnets -->
+<g class="hot" data-k="public" tabindex="0" role="button" aria-label="Public subnets"><rect class="shape" x="196" y="222" width="290" height="92" rx="8" fill="#eaf6ee" stroke="#2f8f57" stroke-width="1.6"/><text class="t1" x="208" y="241">Public subnet A</text></g>
+<g class="hot" data-k="public" tabindex="0" role="button" aria-label="Public subnets"><rect class="shape" x="516" y="222" width="290" height="92" rx="8" fill="#eaf6ee" stroke="#2f8f57" stroke-width="1.6"/><text class="t1" x="528" y="241">Public subnet B</text></g>
+<g class="hot" data-k="nat" tabindex="0" role="button" aria-label="NAT gateway"><rect class="shape" x="214" y="256" width="150" height="46" rx="8" fill="#fff" stroke="#2f8f57" stroke-width="1.6"/><text class="t1" x="289" y="276" text-anchor="middle">NAT gateway</text><text class="t2" x="289" y="292" text-anchor="middle">nodes go out via this</text></g>
+<g class="hot" data-k="lb" tabindex="0" role="button" aria-label="Load balancer"><rect class="shape" x="536" y="256" width="170" height="46" rx="8" fill="#fff" stroke="#2f8f57" stroke-width="1.6" stroke-dasharray="5 3"/><text class="t1" x="621" y="276" text-anchor="middle">Load balancer</text><text class="t2" x="621" y="292" text-anchor="middle">made when you expose a Service</text></g>
+<!-- private subnets + node group -->
+<g class="hot" data-k="private" tabindex="0" role="button" aria-label="Private subnets"><rect class="shape" x="196" y="334" width="290" height="186" rx="8" fill="#eef4f8" stroke="#1c7293" stroke-width="1.6"/><text class="t1" x="208" y="353">Private subnet A</text></g>
+<g class="hot" data-k="private" tabindex="0" role="button" aria-label="Private subnets"><rect class="shape" x="516" y="334" width="290" height="186" rx="8" fill="#eef4f8" stroke="#1c7293" stroke-width="1.6"/><text class="t1" x="528" y="353">Private subnet B</text></g>
+<g class="hot" data-k="ng" tabindex="0" role="button" aria-label="Managed node group"><rect class="shape" x="206" y="364" width="590" height="148" rx="10" fill="none" stroke="#1c7293" stroke-width="2" stroke-dasharray="8 4"/><text class="t1" x="500" y="381" text-anchor="middle" style="fill:#1c7293">Managed node group · min 1 · start 2 · max 4</text></g>
+<g class="hot" data-k="node" tabindex="0" role="button" aria-label="Worker node A"><rect class="shape" x="222" y="394" width="258" height="108" rx="8" fill="#fff" stroke="#1c7293" stroke-width="2"/><text class="t1" x="234" y="414">Worker node 1 · EC2 t3.medium</text><text class="t2" x="234" y="430">2 vCPU · 4 GiB · runs your Pods</text>
+<rect x="234" y="442" width="52" height="46" rx="6" fill="#1c7293"/><text class="t3" x="260" y="470" text-anchor="middle">app</text><rect x="294" y="442" width="52" height="46" rx="6" fill="#1c7293"/><text class="t3" x="320" y="470" text-anchor="middle">app</text><rect x="354" y="442" width="52" height="46" rx="6" fill="#8aa0b0"/><text class="t3" x="380" y="470" text-anchor="middle">DNS</text><rect x="414" y="442" width="52" height="46" rx="6" fill="#b36b1d"/><text class="t3" x="440" y="470" text-anchor="middle">scaler</text></g>
+<g class="hot" data-k="node" tabindex="0" role="button" aria-label="Worker node B"><rect class="shape" x="542" y="394" width="244" height="108" rx="8" fill="#fff" stroke="#1c7293" stroke-width="2"/><text class="t1" x="554" y="414">Worker node 2 · EC2 t3.medium</text><text class="t2" x="554" y="430">same size, other zone</text>
+<rect x="554" y="442" width="52" height="46" rx="6" fill="#1c7293"/><text class="t3" x="580" y="470" text-anchor="middle">app</text><rect x="614" y="442" width="52" height="46" rx="6" fill="#1c7293"/><text class="t3" x="640" y="470" text-anchor="middle">app</text><rect x="674" y="442" width="52" height="46" rx="6" fill="#8aa0b0"/><text class="t3" x="700" y="470" text-anchor="middle">DNS</text><rect x="734" y="442" width="40" height="46" rx="6" fill="#8aa0b0"/><text class="t3" x="754" y="470" text-anchor="middle">…</text></g>
+<!-- add-ons -->
+<g class="hot" data-k="addons" tabindex="0" role="button" aria-label="Add-ons"><rect class="shape" x="832" y="236" width="118" height="196" rx="10" fill="#f7fafc" stroke="#586776" stroke-width="2"/><text class="t1" x="891" y="260" text-anchor="middle">Add-ons</text><text class="t2" x="891" y="284" text-anchor="middle">CoreDNS</text><text class="t2" x="891" y="304" text-anchor="middle">kube-proxy</text><text class="t2" x="891" y="324" text-anchor="middle">VPC CNI</text><text class="t2" x="891" y="344" text-anchor="middle">metrics-server</text><text class="t2" x="891" y="364" text-anchor="middle">Pod Identity</text><text class="t2" x="891" y="396" text-anchor="middle">installed and</text><text class="t2" x="891" y="412" text-anchor="middle">updated by AWS</text></g>
+<!-- arrows -->
+<path class="ln" d="M144 246 C190 190 200 100 236 82"/>
+<text class="t2" x="26" y="196">kubectl (HTTPS)</text>
+<path class="ln" d="M420 118 L420 392" stroke-dasharray="5 4"/>
+<text class="t2" x="428" y="334">kubelet ⇄ API</text>
+<path class="ln" d="M289 256 V200 H470 V166"/>
+<text class="t2" x="300" y="194">outbound only</text>
+<path class="ln" d="M621 256 V200 H510 V166"/>
+<text class="t2" x="628" y="196">users in</text>
+</svg>
+</div>
+<p class="hint">Click any box in the picture — the panel underneath explains it. Dashed boxes are things that come and go.</p>
+</div>
+<aside class="info" id="info" aria-live="polite"></aside>
+</div>
+</section>
+
+<section class="card" id="scaling"><h2>2 · Nodes and scaling — play with it</h2>
+<p>Two different things grow when traffic rises: the number of <b>Pods</b> (copies of your app) and the number of <b>nodes</b> (servers that hold the Pods). Drag the traffic slider, press <i>Sale starts</i>, then turn the node autoscaler off and see what happens.</p>
+<div class="play" id="play">
+  <div class="play-top">
+    <label>Traffic from users <input type="range" id="p-load" min="0" max="100" value="10" aria-label="Traffic"> <b id="p-loadv">10</b></label>
+    <label class="sw"><input type="checkbox" id="p-hpa" checked> Pod autoscaler (HPA)</label>
+    <label class="sw"><input type="checkbox" id="p-ca" checked> Node autoscaler (Cluster Autoscaler)</label>
+  </div>
+  <div class="btnrow">
+    <button class="btn" data-p="quiet">Quiet night</button>
+    <button class="btn" data-p="busy">Busy afternoon</button>
+    <button class="btn" data-p="spike">Sale starts — traffic spike!</button>
+    <button class="btn sec" data-p="plus">+3 Pods by hand</button>
+    <button class="btn sec" data-p="reset">Reset</button>
+  </div>
+  <div class="meters">
+    <div class="meter"><b id="m-rep">2</b><span>Pods wanted</span></div>
+    <div class="meter"><b id="m-run">2</b><span>Pods running</span></div>
+    <div class="meter"><b id="m-pen">0</b><span>Pods Pending</span></div>
+    <div class="meter"><b id="m-nodes">2</b><span>Nodes (min 1 · max 4)</span></div>
+    <div class="meter"><b id="m-cost">$0.23</b><span>Approx. cost per hour</span></div>
+  </div>
+  <div class="nodes" id="p-nodes"></div>
+  <div class="pend" id="p-pend"></div>
+  <div class="log" id="p-log" aria-live="polite"></div>
+</div>
+
+<h3 style="margin:18px 0 4px">Three layers — what we actually deploy</h3>
+<div class="table-wrap"><table class="layers"><thead><tr><th>Layer</th><th>What grows</th><th>Who decides</th><th>What we deploy</th></tr></thead><tbody>
+<tr><td><b>1. Pods</b></td><td>Copies of your app</td><td>HPA, watching CPU from metrics-server</td><td>metrics-server add-on (Terraform). The HPA itself is one <code>kubectl autoscale</code> command.</td></tr>
+<tr><td><b>2. Nodes</b></td><td>EC2 machines</td><td>Cluster Autoscaler, when Pods are <b>Pending</b></td><td>Helm chart + an IAM role with Pod Identity (<code>autoscaler.tf</code>)</td></tr>
+<tr><td><b>3. Limits</b></td><td>How far layer 2 may go</td><td>You, in Terraform</td><td><code>min_size = 1</code>, <code>desired_size = 2</code>, <code>max_size = 4</code> of <code>t3.medium</code></td></tr>
+</tbody></table></div>
+<div class="callout"><b>Why min and max matter:</b> the autoscaler may only move inside the range you set. <b>min 1</b> stops it from shrinking to nothing; <b>max 4</b> caps your bill if something goes wrong. The numbers in the playground are exactly the ones in <code>variables.tf</code>.</div></section>
+
+<section class="card" id="newhire"><h2>3 · A new employee, day one</h2>
+<p>Asha joins the Orders team on Monday. Click the steps on the left (or press <b>Run</b>) to see who does what. The commands and outputs are real: we ran them on the cluster built in this lab.</p>
+<div class="chain" id="h-chain" aria-label="Access path"></div>
+<div class="hire">
+  <div class="path" id="h-path"></div>
+  <div>
+    <div class="term"><div class="bar"><span id="h-title">Terminal</span><button class="btn sec" id="h-run" type="button">Run ▶</button></div><pre id="h-out" aria-live="polite"></pre></div>
+    <div id="h-try" hidden>
+      <h3 style="margin:16px 0 4px;font-size:15px">Now Asha tries things — click a command</h3>
+      <div class="try" id="h-btns"></div>
+    </div>
+    <div class="try"><button class="btn sec" id="h-skip" type="button">What if step 3 (add to group) was forgotten?</button></div>
+  </div>
+</div>
+
+<div class="callout"><b>The rule to remember:</b> nobody is added to the cluster by hand. People join an IAM <b>group</b>; the group may assume one <b>role</b>; the cluster maps that role to Kubernetes permissions through an <b>access entry</b>. In a real company the first step is your single-sign-on system (IAM Identity Center, Okta, Entra) instead of an IAM user, but everything after it is identical.</div></section>
+
+<section class="card" id="gloss"><h2>Definitions</h2><div class="defs"><div class="def"><b>EKS</b><p>Elastic Kubernetes Service. AWS runs the Kubernetes control plane for you; you bring the worker nodes.</p></div><div class="def"><b>Terraform</b><p>A tool that builds cloud resources from text files. You describe what you want; it creates, changes and deletes to match.</p></div><div class="def"><b>Control plane</b><p>The cluster's brain: API server, etcd, scheduler. On EKS, AWS runs and patches it.</p></div><div class="def"><b>Node</b><p>One EC2 virtual machine that runs your Pods.</p></div><div class="def"><b>Managed node group</b><p>A group of nodes (an AWS Auto Scaling group) that EKS creates, patches and replaces for you.</p></div><div class="def"><b>min / desired / max</b><p>The smallest, the current and the largest number of nodes the group may have.</p></div><div class="def"><b>VPC</b><p>Your private network in AWS.</p></div><div class="def"><b>Subnet</b><p>A slice of the VPC in one availability zone. <b>Public</b> has a route to the internet; <b>private</b> does not.</p></div><div class="def"><b>NAT gateway</b><p>Lets private nodes reach the internet outward only.</p></div><div class="def"><b>IAM</b><p>AWS's system for users, groups, roles and permissions.</p></div><div class="def"><b>IAM role</b><p>An identity you <i>assume</i> temporarily. It has no password; people and services borrow it.</p></div><div class="def"><b>Access entry</b><p>The EKS setting that says "this IAM role gets these Kubernetes permissions".</p></div><div class="def"><b>kubeconfig</b><p>The file (<code>~/.kube/config</code>) that tells kubectl which cluster to talk to and how to log in.</p></div><div class="def"><b>HPA</b><p>Horizontal Pod Autoscaler: adds or removes <b>Pods</b> based on CPU.</p></div><div class="def"><b>Cluster Autoscaler</b><p>Adds or removes <b>nodes</b> when Pods cannot fit (Pending) or nodes sit empty.</p></div><div class="def"><b>Pending</b><p>A Pod that has been created but has no node with enough free CPU or memory yet.</p></div><div class="def"><b>Pod Identity</b><p>Gives a Pod its own AWS permissions without storing keys in the cluster.</p></div><div class="def"><b>Add-on</b><p>A system component (DNS, networking, metrics) that AWS installs and updates for you.</p></div></div></section>
+
+<section class="card" id="before"><h2>Cost and before you start</h2>
+<div class="table-wrap"><table class="cost"><thead><tr><th>Item</th><th>How many</th><th>≈ price per hour (us-east-1)</th></tr></thead><tbody>
+<tr><td>EKS control plane</td><td>1</td><td>$0.100</td></tr>
+<tr><td>Worker nodes, t3.medium</td><td>2 (up to 4)</td><td>$0.0416 each</td></tr>
+<tr><td>NAT gateway</td><td>1</td><td>$0.045 + data</td></tr>
+<tr><td>Load balancer (only while a Service exists)</td><td>0–1</td><td>$0.025</td></tr>
+<tr><td><b>Total while running</b></td><td></td><td><b>≈ $0.25 per hour (about $6 per day)</b></td></tr>
+</tbody></table></div>
+<ul class="rules"><li><b>You need</b> an AWS account and an IAM user that can create VPCs, EKS clusters and IAM roles (the lab used <code>AdministratorAccess</code>).</li><li><b>Install</b> Terraform 1.6+, the AWS CLI, <code>kubectl</code> and Helm. Terminal: bash or zsh (macOS, Linux, WSL2).</li><li><b>Never</b> put AWS keys in a file that goes to Git. We use environment variables, and the <code>.gitignore</code> in the lab blocks state files.</li><li><b>Always finish with Step 9.</b> A forgotten cluster costs about $6 a day.</li></ul></section>
+<div class="part-head" id="part-hands"><b>Hands-on</b><span>Steps 1–9 · about 1 h 30 min</span></div>
+<section class="step" id="step-1"><div class="step-top"><div class="step-num">1</div><div><h2>Prepare your laptop</h2><div class="tags"><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Install the four tools and give the terminal your AWS identity.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Check Terraform is installed (1.6 or newer)
+terraform version
+# Check the AWS CLI is installed
+aws --version
+# Check kubectl is installed
+kubectl version --client
+# Check Helm is installed
+helm version --short</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>Terraform v1.9.8
+on linux_amd64
++ provider registry.terraform.io/hashicorp/aws v6.71.0
++ provider registry.terraform.io/hashicorp/cloudinit v2.4.1
++ provider registry.terraform.io/hashicorp/null v3.3.2
++ provider registry.terraform.io/hashicorp/time v0.14.2
++ provider registry.terraform.io/hashicorp/tls v4.4.2
+aws-cli/1.46.2 Python/3.13.17 Linux/6.18.44-fc-v185 botocore/1.43.62
+Client Version: v1.33.0
+Kustomize Version: v5.6.0
+v3.18.6+gb76a950</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Give this terminal your AWS access key (never put keys in a file that goes to Git)
+export AWS_ACCESS_KEY_ID="&lt;your-access-key-id&gt;"
+# Give this terminal your AWS secret key
+export AWS_SECRET_ACCESS_KEY="&lt;your-secret-access-key&gt;"
+# Choose the AWS region to build in
+export AWS_DEFAULT_REGION="us-east-1"
+# Confirm AWS knows who you are
+aws sts get-caller-identity</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>{
+    "UserId": "AIDAEXAMPLEUSERID123",
+    "Account": "123456789012",
+    "Arn": "arn:aws:iam::123456789012:user/you"
+}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The three <code>export</code> lines live only in this terminal window. Close it and they are gone.</li><li><code>sts get-caller-identity</code> is the safest first AWS command: it changes nothing and proves your keys work.</li><li>Prefer short-lived logins (<code>aws sso login</code>) over long-lived keys whenever your company offers them.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>get-caller-identity</code> prints your account number and user.</div></div></section><section class="step" id="step-2"><div class="step-top"><div class="step-num">2</div><div><h2>Write the Terraform files</h2><div class="tags"><span>~10 min</span></div></div></div><p class="goal"><b>Goal:</b> Create six small files that describe the whole platform.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create a working folder
+mkdir eks-lab
+# Move into it
+cd eks-lab</code></pre></div><div class="code"><div class="code-bar"><span>Creates: versions.tf — which Terraform and AWS provider versions to use</span><button class="copy" type="button">Copy</button></div><pre><code># Create versions.tf
+cat &gt; versions.tf &lt;&lt;'EOF'
+terraform {
+  required_version = "&gt;= 1.6"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~&gt; 6.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.region
+
+  default_tags {
+    tags = {
+      Project   = var.cluster_name
+      ManagedBy = "terraform"
+    }
+  }
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: variables.tf — the settings you may change (size, min/max nodes, version)</span><button class="copy" type="button">Copy</button></div><pre><code># Create variables.tf
+cat &gt; variables.tf &lt;&lt;'EOF'
+variable "region" {
+  description = "AWS region to deploy into"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "cluster_name" {
+  description = "Name of the EKS cluster (also used to name the VPC and IAM roles)"
+  type        = string
+  default     = "demo-eks"
+}
+
+variable "kubernetes_version" {
+  description = "Kubernetes version of the control plane"
+  type        = string
+  default     = "1.35"
+}
+
+variable "vpc_cidr" {
+  description = "IP range of the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "node_instance_type" {
+  description = "EC2 size of every worker node"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "node_min_size" {
+  description = "Fewest worker nodes the node group may shrink to"
+  type        = number
+  default     = 1
+}
+
+variable "node_desired_size" {
+  description = "Worker nodes created at the start"
+  type        = number
+  default     = 2
+}
+
+variable "node_max_size" {
+  description = "Most worker nodes the node group may grow to"
+  type        = number
+  default     = 4
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: vpc.tf — the network: VPC, subnets, NAT gateway</span><button class="copy" type="button">Copy</button></div><pre><code># Create vpc.tf
+cat &gt; vpc.tf &lt;&lt;'EOF'
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  azs = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~&gt; 6.0"
+
+  name = var.cluster_name
+  cidr = var.vpc_cidr
+  azs  = local.azs
+
+  # Two private subnets for nodes, two public subnets for load balancers and the NAT gateway
+  private_subnets = [for i, az in local.azs : cidrsubnet(var.vpc_cidr, 4, i)]
+  public_subnets  = [for i, az in local.azs : cidrsubnet(var.vpc_cidr, 8, 48 + i)]
+
+  # One shared NAT gateway keeps the demo cheap (production: one per AZ)
+  enable_nat_gateway = true
+  single_nat_gateway = true
+
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  # These tags tell Kubernetes which subnets to use for internet-facing and internal load balancers
+  public_subnet_tags  = { "kubernetes.io/role/elb" = 1 }
+  private_subnet_tags = { "kubernetes.io/role/internal-elb" = 1 }
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: eks.tf — the cluster, the node group, the add-ons, and who may enter</span><button class="copy" type="button">Copy</button></div><pre><code># Create eks.tf
+cat &gt; eks.tf &lt;&lt;'EOF'
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~&gt; 21.0"
+
+  name               = var.cluster_name
+  kubernetes_version = var.kubernetes_version
+
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+
+  # API server reachable from your laptop. Production: restrict the CIDRs or use private only.
+  endpoint_public_access = true
+
+  # Access is managed with EKS access entries (no aws-auth ConfigMap)
+  authentication_mode = "API"
+
+  # Whoever runs terraform becomes cluster admin
+  enable_cluster_creator_admin_permissions = true
+
+  # Core add-ons, installed and kept up to date by AWS
+  addons = {
+    coredns                = {}
+    kube-proxy             = {}
+    vpc-cni                = { before_compute = true }
+    eks-pod-identity-agent = { before_compute = true }
+    metrics-server         = {}
+  }
+
+  # The worker nodes: an AWS-managed Auto Scaling group of EC2 instances
+  eks_managed_node_groups = {
+    default = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = [var.node_instance_type]
+      capacity_type  = "ON_DEMAND"
+
+      min_size     = var.node_min_size
+      desired_size = var.node_desired_size
+      max_size     = var.node_max_size
+
+      disk_size = 20
+      labels    = { workload = "general" }
+    }
+  }
+
+  # Pods on different nodes must reach each other on any port.
+  # The module only opens ports 1025-65535 between nodes by default, so a Service on port 80 would time out.
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node, all ports and protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+  }
+
+  # Extra people who may use the cluster (see access.tf for the role)
+  access_entries = {
+    developer = {
+      principal_arn = aws_iam_role.developer.arn
+
+      policy_associations = {
+        # Read everything in the cluster
+        view_all = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          access_scope = { type = "cluster" }
+        }
+        # Change things only in the "dev" namespace
+        edit_dev = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+          access_scope = { type = "namespace", namespaces = ["dev"] }
+        }
+      }
+    }
+  }
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: access.tf — the IAM group and role used to onboard people</span><button class="copy" type="button">Copy</button></div><pre><code># Create access.tf
+cat &gt; access.tf &lt;&lt;'EOF'
+data "aws_caller_identity" "current" {}
+
+# 1. The IAM role every developer will assume to reach the cluster
+resource "aws_iam_role" "developer" {
+  name = "${var.cluster_name}-developer"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" }
+    }]
+  })
+}
+
+# 2. A group: adding a person to it is the whole onboarding step
+resource "aws_iam_group" "developers" {
+  name = "${var.cluster_name}-developers"
+}
+
+# 3. The group may assume the role and look the cluster up (needed for "aws eks update-kubeconfig")
+resource "aws_iam_group_policy" "developers" {
+  name  = "eks-access"
+  group = aws_iam_group.developers.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
+        Resource = aws_iam_role.developer.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["eks:DescribeCluster", "eks:ListClusters"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: autoscaler.tf — the AWS permission the node autoscaler will use</span><button class="copy" type="button">Copy</button></div><pre><code># Create autoscaler.tf
+cat &gt; autoscaler.tf &lt;&lt;'EOF'
+# Lets the Cluster Autoscaler Pod add and remove nodes, using EKS Pod Identity (no keys in the cluster)
+resource "aws_iam_role" "cluster_autoscaler" {
+  name = "${var.cluster_name}-cluster-autoscaler"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Action    = ["sts:AssumeRole", "sts:TagSession"]
+      Principal = { Service = "pods.eks.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "cluster_autoscaler" {
+  name = "cluster-autoscaler"
+  role = aws_iam_role.cluster_autoscaler.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:DescribeScalingActivities",
+          "autoscaling:DescribeTags",
+          "ec2:DescribeImages",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:GetInstanceTypesFromInstanceRequirements",
+          "eks:DescribeNodegroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["autoscaling:SetDesiredCapacity", "autoscaling:TerminateInstanceInAutoScalingGroup"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Connects the Kubernetes service account kube-system/cluster-autoscaler to the IAM role above
+resource "aws_eks_pod_identity_association" "cluster_autoscaler" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = "kube-system"
+  service_account = "cluster-autoscaler"
+  role_arn        = aws_iam_role.cluster_autoscaler.arn
+}
+EOF</code></pre></div><div class="code"><div class="code-bar"><span>Creates: outputs.tf — values printed at the end</span><button class="copy" type="button">Copy</button></div><pre><code># Create outputs.tf
+cat &gt; outputs.tf &lt;&lt;'EOF'
+output "cluster_name" {
+  value = module.eks.cluster_name
+}
+
+output "cluster_endpoint" {
+  value = module.eks.cluster_endpoint
+}
+
+output "region" {
+  value = var.region
+}
+
+output "developer_role_arn" {
+  value = aws_iam_role.developer.arn
+}
+
+output "developers_group" {
+  value = aws_iam_group.developers.name
+}
+
+output "connect_command" {
+  value = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
+}
+EOF</code></pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>variables.tf</b> is the control panel: <code>node_min_size</code>, <code>node_desired_size</code> and <code>node_max_size</code> decide how far the cluster can scale.</li><li><b>vpc.tf</b> uses the community VPC module: 2 availability zones, 2 public and 2 private subnets, one NAT gateway.</li><li><b>eks.tf</b> uses the community EKS module. <code>authentication_mode = "API"</code> turns on access entries, and <code>access_entries</code> is where the new-employee role is wired in.</li><li><b>node_security_group_additional_rules</b> (in eks.tf) opens all ports between nodes. We found this by testing: by default only ports 1025–65535 are open, so a Pod on one node could not reach a Service on port 80 behind a Pod on another node (it just timed out).</li><li>Nothing is created yet. These are only text files.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">You have <b>six .tf files</b> in <code>eks-lab/</code>.</div></div></section><section class="step" id="step-3"><div class="step-top"><div class="step-num">3</div><div><h2>Build it with Terraform</h2><div class="tags"><span>~15 min</span></div></div></div><p class="goal"><b>Goal:</b> Download the pieces, look at the plan, and create the cluster.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Download the AWS provider and the two modules
+terraform init
+# Show everything Terraform WOULD create (nothing is created yet)
+terraform plan -out=tfplan
+# Create it all from the saved plan (takes about 12 minutes)
+terraform apply tfplan
+# Print the values defined in outputs.tf
+terraform output</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre># terraform init (shortened)
+Initializing the backend...
+Initializing modules...
+Initializing provider plugins...
+- Installing hashicorp/aws v6.71.0...
+Terraform has been successfully initialized!
+
+# terraform plan (end of the output)
+Plan: 67 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + cluster_endpoint   = (known after apply)
+  + cluster_name       = "demo-eks"
+  + connect_command    = "aws eks update-kubeconfig --region us-east-1 --name demo-eks"
+  + developer_role_arn = (known after apply)
+  + developers_group   = "demo-eks-developers"
+  + region             = "us-east-1"
+
+# terraform apply (13 minutes later)
+module.vpc.aws_nat_gateway.this[0]: Creation complete after 1m54s
+module.eks.aws_eks_cluster.this[0]: Creation complete after 9m36s
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Creation complete after 1m47s
+...
+Apply complete! Resources: 67 added, 0 changed, 0 destroyed.
+
+# terraform output
+cluster_endpoint = "https://4DF0E1652AF5126EC15196DB42E31116.gr7.us-east-1.eks.amazonaws.com"
+cluster_name = "demo-eks"
+connect_command = "aws eks update-kubeconfig --region us-east-1 --name demo-eks"
+developer_role_arn = "arn:aws:iam::123456789012:role/demo-eks-developer"
+developers_group = "demo-eks-developers"
+region = "us-east-1"</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>init</code> downloads code. <code>plan</code> compares your files with what exists in AWS and lists the difference. <code>apply</code> makes AWS match.</li><li>67 resources: the network (VPC, subnets, route tables, NAT), the cluster and its security groups, the node group, add-ons, and the IAM pieces.</li><li>The control plane takes about 8 minutes; the nodes then take about 3 more. Terraform waits for each part.</li><li>Terraform records what it built in a <b>state file</b> in this folder. Keep it safe and out of Git (our <code>.gitignore</code> does that). Teams store it in S3 instead.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>Apply complete! Resources: 67 added</code>.</div></div></section><section class="step" id="step-4"><div class="step-top"><div class="step-num">4</div><div><h2>Connect and look around</h2><div class="tags"><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Point kubectl at the new cluster and see the nodes that Terraform created.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Write the cluster into your kubeconfig (this is also how every new hire connects)
+aws eks update-kubeconfig --region us-east-1 --name demo-eks
+# List the worker nodes with their zone and size
+kubectl get nodes -L topology.kubernetes.io/zone,node.kubernetes.io/instance-type
+# List every Pod, including the system ones
+kubectl get pods -A
+# Find the node group's name
+NG=$(aws eks list-nodegroups --cluster-name demo-eks --query 'nodegroups[0]' --output text)
+# Show its scaling limits: min, desired and max
+aws eks describe-nodegroup --cluster-name demo-eks --nodegroup-name $NG --query 'nodegroup.scalingConfig'</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>Added new context arn:aws:eks:us-east-1:123456789012:cluster/demo-eks to /home/you/.kube/config
+NAME                          STATUS   ROLES    AGE     VERSION               ZONE         INSTANCE-TYPE
+ip-10-0-10-177.ec2.internal   Ready    &lt;none&gt;   2m11s   v1.35.9-eks-6e7947a   us-east-1a   t3.medium
+ip-10-0-24-209.ec2.internal   Ready    &lt;none&gt;   2m15s   v1.35.9-eks-6e7947a   us-east-1b   t3.medium
+NAMESPACE     NAME                              READY   STATUS    RESTARTS   AGE
+kube-system   aws-node-7qxfb                    2/2     Running   0          2m12s
+kube-system   aws-node-m29nq                    2/2     Running   0          2m16s
+kube-system   coredns-85b458df4f-9llgg          1/1     Running   0          79s
+kube-system   coredns-85b458df4f-p9tlm          1/1     Running   0          79s
+kube-system   eks-pod-identity-agent-wthgj      1/1     Running   0          2m16s
+kube-system   eks-pod-identity-agent-wthnr      1/1     Running   0          2m12s
+kube-system   kube-proxy-94chg                  1/1     Running   0          80s
+kube-system   kube-proxy-ptrbm                  1/1     Running   0          80s
+kube-system   metrics-server-6555d77457-7xtgd   1/1     Running   0          79s
+kube-system   metrics-server-6555d77457-zjdm4   1/1     Running   0          79s
+{
+    "minSize": 1,
+    "maxSize": 4,
+    "desiredSize": 2
+}</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><code>update-kubeconfig</code> adds a context to <code>~/.kube/config</code> that fetches a short-lived token with <code>aws eks get-token</code> each time kubectl runs.</li><li>Two nodes, in <b>two different zones</b>, both <code>t3.medium</code> — exactly what the diagram showed.</li><li>The system Pods are the add-ons: CoreDNS, kube-proxy, the VPC CNI, metrics-server and the Pod Identity agent.</li><li><code>scalingConfig</code> is the min/desired/max you wrote in Terraform.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Two nodes are <b>Ready</b> and the scaling config shows <b>min 1, desired 2, max 4</b>.</div></div></section><section class="step" id="step-5"><div class="step-top"><div class="step-num">5</div><div><h2>Deploy an app and open it to the internet</h2><div class="tags"><span>~6 min</span></div></div></div><p class="goal"><b>Goal:</b> Run a web app in two namespaces and give one of them a public address.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Create a namespace for development
+kubectl create namespace dev
+# Create a namespace for production
+kubectl create namespace prod
+# Run 2 copies of a web server in dev
+kubectl -n dev create deployment web --image=public.ecr.aws/nginx/nginx:1.29-alpine --replicas=2
+# Run 2 copies of the same web server in prod
+kubectl -n prod create deployment web --image=public.ecr.aws/nginx/nginx:1.29-alpine --replicas=2
+# Ask AWS for a public load balancer in front of the dev app
+kubectl -n dev expose deployment web --port=80 --type=LoadBalancer
+# Wait until the load balancer has an address
+until kubectl -n dev get svc web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' | grep -q amazonaws; do sleep 5; done
+# Save that address in a variable
+LB=$(kubectl -n dev get svc web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+# Wait until the address answers (DNS takes a minute or two)
+until curl -s -o /dev/null -m 5 http://$LB; do sleep 10; done
+# Ask the app for its headers
+curl -sI http://$LB | head -3
+# Show where the Pods landed
+kubectl get pods -A -l app=web -o wide</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>namespace/dev created
+namespace/prod created
+deployment.apps/web created
+deployment.apps/web created
+service/web exposed
+HTTP/1.1 200 OK
+server: nginx/1.29.8
+date: Sat, 31 Oct 2026 18:47:02 GMT
+NAMESPACE   NAME                   READY   STATUS    RESTARTS   AGE   IP            NODE                          NOMINATED NODE   READINESS GATES
+dev         web-6656cbf7df-tk455   1/1     Running   0          91s   10.0.5.226    ip-10-0-10-177.ec2.internal   &lt;none&gt;           &lt;none&gt;
+dev         web-6656cbf7df-zg78n   1/1     Running   0          91s   10.0.17.132   ip-10-0-24-209.ec2.internal   &lt;none&gt;           &lt;none&gt;
+prod        web-6656cbf7df-987km   1/1     Running   0          90s   10.0.12.16    ip-10-0-10-177.ec2.internal   &lt;none&gt;           &lt;none&gt;
+prod        web-6656cbf7df-vsmqt   1/1     Running   0          90s   10.0.18.214   ip-10-0-24-209.ec2.internal   &lt;none&gt;           &lt;none&gt;</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The Service of type <b>LoadBalancer</b> made Kubernetes call AWS and create a real load balancer in the <b>public subnets</b> (that is what the <code>kubernetes.io/role/elb</code> tag was for).</li><li>The Pods run on the private nodes. Users reach them only through the load balancer.</li><li>Remember: this load balancer was created by Kubernetes, not Terraform. Step 9 deletes it first.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>curl</code> prints <b>HTTP/1.1 200 OK</b> from nginx.</div></div></section><section class="step" id="step-6"><div class="step-top"><div class="step-num">6</div><div><h2>Turn on node autoscaling</h2><div class="tags"><span>~5 min</span></div></div></div><p class="goal"><b>Goal:</b> Install the Cluster Autoscaler so the cluster can add and remove nodes by itself.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Add the Kubernetes autoscaler chart repository
+helm repo add autoscaler https://kubernetes.github.io/autoscaler
+# Install the Cluster Autoscaler (short timers so the demo is quick)
+helm install cluster-autoscaler autoscaler/cluster-autoscaler -n kube-system --set autoDiscovery.clusterName=demo-eks --set awsRegion=us-east-1 --set rbac.serviceAccount.name=cluster-autoscaler --set extraArgs.scale-down-unneeded-time=2m --set extraArgs.scale-down-delay-after-add=2m
+# Wait until it is running
+kubectl -n kube-system rollout status deployment/cluster-autoscaler-aws-cluster-autoscaler --timeout=120s
+# Wait a few seconds, then check it found our node group
+sleep 20
+kubectl -n kube-system logs deployment/cluster-autoscaler-aws-cluster-autoscaler --tail=200 | grep -iE "node group|min size|max size|registering" | head -5</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>"autoscaler" has been added to your repositories
+NAME: cluster-autoscaler
+LAST DEPLOYED: Sat Oct 31 18:47:11 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+Waiting for deployment "cluster-autoscaler-aws-cluster-autoscaler" rollout to finish: 0 of 1 updated replicas are available...
+deployment "cluster-autoscaler-aws-cluster-autoscaler" successfully rolled out
+I1031 18:47:17.772387       1 auto_scaling_groups.go:167] Registering ASG eks-default-a58cfd90f7a9d5317359f66ff6-64d0c9a2-6d62-42b5-bdc1-4df63e075d50</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>The autoscaler is just a Pod. It watches for Pods that are <b>Pending</b> and asks the AWS Auto Scaling group (<b>ASG</b>) for another node. The log line <code>Registering ASG</code> shows it found ours.</li><li>It finds the node group by tags that EKS puts on it, and gets AWS permission through <b>Pod Identity</b> (the role from <code>autoscaler.tf</code>), so no keys are stored in the cluster.</li><li>Production defaults wait 10 minutes before removing a node. We shortened it to 2 so you can watch it happen.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">The autoscaler Pod is <b>Running</b> and its log says <b>Registering ASG</b> (your node group).</div></div></section><section class="step" id="step-7"><div class="step-top"><div class="step-num">7</div><div><h2>Watch Pods and nodes scale together</h2><div class="tags"><span>~15 min</span></div></div></div><p class="goal"><b>Goal:</b> Add load and watch the HPA add Pods, then the autoscaler add nodes. Stop the load and watch both shrink.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Run an app that burns CPU when it gets requests (each Pod asks for half a CPU)
+kubectl create deployment cpu-app --image=registry.k8s.io/hpa-example --port=80
+# Set its CPU request and limit
+kubectl set resources deployment cpu-app --requests=cpu=500m --limits=cpu=1
+# Put a Service in front of it
+kubectl expose deployment cpu-app --port=80
+# Let Kubernetes keep CPU near 50% by running between 2 and 10 Pods
+kubectl autoscale deployment cpu-app --cpu-percent=50 --min=2 --max=10
+# Wait until the 2 starting Pods are ready
+kubectl rollout status deployment/cpu-app --timeout=120s
+# Start three Pods that hammer the app with requests
+kubectl create deployment load --image=public.ecr.aws/docker/library/busybox:1.37 --replicas=3 -- sh -c 'while true; do wget -q -O- http://cpu-app; done'</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>deployment.apps/cpu-app created
+deployment.apps/cpu-app resource requirements updated
+service/cpu-app exposed
+horizontalpodautoscaler.autoscaling/cpu-app autoscaled
+deployment "cpu-app" successfully rolled out
+deployment.apps/load created</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Watch the autoscaler react every 20 seconds: CPU, Pods wanted, then how many Pods are Running or Pending
+for i in 1 2 3 4 5 6 7 8 9 10; do kubectl get hpa cpu-app --no-headers; kubectl get pods -l app=cpu-app --no-headers | awk '{print $3}' | sort | uniq -c | tr '\n' ' '; echo; sleep 20; done
+# Some Pods are Pending because the nodes are full: see why
+kubectl describe pod -l app=cpu-app | grep -m1 -E "FailedScheduling|Insufficient"
+# Watch nodes arrive (the Cluster Autoscaler is adding them)
+kubectl get nodes</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>cpu-app   Deployment/cpu-app   cpu: 78%/50%   2     10    4     5m4s
+      1 Pending       6 Running 
+cpu-app   Deployment/cpu-app   cpu: 78%/50%   2     10    7     5m26s
+      1 Pending       6 Running 
+cpu-app   Deployment/cpu-app   cpu: 65%/50%   2     10    9     5m48s
+      3 Pending       6 Running 
+cpu-app   Deployment/cpu-app   cpu: 66%/50%   2     10    9     6m9s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 50%/50%   2     10    9     6m31s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 50%/50%   2     10    9     6m53s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 46%/50%   2     10    9     7m15s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 48%/50%   2     10    9     7m36s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 50%/50%   2     10    9     7m58s
+      9 Running 
+cpu-app   Deployment/cpu-app   cpu: 47%/50%   2     10    9     8m20s
+      9 Running 
+  Warning  FailedScheduling  3m11s                  default-scheduler  0/2 nodes are available: 2 Insufficient cpu. no new claims to deallocate, preemption: 0/2 nodes are available: 2 No preemption victims found for incoming pod.
+NAME                          STATUS   ROLES    AGE     VERSION
+ip-10-0-10-177.ec2.internal   Ready    &lt;none&gt;   15m     v1.35.9-eks-6e7947a
+ip-10-0-15-133.ec2.internal   Ready    &lt;none&gt;   2m59s   v1.35.9-eks-6e7947a
+ip-10-0-24-209.ec2.internal   Ready    &lt;none&gt;   16m     v1.35.9-eks-6e7947a</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Stop the load
+kubectl delete deployment load
+# Check once a minute for 10 minutes: CPU, Pods running, number of nodes
+for i in $(seq 1 10); do echo "minute $i: cpu=$(kubectl get hpa cpu-app --no-headers | awk '{print $4}') pods=$(kubectl get hpa cpu-app --no-headers | awk '{print $7}') nodes=$(kubectl get nodes --no-headers | wc -l)"; sleep 60; done
+# Show the nodes that are left
+kubectl get nodes
+# Read what the Cluster Autoscaler decided
+kubectl -n kube-system logs deployment/cluster-autoscaler-aws-cluster-autoscaler --tail=500 | grep -E "(executor|actuator).go.*(Scale-up: setting|Scale-down: removing)" | cut -c1-150</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>deployment.apps "load" deleted
+minute 1: cpu=0%/50% pods=9 nodes=3
+minute 2: cpu=0%/50% pods=9 nodes=3
+minute 3: cpu=0%/50% pods=9 nodes=3
+minute 4: cpu=0%/50% pods=2 nodes=3
+minute 5: cpu=0%/50% pods=2 nodes=3
+minute 6: cpu=0%/50% pods=2 nodes=3
+minute 7: cpu=0%/50% pods=2 nodes=2
+minute 8: cpu=0%/50% pods=2 nodes=2
+minute 9: cpu=0%/50% pods=2 nodes=2
+minute 10: cpu=0%/50% pods=2 nodes=2
+NAME                          STATUS   ROLES    AGE   VERSION
+ip-10-0-10-177.ec2.internal   Ready    &lt;none&gt;   30m   v1.35.9-eks-6e7947a
+ip-10-0-24-209.ec2.internal   Ready    &lt;none&gt;   30m   v1.35.9-eks-6e7947a
+I1031 18:55:31.656828       1 executor.go:164] Scale-up: setting group eks-default-a58cfd90f7a9d5317359f66ff6-64d0c9a2-6d62-42b5-bdc1-4df63e075d50 siz
+I1031 19:06:54.573542       1 actuator.go:269] Scale-down: removing node ip-10-0-15-133.ec2.internal, utilization: {0.07772020725388601 0 0 0 cpu 0.07</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li><b>Two layers, one chain:</b> load rises → <b>HPA</b> adds Pods → the nodes are full, so Pods turn <b>Pending</b> → the <b>Cluster Autoscaler</b> asks AWS for more nodes → Pods get scheduled.</li><li>When the load stops the HPA waits about 5 minutes, then removes Pods. The nodes then sit under-used and the autoscaler removes them.</li><li>The node group never goes below <b>min 1</b> or above <b>max 4</b>, however much load arrives.</li><li><b>Desired</b> changed by itself. That is why Terraform ignores <code>desired_size</code> after the first run.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Under load the cluster grew past 2 nodes; after the load stopped it shrank again.</div></div></section><section class="step" id="step-8"><div class="step-top"><div class="step-num">8</div><div><h2>A new employee gets access</h2><div class="tags"><span>~10 min</span></div></div></div><p class="goal"><b>Goal:</b> Onboard Asha from nothing to a working, limited kubectl, then take it away.</p><div class="code"><div class="code-bar"><span>Terminal (platform team)</span><button class="copy" type="button">Copy</button></div><pre><code># Look up the role that developers assume (from Terraform)
+ROLE=$(terraform output -raw developer_role_arn)
+# Create Asha's identity
+aws iam create-user --user-name asha.rao
+# Give Asha a login key (in a real company this is single sign-on instead)
+aws iam create-access-key --user-name asha.rao --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text &gt; asha.keys
+# Confirm the key was saved
+echo "key saved to asha.keys: $(wc -l &lt; asha.keys) line</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>{
+    "User": {
+        "Path": "/",
+        "UserName": "asha.rao",
+        "UserId": "AIDAEXAMPLEUSERID123",
+        "Arn": "arn:aws:iam::123456789012:user/asha.rao",
+        "CreateDate": "2026-10-31T18:59:34Z"
+    }
+}
+key saved to asha.keys: 1 line</pre></div><div class="code"><div class="code-bar"><span>Terminal (Asha, before she is in the group)</span><button class="copy" type="button">Copy</button></div><pre><code># Asha stores her key under her own profile
+aws configure set aws_access_key_id "$(cut -f1 asha.keys)" --profile asha
+aws configure set aws_secret_access_key "$(cut -f2 asha.keys)" --profile asha
+aws configure set region us-east-1 --profile asha
+# Asha tries to connect to the cluster (she is not in the group yet)
+aws eks update-kubeconfig --name demo-eks --profile asha --role-arn $ROLE --alias asha</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>An error occurred (AccessDeniedException) when calling the DescribeCluster operation: User: arn:aws:iam::123456789012:user/asha.rao is not authorized to perform: eks:DescribeCluster on resource: arn:aws:eks:us-east-1:123456789012:cluster/demo-eks because no identity-based policy allows the eks:DescribeCluster action</pre></div><div class="code"><div class="code-bar"><span>Terminal (platform team)</span><button class="copy" type="button">Copy</button></div><pre><code># The ONE onboarding action: add Asha to the developers group
+aws iam add-user-to-group --user-name asha.rao --group-name demo-eks-developers
+# Check the group
+aws iam get-group --group-name demo-eks-developers --query 'Users[].UserName'</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>[
+    "asha.rao"
+]</pre></div><div class="code"><div class="code-bar"><span>Terminal (Asha)</span><button class="copy" type="button">Copy</button></div><pre><code># Asha connects: this writes a separate kubeconfig context called "asha"
+aws eks update-kubeconfig --name demo-eks --profile asha --role-arn $ROLE --alias asha
+# Asha checks which Kubernetes user she became
+kubectl --context asha auth whoami
+# Read pods in dev (allowed: she may edit dev)
+kubectl --context asha get pods -n dev
+# Read pods in prod (allowed: she may view everything)
+kubectl --context asha get pods -n prod
+# Delete a pod in dev (allowed)
+kubectl --context asha delete pod -n dev -l app=web --wait=false
+# Delete a pod in prod (denied)
+kubectl --context asha delete pod -n prod -l app=web
+# Create a namespace (denied)
+kubectl --context asha create namespace test
+# Read Secrets in prod (denied)
+kubectl --context asha get secrets -n prod</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>Added new context asha to /home/asha/.kube/config
+ATTRIBUTE                                              VALUE
+Username                                               arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth
+UID                                                    aws-iam-authenticator:123456789012:AROAEXAMPLEROLEID12345
+Groups                                                 [system:authenticated]
+Extra: accessKeyId                                     [ASIAEXAMPLEKEYID12345]
+Extra: arn                                             [arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth]
+Extra: canonicalArn                                    [arn:aws:iam::123456789012:role/demo-eks-developer]
+Extra: principalId                                     [AROAEXAMPLEROLEID12345]
+Extra: sessionName                                     [EKSGetTokenAuth]
+Extra: sigs.k8s.io/aws-iam-authenticator/principalId   [AROAEXAMPLEROLEID12345]
+NAME                   READY   STATUS    RESTARTS   AGE
+web-6656cbf7df-tk455   1/1     Running   0          14m
+web-6656cbf7df-zg78n   1/1     Running   0          14m
+NAME                   READY   STATUS    RESTARTS   AGE
+web-6656cbf7df-987km   1/1     Running   0          14m
+web-6656cbf7df-vsmqt   1/1     Running   0          14m
+pod "web-6656cbf7df-tk455" deleted
+pod "web-6656cbf7df-zg78n" deleted
+Error from server (Forbidden): pods "web-6656cbf7df-987km" is forbidden: User "arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth" cannot delete resource "pods" in API group "" in the namespace "prod"
+Error from server (Forbidden): pods "web-6656cbf7df-vsmqt" is forbidden: User "arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth" cannot delete resource "pods" in API group "" in the namespace "prod"
+Error from server (Forbidden): namespaces is forbidden: User "arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth" cannot create resource "namespaces" in API group "" at the cluster scope
+Error from server (Forbidden): secrets is forbidden: User "arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth" cannot list resource "secrets" in API group "" in the namespace "prod"</pre></div><div class="code"><div class="code-bar"><span>Terminal (platform team) — Asha leaves the team</span><button class="copy" type="button">Copy</button></div><pre><code># Remove Asha from the group
+aws iam remove-user-from-group --user-name asha.rao --group-name demo-eks-developers
+# Asha tries again: the cluster still trusts the role, but she can no longer assume it
+kubectl --context asha get pods -n dev</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>An error occurred (AccessDenied) when calling the AssumeRole operation: User: arn:aws:iam::123456789012:user/asha.rao is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/demo-eks-developer.
+Unable to connect to the server: getting credentials: exec: executable aws failed with exit code 255</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Three things made this work, and none touched the cluster: <b>(1)</b> a role with an <b>access entry</b> (Terraform, once), <b>(2)</b> a group allowed to assume that role (Terraform, once), <b>(3)</b> adding Asha to the group (one command per person).</li><li>The access entry gives <b>AmazonEKSViewPolicy</b> for the whole cluster and <b>AmazonEKSEditPolicy</b> only in <code>dev</code>. That is why deleting in <code>dev</code> works but deleting in <code>prod</code> is <b>Forbidden</b>.</li><li>Before she was in the group, Asha could not even look the cluster up (<code>AccessDenied</code>): IAM stops her before Kubernetes is involved.</li><li>Offboarding is the mirror image: remove her from the group and access ends. Existing tokens expire within about 15 minutes.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct">Asha can edit <b>dev</b>, only read <b>prod</b>, cannot create namespaces, and loses access when removed.</div></div></section><section class="step" id="step-9"><div class="step-top"><div class="step-num">9</div><div><h2>Delete everything</h2><div class="tags"><span>~15 min</span></div></div></div><p class="goal"><b>Goal:</b> Remove what Kubernetes created, then destroy the rest with Terraform and check nothing is left.</p><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Delete Asha's key, remove her from the group, and delete the user (Terraform cannot delete a group that still has users)
+aws iam list-access-keys --user-name asha.rao --query 'AccessKeyMetadata[].AccessKeyId' --output text | xargs -n1 aws iam delete-access-key --user-name asha.rao --access-key-id
+aws iam delete-user --user-name asha.rao
+# Remove the key file
+rm -f asha.keys
+# Delete the apps and the load balancer Kubernetes created (this must happen BEFORE destroy)
+kubectl -n dev delete svc web
+kubectl delete namespace dev prod
+kubectl delete deployment cpu-app
+kubectl delete svc cpu-app
+# Remove the autoscaler
+helm uninstall cluster-autoscaler -n kube-system
+# Check the load balancer is gone
+aws elb describe-load-balancers --query 'LoadBalancerDescriptions[].DNSName'</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>service "web" deleted
+namespace "dev" deleted
+namespace "prod" deleted
+deployment.apps "cpu-app" deleted
+service "cpu-app" deleted
+release "cluster-autoscaler" uninstalled
+[]</pre></div><div class="code"><div class="code-bar"><span>Terminal</span><button class="copy" type="button">Copy</button></div><pre><code># Destroy everything Terraform built (takes about 10 minutes)
+terraform destroy -auto-approve
+# Check no clusters are left
+aws eks list-clusters
+# Check no NAT gateway is left
+aws ec2 describe-nat-gateways --filter Name=state,Values=available,pending --query 'NatGateways[].NatGatewayId'
+# Check no VPC named demo-eks is left
+aws ec2 describe-vpcs --filters Name=tag:Name,Values=demo-eks --query 'Vpcs[].VpcId'
+# Remove your terminal's keys when you are done
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</code></pre></div><div class="output"><div class="output-label">Real output from our test run</div><pre>module.vpc.aws_nat_gateway.this[0]: Destruction complete after 1m11s
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Destruction complete after 8m12s
+module.eks.aws_eks_cluster.this[0]: Destruction complete after 2m56s
+...
+Destroy complete! Resources: 67 destroyed.
+{
+    "clusters": []
+}
+[]
+[]</pre></div><div class="why"><div class="why-label">What just happened</div><ul><li>Kubernetes made the load balancer, so Terraform does not know about it. If you skip the first block, the load balancer keeps using the VPC and <code>destroy</code> stops with a dependency error.</li><li><code>terraform destroy</code> removes all 67 resources in the right order: node group, cluster, NAT, subnets, VPC, IAM.</li><li>The three checks at the end are your proof that the bill has stopped.</li></ul></div><div class="check"><span>Checkpoint</span><div class="ct"><code>Destroy complete! Resources: 67 destroyed</code> and the checks print empty lists.</div></div></section>
+<section class="card" id="recap"><h2>Recap</h2><ul class="rules"><li>Terraform builds the VPC, the EKS control plane, a managed node group (1–4 × t3.medium), add-ons and the access roles from six small files.</li><li>Pods scale with the <b>HPA</b>; nodes scale with the <b>Cluster Autoscaler</b>; both stay inside the <b>min/max</b> you wrote.</li><li>A new employee is one <code>add-user-to-group</code> away from working access, and one <code>remove-user-from-group</code> away from losing it.</li><li><code>terraform destroy</code> removes everything, after you delete what Kubernetes created itself (load balancers).</li></ul></section>
+<section class="card" id="trouble"><h2>Troubleshooting</h2><dl class="trouble">
+<dt>"You must be logged in to the server (Unauthorized)" or "the server has asked for the client to provide credentials"</dt><dd>Your IAM identity has no access entry. Check you used <code>--role-arn</code> in <code>update-kubeconfig</code> and that you are in the developers group.</dd>
+<dt><code>AccessDeniedException</code> on <code>aws eks update-kubeconfig</code></dt><dd>You are not in the IAM group yet, so <code>eks:DescribeCluster</code> is denied (step 8 shows this).</dd>
+<dt>Pods stay <b>Pending</b></dt><dd>No node has room. Run <code>kubectl describe pod &lt;name&gt;</code>. With the Cluster Autoscaler installed a node appears in about 2 minutes; if you are already at <code>max_size</code>, raise it.</dd>
+<dt><code>terraform destroy</code> hangs on the VPC or subnets</dt><dd>A load balancer made by Kubernetes still exists. Delete every Service of type LoadBalancer (<code>kubectl delete svc …</code>), wait a minute, then destroy again.</dd>
+<dt><code>terraform destroy</code> fails on the IAM group</dt><dd>The group still has members. Remove them first (step 9).</dd>
+<dt>Surprise bill</dt><dd>Run <code>aws eks list-clusters</code>, <code>aws ec2 describe-nat-gateways</code> and <code>aws elb describe-load-balancers</code> in every region you used.</dd></dl></section>
+</main></div>
+<footer>Kubernetes 2026 · EKS demo</footer>
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.closest('.code').querySelector('pre').innerText;
+    var done = function () { btn.textContent = 'Copied!'; btn.classList.add('done'); setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done, function () { fallback(text); done(); }); }
+    else { fallback(text); done(); }
+  });
+});
+function fallback(text) {
+  var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+</script>
+<script>window.ARCH={"you": {"t": "You \u2014 kubectl and the AWS CLI", "s": "<span class=\"chip\">your laptop</span>", "what": "You type <code>kubectl get pods</code>. kubectl sends the request over HTTPS to the cluster's API server, with a short-lived token made by <code>aws eks get-token</code>.", "why": "Kubernetes has no passwords of its own on EKS. AWS IAM proves who you are, then EKS decides what you may do.", "tf": "outputs.tf \u2192 connect_command", "note": "The cluster endpoint is public in this demo so a laptop can reach it. In a company it is often private (VPN or bastion) or limited to office IP ranges."}, "cp": {"t": "EKS control plane", "s": "<span class=\"chip\">managed by AWS</span> <span class=\"chip\">\u2248 $0.10 / hour</span>", "what": "The \"brain\": the API server, <b>etcd</b> (the database that stores every object) and the scheduler and controllers. AWS runs it across 3 zones, patches it and backs it up.", "why": "You never log in to it, never size it and never patch it. That is the main reason people choose EKS over building Kubernetes themselves.", "tf": "module.eks \u2192 aws_eks_cluster", "note": "It lives in an AWS-owned account, not in your VPC. EKS places network interfaces in your private subnets so it can talk to your nodes."}, "iam": {"t": "IAM and EKS access entries", "s": "<span class=\"chip\">who gets in</span>", "what": "IAM holds users, groups and roles. An <b>access entry</b> links an IAM role to Kubernetes permissions, for example \"view everything, edit only the dev namespace\".", "why": "Onboarding a new employee becomes one action: add them to an IAM group. No YAML to edit, no cluster restart.", "tf": "access.tf and the access_entries block in eks.tf", "note": "Section 3 below walks a new hire through exactly this path."}, "vpc": {"t": "VPC \u2014 your private network", "s": "<span class=\"chip\">10.0.0.0/16</span> <span class=\"chip\">free</span>", "what": "A fenced-off network inside AWS. Everything we create (nodes, load balancers) lives inside it and talks over private IP addresses.", "why": "Keeps your nodes off the open internet and lets you control exactly what can reach them.", "tf": "vpc.tf \u2192 module.vpc", "note": "We spread it over 2 availability zones (separate data centres) so one zone failing does not take the app down."}, "igw": {"t": "Internet gateway", "s": "<span class=\"chip\">free</span>", "what": "The door between the VPC and the internet.", "why": "Public subnets send traffic through it, so load balancers can be reached by users.", "tf": "vpc.tf \u2192 module.vpc (created for you)", "note": "Private subnets cannot use it directly \u2014 they go through the NAT gateway."}, "public": {"t": "Public subnets", "s": "<span class=\"chip\">2 \u00b7 one per zone</span>", "what": "Subnets with a route to the internet gateway. Only things that must be reachable from the internet live here: load balancers and the NAT gateway.", "why": "Keeps the number of internet-facing things small and easy to audit.", "tf": "vpc.tf \u2192 public_subnets + the tag kubernetes.io/role/elb", "note": "The tag is how Kubernetes finds the right subnets when you create a Service of type LoadBalancer."}, "nat": {"t": "NAT gateway", "s": "<span class=\"chip\">\u2248 $0.045 / hour</span>", "what": "Lets nodes in private subnets reach the internet (to pull images, talk to AWS APIs) without letting the internet reach them.", "why": "Nodes must download container images and register with the control plane.", "tf": "vpc.tf \u2192 single_nat_gateway = true", "note": "We use ONE NAT to save money. Production uses one per zone, so a zone outage cannot cut off the others."}, "lb": {"t": "Load balancer", "s": "<span class=\"chip\">appears on demand</span> <span class=\"chip\">\u2248 $0.025 / hour</span>", "what": "Created automatically when you make a Service of type LoadBalancer (or an Ingress). It gives your app a public address and spreads traffic across the Pods.", "why": "This is how users reach your app from the internet.", "tf": "not in Terraform \u2014 Kubernetes creates it", "note": "Delete the Service before <code>terraform destroy</code>. Otherwise the load balancer is left behind and blocks the VPC from being deleted."}, "private": {"t": "Private subnets", "s": "<span class=\"chip\">2 \u00b7 one per zone</span>", "what": "Subnets with no inbound route from the internet. The worker nodes live here.", "why": "A node has no public IP, so nobody can attack it directly.", "tf": "vpc.tf \u2192 private_subnets + the tag kubernetes.io/role/internal-elb", "note": "Pods get real IP addresses from these subnets (the VPC CNI add-on does this)."}, "ng": {"t": "Managed node group", "s": "<span class=\"chip\">min 1</span> <span class=\"chip\">start 2</span> <span class=\"chip\">max 4</span>", "what": "An AWS Auto Scaling group of EC2 instances that EKS creates, patches and replaces for you. <b>min</b> and <b>max</b> are the guard rails; <b>desired</b> is how many run right now.", "why": "This is the capacity of your cluster. Pods can only run where a node has free CPU and memory.", "tf": "eks.tf \u2192 eks_managed_node_groups.default", "note": "<b>desired_size</b> in Terraform is only the starting number. Once autoscaling is on, the autoscaler changes it and Terraform ignores it on later runs."}, "node": {"t": "Worker node \u2014 EC2 t3.medium", "s": "<span class=\"chip\">2 vCPU \u00b7 4 GiB</span> <span class=\"chip\">\u2248 $0.042 / hour each</span>", "what": "A normal virtual machine that runs <b>kubelet</b> (talks to the control plane) and a container runtime. Your Pods run on it, next to a few system Pods (DNS, networking).", "why": "Without nodes nothing runs. Two nodes in two zones means one can fail and the app stays up.", "tf": "eks.tf \u2192 instance_types = [var.node_instance_type]", "note": "A t3.medium fits roughly 3\u20135 small app Pods once system Pods take their share. Bigger Pods need bigger or more nodes."}, "addons": {"t": "Add-ons", "s": "<span class=\"chip\">installed by AWS</span>", "what": "<b>CoreDNS</b>: names inside the cluster. <b>kube-proxy</b>: Service networking. <b>VPC CNI</b>: gives each Pod a VPC IP. <b>metrics-server</b>: CPU and memory numbers for the Pod autoscaler. <b>Pod Identity agent</b>: gives Pods AWS permissions without keys.", "why": "A cluster without them cannot resolve names, route traffic or autoscale.", "tf": "eks.tf \u2192 addons = { \u2026 }", "note": "AWS keeps them compatible with your Kubernetes version."}};</script>
+<script>(function () {
+  var I = window.ARCH, info = document.getElementById('info');
+  function pick(k, scroll) {
+    var d = I[k]; if (!d) return;
+    document.querySelectorAll('.hot').forEach(function (g) { g.classList.toggle('on', g.getAttribute('data-k') === k); });
+    info.innerHTML = '<h3>' + d.t + '</h3><div>' + d.s + '</div><dl><dt>What it does</dt><dd>' + d.what + '</dd><dt>Why we need it</dt><dd>' + d.why + '</dd><dt>In our Terraform</dt><dd><code>' + d.tf + '</code></dd><dt>Good to know</dt><dd>' + d.note + '</dd></dl>';
+    if (scroll) info.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+  document.querySelectorAll('.hot').forEach(function (g) {
+    g.addEventListener('click', function () { pick(g.getAttribute('data-k'), true); });
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(g.getAttribute('data-k')); } });
+  });
+  pick('cp');
+})();
+</script>
+<script>(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var CAP = 4, MIN = 1, MAX = 4, SYS = 1; // 4 slots per node, 1 used by system Pods
+  var S;
+  function reset() {
+    S = { nodes: [{ id: 1, join: 0 }, { id: 2, join: 0 }], next: 3, reps: 2, idle: 0, tick: 0 };
+    $('p-load').value = 10; $('p-loadv').textContent = 10;
+    $('p-log').innerHTML = '';
+    say('Cluster starts with 2 nodes and 2 Pods of your app.', 'k8s');
+    render();
+  }
+  function say(t, c) {
+    var d = document.createElement('div'); d.className = c || ''; d.textContent = t;
+    $('p-log').appendChild(d); $('p-log').scrollTop = 1e9;
+  }
+  function ready() { return S.nodes.filter(function (n) { return n.join === 0; }); }
+  function layout() {
+    var r = ready(), room = r.length * (CAP - SYS), run = Math.min(S.reps, room);
+    var per = r.map(function () { return 0; });
+    for (var i = 0; i < run; i++) per[i % r.length]++;      // scheduler spreads Pods across nodes
+    return { r: r, run: run, pending: S.reps - run, per: per };
+  }
+  function step() {
+    S.tick++;
+    var load = +$('p-load').value, hpa = $('p-hpa').checked, ca = $('p-ca').checked;
+    // 1. Pod autoscaler: aim for ~1 Pod per 8 users, between 2 and 12 Pods
+    if (hpa) {
+      var want = Math.max(2, Math.min(12, Math.ceil(load / 8)));
+      if (want > S.reps) { var up = Math.min(2, want - S.reps); S.reps += up; say('HPA: CPU is high → Deployment goes ' + (S.reps - up) + ' → ' + S.reps + ' Pods.', 'hpa'); }
+      else if (want < S.reps && S.tick % 3 === 0) { S.reps--; say('HPA: load dropped → Deployment goes ' + (S.reps + 1) + ' → ' + S.reps + ' Pods.', 'hpa'); }
+    }
+    // 2. nodes that are still joining
+    S.nodes.forEach(function (n) { if (n.join > 0) { n.join--; if (n.join === 0) say('Node ' + n.id + ' joined the cluster and is Ready.', 'k8s'); } });
+    var L = layout();
+    // 3. Node autoscaler
+    var joining = S.nodes.some(function (n) { return n.join > 0; });
+    if (L.pending > 0) {
+      S.idle = 0;
+      if (ca && !joining && S.nodes.length < MAX) {
+        S.nodes.push({ id: S.next++, join: 3 });
+        say('Cluster Autoscaler: ' + L.pending + ' Pod(s) are Pending → asks AWS for +1 node (now ' + S.nodes.length + ').', 'ca');
+      } else if (ca && !joining && S.nodes.length >= MAX && S.tick % 4 === 0) {
+        say('Cluster Autoscaler: already at the node group maximum (' + MAX + '). Raise max_size to go further.', 'warn');
+      } else if (!ca && S.tick % 4 === 0) {
+        say(L.pending + ' Pod(s) stay Pending — no node autoscaler is running, so nobody adds nodes.', 'warn');
+      }
+    } else if (ca && ready().length > MIN) {
+      var spare = (ready().length - 1) * (CAP - SYS) >= S.reps;
+      S.idle = spare ? S.idle + 1 : 0;
+      if (S.idle >= 4) {
+        var gone = S.nodes.splice(S.nodes.length - 1, 1)[0]; S.idle = 0;
+        say('Cluster Autoscaler: nodes are under-used → drains node ' + gone.id + ' and terminates it. Pods move to the other nodes.', 'ca');
+      }
+    }
+    render();
+  }
+  function render() {
+    var L = layout();
+    $('m-rep').textContent = S.reps; $('m-run').textContent = L.run; $('m-pen').textContent = L.pending; $('m-nodes').textContent = S.nodes.length;
+    var cost = 0.10 + 0.045 + S.nodes.length * 0.0416; $('m-cost').textContent = '$' + cost.toFixed(2);
+    var html = '', ri = 0;
+    for (var i = 0; i < MAX; i++) {
+      var n = S.nodes[i];
+      if (!n) { html += '<div class="node empty"><div class="nl">slot ' + (i + 1) + '<i>not running</i></div><div class="slots">' + '<div class="slot"></div>'.repeat(CAP) + '</div></div>'; continue; }
+      var pods = 0;
+      if (n.join === 0) { pods = L.per[ri++] || 0; }
+      var s = ''; for (var k = 0; k < CAP; k++) { s += '<div class="slot ' + (n.join ? '' : (k === 0 ? 'sys' : (k <= pods ? 'pod' : ''))) + '"></div>'; }
+      html += '<div class="node' + (n.join ? ' joining' : '') + '"><div class="nl">Node ' + n.id + '<i>' + (n.join ? 'joining…' : 'Ready') + '</i></div><div class="slots">' + s + '</div></div>';
+    }
+    $('p-nodes').innerHTML = html;
+    var p = '<b>Pending Pods</b> — they have no room yet';
+    if (L.pending) { p += '<div class="pods">' + '<b></b>'.repeat(L.pending) + '</div>'; } else { p = '<b>No Pending Pods</b> — every Pod has a home.'; }
+    $('p-pend').innerHTML = p;
+  }
+  var presets = { quiet: 8, busy: 48, spike: 100 };
+  document.querySelectorAll('[data-p]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var k = b.getAttribute('data-p');
+      if (k === 'reset') { reset(); return; }
+      if (k === 'plus') { S.reps += 3; say('You scale the Deployment by hand: +3 Pods (now ' + S.reps + ').', 'k8s'); render(); return; }
+      $('p-load').value = presets[k]; $('p-loadv').textContent = presets[k];
+      say({ quiet: 'Traffic drops to a quiet night.', busy: 'Traffic rises: busy afternoon.', spike: 'Sale starts! Traffic jumps.' }[k], 'k8s');
+    });
+  });
+  $('p-load').addEventListener('input', function () { $('p-loadv').textContent = this.value; });
+  reset(); setInterval(step, 900);
+})();
+</script>
+<script>window.HIRE={"steps": [{"who": "HR", "wc": "hr", "title": "Ticket arrives", "why": "Asha joins the Orders team on Monday", "note": "HR or her manager raises a ticket. No cluster knowledge needed.", "cmd": "", "out": ""}, {"who": "Platform team", "wc": "plat", "title": "Create her identity", "why": "One IAM user (or an SSO account in a real company)", "note": "The platform team creates Asha's identity.", "cmd": "aws iam create-user --user-name asha.rao", "out": "{\n    \"User\": {\n        \"Path\": \"/\",\n        \"UserName\": \"asha.rao\",\n        \"UserId\": \"AIDAEXAMPLEUSERID123\",\n        \"Arn\": \"arn:aws:iam::123456789012:user/asha.rao\",\n        \"CreateDate\": \"2026-10-31T18:59:34Z\"\n    }\n}"}, {"who": "Platform team", "wc": "plat", "title": "Add her to the developers group", "why": "The ONE onboarding action", "note": "Everything else was prepared by Terraform. The group may assume the developer role.", "cmd": "aws iam add-user-to-group --user-name asha.rao --group-name demo-eks-developers\naws iam get-group --group-name demo-eks-developers --query 'Users[].UserName'", "out": "[\n    \"asha.rao\"\n]"}, {"who": "New hire", "wc": "new", "title": "Connect from her laptop", "why": "One command writes her kubeconfig", "note": "On her laptop, signed in as asha.rao. The role ARN comes from the onboarding page or `terraform output developer_role_arn`.", "cmd": "aws eks update-kubeconfig --name demo-eks --profile asha --role-arn arn:aws:iam::123456789012:role/demo-eks-developer --alias asha", "out": "Added new context asha to /home/asha/.kube/config"}, {"who": "New hire", "wc": "new", "title": "Who does the cluster think I am?", "why": "She became the role, not an IAM user", "note": "Kubernetes sees the IAM role she assumed.", "cmd": "kubectl --context asha auth whoami", "out": "ATTRIBUTE                                              VALUE\nUsername                                               arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth\nUID                                                    aws-iam-authenticator:123456789012:AROAEXAMPLEROLEID12345\nGroups                                                 [system:authenticated]\nExtra: arn                                             [arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth]\nExtra: canonicalArn                                    [arn:aws:iam::123456789012:role/demo-eks-developer]\nExtra: principalId                                     [AROAEXAMPLEROLEID12345]\nExtra: sessionName                                     [EKSGetTokenAuth]"}, {"who": "New hire", "wc": "new", "title": "First real command", "why": "She can see the dev namespace", "note": "Her first kubectl command.", "cmd": "kubectl --context asha get pods -n dev", "out": "NAME                   READY   STATUS    RESTARTS   AGE\nweb-6656cbf7df-tk455   1/1     Running   0          14m\nweb-6656cbf7df-zg78n   1/1     Running   0          14m"}, {"who": "Platform team", "wc": "plat", "title": "Months later: she leaves the team", "why": "Remove from the group and access ends", "note": "Offboarding is the same action in reverse.", "cmd": "aws iam remove-user-from-group --user-name asha.rao --group-name demo-eks-developers\nkubectl --context asha get pods -n dev", "out": "(group membership removed)\n\nAn error occurred (AccessDenied) when calling the AssumeRole operation: User: arn:aws:iam::123456789012:user/asha.rao is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/demo-eks-developer.\nUnable to connect to the server: getting credentials: exec: executable aws failed with exit code 255"}], "tryAt": 5, "tries": [{"cmd": "kubectl get pods -n dev", "ok": true, "out": "NAME                   READY   STATUS    RESTARTS   AGE\nweb-6656cbf7df-tk455   1/1     Running   0          14m\nweb-6656cbf7df-zg78n   1/1     Running   0          14m", "why": "Allowed: AmazonEKSEditPolicy covers the dev namespace."}, {"cmd": "kubectl get pods -n prod", "ok": true, "out": "NAME                   READY   STATUS    RESTARTS   AGE\nweb-6656cbf7df-987km   1/1     Running   0          14m\nweb-6656cbf7df-vsmqt   1/1     Running   0          14m", "why": "Allowed: AmazonEKSViewPolicy lets her read the whole cluster."}, {"cmd": "kubectl delete pod -n dev -l app=web", "ok": true, "out": "pod \"web-6656cbf7df-tk455\" deleted\npod \"web-6656cbf7df-zg78n\" deleted", "why": "Allowed: she may change things in dev (the Deployment starts new Pods)."}, {"cmd": "kubectl delete pod -n prod -l app=web", "ok": false, "out": "Error from server (Forbidden): pods \"web-6656cbf7df-987km\" is forbidden: User \"arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth\" cannot delete resource \"pods\" in API group \"\" in the namespace \"prod\"", "why": "Denied: in prod she can only look."}, {"cmd": "kubectl create namespace test", "ok": false, "out": "Error from server (Forbidden): namespaces is forbidden: User \"arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth\" cannot create resource \"namespaces\" in API group \"\" at the cluster scope", "why": "Denied: creating namespaces is a cluster-wide change."}, {"cmd": "kubectl get secrets -n prod", "ok": false, "out": "Error from server (Forbidden): secrets is forbidden: User \"arn:aws:sts::123456789012:assumed-role/demo-eks-developer/EKSGetTokenAuth\" cannot list resource \"secrets\" in API group \"\" in the namespace \"prod\"", "why": "Denied: the view policy deliberately hides Secrets."}], "skipped": {"cmd": "aws eks update-kubeconfig --name demo-eks --profile asha --role-arn arn:aws:iam::123456789012:role/demo-eks-developer --alias asha", "out": "An error occurred (AccessDeniedException) when calling the DescribeCluster operation: User: arn:aws:iam::123456789012:user/asha.rao is not authorized to perform: eks:DescribeCluster on resource: arn:aws:eks:us-east-1:123456789012:cluster/demo-eks because no identity-based policy allows the eks:DescribeCluster action", "why": "Without the group she cannot even look the cluster up. IAM stops her before Kubernetes is involved."}};</script>
+<script>(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var H = window.HIRE, cur = 0, ran = [];
+  var chain = ['Asha’s IAM user', 'IAM group', 'IAM role', 'EKS access entry', 'Kubernetes permissions'];
+  var lit = [[], [], [0], [0, 1], [0, 1, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0]];
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function paint() {
+    var l = lit[Math.min(cur, lit.length - 1)];
+    $('h-chain').innerHTML = chain.map(function (c, i) { return (i ? '<span class="a">→</span>' : '') + '<span class="c' + (l.indexOf(i) > -1 ? ' lit' : '') + '">' + c + '</span>'; }).join('');
+    $('h-path').innerHTML = H.steps.map(function (s, i) {
+      return '<button class="pstep ' + (i < cur ? 'done' : '') + (i === cur ? ' cur' : '') + '" data-i="' + i + '" type="button"><div class="n">' + (i < cur ? '✓' : i + 1) + '</div><div><b>' + s.title + '<span class="who ' + s.wc + '">' + s.who + '</span></b><span class="w">' + s.why + '</span></div></button>';
+    }).join('');
+    document.querySelectorAll('.pstep').forEach(function (b) { b.addEventListener('click', function () { cur = +b.getAttribute('data-i'); show(false); paint(); }); });
+    $('h-try').hidden = cur < H.tryAt || cur >= H.steps.length;
+  }
+  function show(run) {
+    var s = H.steps[cur];
+    $('h-title').textContent = s.who + ' · ' + s.title;
+    var t = '<span class="cm"># ' + esc(s.note) + '</span>\n';
+    if (s.cmd) t += '<span class="ok">$</span> ' + esc(s.cmd) + '\n';
+    if (run) { t += (s.out ? esc(s.out) : '') + '\n'; }
+    else if (s.cmd) { t += '\n<span class="cm">(press Run ▶)</span>'; }
+    $('h-out').innerHTML = t;
+    $('h-run').style.display = '';
+    $('h-run').textContent = s.cmd ? 'Run \u25b6' : 'Next \u25b6';
+  }
+  $('h-run').addEventListener('click', function () {
+    if (cur >= H.steps.length) { cur = 0; paint(); show(false); return; }
+    var s = H.steps[cur];
+    if (!s.cmd) { cur++; paint(); show(false); return; }
+    show(true); cur++; paint();
+    if (cur >= H.steps.length) $('h-run').textContent = 'Replay \u21ba';
+    else $('h-run').textContent = 'Next \u25b6: ' + H.steps[cur].title;
+  });
+  $('h-btns').innerHTML = H.tries.map(function (t, i) { return '<button class="btn sec" data-t="' + i + '" type="button">' + esc(t.cmd.replace(/^kubectl /, '')) + '</button>'; }).join('');
+  document.querySelectorAll('[data-t]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = H.tries[+b.getAttribute('data-t')];
+      $('h-title').textContent = 'New hire · try it';
+      $('h-out').innerHTML = '<span class="ok">$</span> ' + esc(t.cmd) + '\n' + '<span class="' + (t.ok ? 'ok' : 'no') + '">' + esc(t.out) + '</span>\n\n<span class="cm"># ' + esc(t.why) + '</span>';
+    });
+  });
+  $('h-skip').addEventListener('click', function () {
+    $('h-title').textContent = 'New hire · group step forgotten';
+    $('h-out').innerHTML = '<span class="ok">$</span> ' + esc(H.skipped.cmd) + '\n<span class="no">' + esc(H.skipped.out) + '</span>\n\n<span class="cm"># ' + esc(H.skipped.why) + '</span>';
+  });
+  paint(); show(false);
+})();
+</script>
+</body>
+</html>
