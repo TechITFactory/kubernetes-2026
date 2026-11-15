@@ -1,1 +1,1 @@
-Unzip Projects folder and push to your own Repos
+Unzip Project.zip and push to your own Repos
